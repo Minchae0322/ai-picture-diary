@@ -63,6 +63,24 @@ src/main/resources/
 - 설정 클래스는 `infrastructure` 또는 `config` 패키지. `domain`이 설정 클래스를 알면 안 된다(`ddd-spring` 스킬). 도메인이 값이 필요하면 application 서비스가 꺼내 넘긴다.
 - 기능 플래그는 `@ConditionalOnProperty`로 빈 교체 또는 프로퍼티 boolean. `if (env.getProperty(...))` 흩뿌리기 금지.
 
+
+### 4-1. 업무 상한과 매직 넘버
+
+- **업무 규칙의 수치는 코드 상수가 아니라 설정값이다.** 글자 수 제한, 하루 횟수 제한, 점수 범위, 페이지 크기, 유효 기간처럼 "정책이 바뀌면 바뀌는 값"은 `app.<도메인>.*`에 두고 한곳에서 관리한다. `private static final int MAX = 500`이 도메인에 박혀 있으면 배포해야 바뀐다.
+- **도메인은 설정 클래스를 모른다.** 프로퍼티 record에서 **정책 값 객체**(`XxxPolicy` record)를 만들어 도메인 메서드에 넘긴다. 도메인은 그 값 객체만 알고, 응용 계층이 설정에서 꺼내 전달한다(`ddd-spring` 계층 규칙).
+  ```
+  DiaryProperties(설정) -> DiaryPolicy(도메인 값 객체) -> Diary.write(..., policy)
+  ```
+- **애노테이션은 컴파일 상수만 받는다.** `@Column(length=)`, `@Size(max=)`, `@Min/@Max`에는 설정값을 넣을 수 없다. 그래서 둘을 구분한다.
+
+| 종류 | 어디에 | 예 | 바뀌는 주기 |
+|---|---|---|---|
+| **스키마 상수** | 엔티티의 `public static final`. DDL과 같은 값 | `CONTENT_COLUMN_LENGTH = 500` | 마이그레이션할 때만 |
+| **업무 상한** | 설정 `app.<도메인>.*` -> 정책 값 객체 | `max-content-length: 500` | 기획이 바꿀 때 |
+
+- 업무 상한이 스키마 상수를 넘으면 저장 시점에 잘린다. 프로퍼티에 `@Max(<스키마 상수>)`를 걸어 **기동 때** 잡는다.
+- 테스트는 설정을 읽지 말고 정책 값 객체를 직접 만들어 경계를 검증한다(`test-writing-guide` 경계값).
+
 ## 5. 기동 시 검증 - 빠진 값은 기동 순간에 터져야 한다
 
 - 모든 `@ConfigurationProperties`에 `@Validated` + Bean Validation. 시크릿 `@NotBlank`, 길이 `@Size(min=)`, URL `@Pattern` 또는 커스텀.

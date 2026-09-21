@@ -20,7 +20,8 @@ com.company.service
 ├── order/                         # 바운디드 컨텍스트 (도메인 단위)
 │   ├── interfaces/                # Controller, dto/ (XxxRequest/XxxResponse, 오퍼레이션별 static 이너 record)
 │   ├── application/               # 유스케이스 서비스(PlaceOrderService 또는 OrderFacade), OrderQueryService(readOnly), command/, result/
-│   ├── domain/                    # 애그리거트 루트(Order), OrderLine, 값 객체(Money), OrderStatus, OrderRepository(기본형: extends JpaRepository), OrderPolicy(도메인 서비스), OrderPlacedEvent(record)
+│   ├── domain/                    # 애그리거트 루트(Order), OrderLine, 값 객체(Money), OrderStatus, OrderPolicy(도메인 서비스), OrderPlacedEvent(record)
+│   ├── repository/                # (선택) OrderRepository를 도메인 밖으로 뺄 때. 4번 참고. 안 빼면 domain에 둔다
 │   └── infrastructure/            # OrderQueryRepository(QueryDSL 화면 조회), 어댑터(4번 조건 해당 시에만), PaymentApiClient, OrderEventPublisher
 ├── member/                        # (같은 4계층)
 └── common/                        # 공통 예외, 응답 포맷, 유틸(순수 계산만), 설정. 도메인 규칙 금지
@@ -75,6 +76,18 @@ com.company.service
 domain/ArticleRepository.java        interface ArticleRepository extends JpaRepository<Article, Long>
 ```
 
+
+**리포지토리를 어디에 두는가 - 두 배치 모두 기본형이다.**
+
+| 배치 | 모양 | 언제 |
+|---|---|---|
+| `domain`에 둔다 | `domain/ArticleRepository` | 도메인 파일이 몇 개 안 되고 조회가 단순할 때. 파일이 한곳에 모여 읽기 쉽다 |
+| `repository` 폴더로 뺀다 | `repository/ArticleRepository`, `repository/ArticleQueryRepository` | **도메인 폴더에 엔티티와 규칙만 남기고 싶을 때.** 조회가 늘어날 자리가 미리 열린다 |
+
+- 뺀 배치에서는 `domain`이 Spring Data를 모르게 되므로, 그걸 강제하는 ArchUnit 규칙을 켜도 된다(`harness`). 반대로 `domain`에 둔 프로젝트에서 그 규칙을 켜면 안 된다.
+- 어느 쪽이든 **의존 방향은 같다**: `application(service) -> repository -> domain`. 도메인이 리포지토리를 역참조하지 않는다.
+- 한 프로젝트 안에서 섞지 않는다. 프로젝트 `CLAUDE.md` 또는 프로젝트 스킬에 어느 배치인지 한 줄 적는다.
+
 **포트(도메인 인터페이스) + 어댑터(infrastructure 구현)로 나누는 것은 예외다.** 아래 중 하나에 해당할 때만 나눈다.
 
 | 나눠도 되는 경우 | 이유 |
@@ -97,6 +110,30 @@ domain/ArticleRepository.java        interface ArticleRepository extends JpaRepo
 ### 6. DTO 규칙
 - 요청/응답은 `interfaces/dto`, Command는 `application/command`, 조회 결과는 `application/result`.
 - 도메인별 `XxxRequest`/`XxxResponse` 안에 오퍼레이션별 static 이너 record(`OrderRequest.Place`). request/response를 한 클래스에 섞지 않는다. `record` 권장.
+
+### 6-1. 계층별 책임 - 무엇을 하지 않는가
+
+계층 이름이 `interfaces`/`application`이든 `controller`/`service`든 책임은 같다.
+
+| 계층 | 하는 것 | **하지 않는 것** |
+|---|---|---|
+| 표현(`interfaces`/`controller`) | 요청 매핑, `@Valid`, result -> Response 변환 호출, 상태 코드 | 인증 확인·토큰 파싱, 응답 DTO 조립 로직, 설정값·도메인 규칙 참조, 엔티티 접근 |
+| 응용(`application`/`service`) | 유스케이스 조율, 트랜잭션 경계, 엔티티 -> `result` 변환 | 비즈니스 `if`(도메인으로), HTTP·DTO 타입 의존 |
+| `domain` | 상태 전이, 불변식, 소유자 판단, 포트 정의 | 스프링 web/외부 SDK/설정 클래스 |
+| `infrastructure` | 포트 구현, 복잡 조회, 외부 연동 | 유스케이스 흐름 |
+| `config` (계층 아님) | `@ConfigurationProperties` | 로직 |
+
+**컨트롤러에 private 헬퍼가 생기면 신호다.** 대부분 아래 셋 중 하나이고 전부 다른 자리가 있다.
+
+| 컨트롤러에서 본 것 | 옮길 곳 |
+|---|---|
+| `if (userId == null) throw Unauthorized` | `HandlerMethodArgumentResolver` + `@LoginUser` 같은 파라미터 애노테이션. 401 판단은 한 곳 |
+| `private XxxResponse toResponse(...)` | DTO의 정적 팩터리 `XxxResponse.from(result)` |
+| `service.getLimit()`을 꺼내 DTO에 넘기기 | 그 값을 아는 응용 계층이 계산해서 `result`에 담는다 |
+
+- **파생 판단은 그 근거를 아는 계층이 한다.** 설정값(상한, 기능 플래그)을 아는 것은 응용 계층이다. 컨트롤러가 설정값을 읽어 계산하면 같은 규칙이 화면마다 복제된다.
+- **엔티티는 응용 계층 밖으로 나가지 않는다.** 조회 결과는 `application/result`(또는 `service/result`)의 record로 내보내고, 표현 계층이 그것을 Response로 바꾼다. 컨트롤러가 엔티티를 받아 getter로 조립하면 지연 로딩과 도메인 변경이 화면을 깨뜨린다.
+- result와 Response가 필드까지 거의 같아 보여도 유지한다. 화면 요구(문자열 ID, 포맷)와 유스케이스 결과는 서로 다른 속도로 바뀐다. **다만 조회 하나짜리 CRUD에서는 result를 생략하고 Response 정적 팩터리에서 엔티티를 받아도 된다** - 판단 기준은 "이 화면이 도메인과 다른 모양을 요구하는가".
 
 ### 7. 도메인 이벤트
 - 두 애그리거트 변경 또는 알림/외부 연동이 따라올 때. 기본은 스프링 이벤트: `publishEvent` -> `@TransactionalEventListener(phase = AFTER_COMMIT)`(+`@Async`). `AbstractAggregateRoot`는 이미 쓰는 프로젝트만.
@@ -133,6 +170,7 @@ domain/ArticleRepository.java        interface ArticleRepository extends JpaRepo
 - 운영 프로젝트 패키지 일괄 개명. 계층 우선 최상위 구조(도메인이 먼저). `order.domain` -> `member.domain` 직접 import.
 - 기존 `@ManyToOne` 일괄 ID 전환. 값 객체 전면 도입. 모든 테이블에 애그리거트/리포지토리/서비스 기계 생성(단순 참조 데이터는 CRUD).
 - 엔티티 `@Setter`/`@Data`. 엔티티가 요청 DTO를 직접 받는 것. 도메인 계층에서 외부 API/Kafka 직접 호출.
+- 컨트롤러에서 인증 확인·null 검사, 응답 DTO 조립 private 헬퍼, 설정값 참조(6-1번). 엔티티를 응용 계층 밖으로 내보내기.
 - 애노테이션을 계층별 금지 목록으로 관리. "Manager/Helper/Util"에 도메인 규칙. **위임만 하는 리포지토리 어댑터**(4번의 세 조건에 해당하지 않는데 포트를 나누는 것). 커밋 전 알림/외부 이벤트 발행.
 
 ## 관련 스킬

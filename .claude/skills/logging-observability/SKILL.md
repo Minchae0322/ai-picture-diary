@@ -50,7 +50,7 @@ description: 백엔드 코드에 로그를 넣거나 로그 설정(logback, 레�
 - 고정 필드(인코더 자동): `ts`, `level`, `logger`, `thread`, `traceId`, `spanId`, `service`, `env`, `message`, 예외 시 `exception`. 가변 필드는 **구조화 인자**로만.
 - `event`는 **항상**. `<도메인>.<동작>` 소문자 점 표기, 과거형(`order.placed`, `payment.approve_failed`, `http.request.done`, `batch.finished`, `outbox.publish_failed`). 메시지 문구가 바뀌어도 `event`는 안 바뀐다.
 - 식별자는 **ID만**(`memberId`, `orderId`). 시간은 `durationMs` 정수, 단위를 이름에.
-- 코드: **SLF4J fluent + `addKeyValue`** 기준(`log.atInfo().addKeyValue("event", "order.placed")...log("order placed")`). logstash `StructuredArguments`도 가능, 프로젝트에서 하나로. 반복 조합은 헬퍼(`AppLog.event(...).with(...).info(...)`). `String.format`/`+` 연결 금지.
+- 코드: **SLF4J fluent + `addKeyValue`** 기준(`log.atInfo().addKeyValue("event", "order.placed")...log("order placed")`). logstash `StructuredArguments`도 가능, 프로젝트에서 하나로. 반복 조합은 헬퍼(`AppLog.event(...).with(...).info(...)`). **헬퍼를 둔 프로젝트에서는 인라인 체인을 쓰지 않는다** - 둘이 섞이면 event 필드가 빠진 로그가 생긴다. `String.format`/`+` 연결 금지.
 - 로컬은 `local` 프로파일만 사람용 패턴(traceId 앞 8자리, 로거 축약, 키=값 뒤에). 같은 구조화 인자에서 두 포맷이 나오므로 코드는 하나.
 
 ## 4. traceId - 로그, 트레이스, 메트릭을 잇는 실

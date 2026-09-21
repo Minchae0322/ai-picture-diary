@@ -1,4 +1,0 @@
-#!/usr/bin/env bash
-# .githooks/pre-push
-set -e
-./gradlew -q test

@@ -1,0 +1,68 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.5.6'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'com.diffplug.spotless' version '7.0.2'
+}
+
+group = 'com.jellydiary'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain { languageVersion = JavaLanguageVersion.of(21) }
+}
+
+repositories { mavenCentral() }
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+    // 로그-트레이스 연결. traceId/spanId를 MDC에 넣는다 (logging-observability 4장)
+    implementation 'io.micrometer:micrometer-tracing-bridge-otel'
+    implementation 'net.logstash.logback:logstash-logback-encoder:8.0'
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+
+    runtimeOnly 'org.postgresql:postgresql'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'com.tngtech.archunit:archunit-junit5:1.3.0'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:postgresql'
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
+}
+
+// 빠른 검사는 자주, 느린 검사는 경계에서 (harness 2장)
+tasks.named('test') {
+    useJUnitPlatform { excludeTags 'integration' }
+    testLogging { events 'failed'; exceptionFormat 'short' }
+}
+
+tasks.register('integrationTest', Test) {
+    useJUnitPlatform { includeTags 'integration' }
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    shouldRunAfter tasks.named('test')
+    testLogging { events 'failed'; exceptionFormat 'short' }
+}
+
+spotless {
+    java {
+        googleJavaFormat().aosp()
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+}
+
+/** hook과 CI가 같은 것을 부른다 (harness 5장) */
+tasks.register('preCommit') {
+    dependsOn 'spotlessApply', 'compileJava', 'compileTestJava'
+}

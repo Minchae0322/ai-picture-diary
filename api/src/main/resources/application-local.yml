@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/jellydiary
+    username: jelly
+    password: local-only-not-a-secret
+  jpa:
+    show-sql: true
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0

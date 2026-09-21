@@ -1,0 +1,14 @@
+{
+  "expo": {
+    "name": "젤리 다이어리",
+    "slug": "jelly-diary",
+    "scheme": "jellydiary",
+    "version": "0.0.1",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "plugins": ["expo-router"],
+    "ios": { "supportsTablet": false, "bundleIdentifier": "com.jellydiary.app" },
+    "android": { "package": "com.jellydiary.app", "edgeToEdgeEnabled": true }
+  }
+}

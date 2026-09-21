@@ -1,0 +1,45 @@
+spring:
+  application:
+    name: jelly-diary-api
+  profiles:
+    default: local                # 프로파일 없이 뜨면 local (config-and-secrets 2장)
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}      # 시크릿은 기본값 없이. 없으면 기동 실패가 정상
+  jpa:
+    hibernate:
+      ddl-auto: validate          # 스키마의 진실은 sql/patch/*.sql
+    open-in-view: false
+    properties:
+      hibernate.jdbc.time_zone: UTC
+  threads:
+    virtual:
+      enabled: false
+
+app:
+  timezone: Asia/Seoul            # "오늘"의 경계
+  diary:
+    max-content-length: 500       # 업무 상한. DB 컬럼 길이(500) 이하여야 한다
+    daily-regenerate-limit: 3     # 재생성 상한 (llm-integration 4장)
+    mood-min: -3                  # 기분 점수 범위. 06 그래프 축과 같은 값
+    mood-max: 3
+  ai:
+    provider: ${AI_PROVIDER:mock} # mock | openai
+    mock-delay: ${AI_MOCK_DELAY:1500ms}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    env:
+      show-values: never
+  tracing:
+    sampling:
+      probability: ${TRACING_SAMPLING:1.0}
+
+logging:
+  level:
+    com.jellydiary: INFO

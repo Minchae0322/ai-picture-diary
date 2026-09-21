@@ -25,8 +25,15 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
+        {/* 배경이 밝은 복숭아색이라 상태바 글자는 어둡게. 다크 모드는 auto가 뒤집는다 */}
         <StatusBar style="auto" />
-        <Stack screenOptions={{ headerShown: false }} />
+        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }}>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="onboarding" />
+          {/* 07·09는 탭이 아니라 MY에서 밀어 올리는 화면이다(docs/screen/README.md) */}
+          <Stack.Screen name="badges" />
+          <Stack.Screen name="store" />
+        </Stack>
       </QueryClientProvider>
     </SafeAreaProvider>
   );

@@ -45,9 +45,12 @@
 - 최근 기록 탭 시 이동할 상세 화면(현재 이동 없음)
 - 오프라인 작성 큐와 동기화 충돌 규칙
 
-## 8. 구현 (2026-09-21)
+## 8. 구현 (2026-09-21 / 시안 반영 2026-09-21)
 
-- 화면: `app/app/(tabs)/index.tsx` + `app/src/features/diary/ui/DiaryComposer.tsx`
+- 화면: `app/app/(tabs)/index.tsx` + `app/src/features/diary/ui/` (`DiaryComposer`, `EmptyCanvas`, `StreakChip`, `RecentDiaries`)
 - API: `POST /api/v1/diaries`, `GET /api/v1/diaries/today`, `GET /api/v1/diaries?size=3`
 - 확정되어 3장으로 올린 것: 하루 1건, 본문 1~500자, 날씨 6종, 빠른 감정 칩은 힌트일 뿐 AI 판정을 대체하지 않음
-- 아직: 연속 기록 배지(도메인 없음), 인사말의 닉네임(인증 없음)
+- 시안대로 바꾼 것: 입력창이 카드 **안**의 알약으로 들어가고 전송 버튼이 그 안에 붙는다. 빈 카드에 점선 "AI 그림 영역"이 생겼다. 최근 기록이 세로 목록에서 가로 카드 3장이 됐다
+- 글자 수 카운터는 시안에 없어 450자부터만 보인다. 상한 자체는 지킨다
+- 최근 기록 썸네일에 날씨 글리프를 넣었다(색만으로는 날씨가 구분되지 않는다. 05 문서 8장과 같은 이유)
+- **연속 기록 배지와 닉네임은 목이다**: `app/src/shared/lib/mockStats.ts`, `mockViewer.ts`. 서버에 해당 도메인이 없다

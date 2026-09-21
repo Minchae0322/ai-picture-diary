@@ -1,9 +1,12 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { font, space } from '@/shared/theme/tokens';
+import { LinearGradient } from 'expo-linear-gradient';
+import { font, leading, radius, space, weatherColor } from '@/shared/theme/tokens';
 import { useColors } from '@/shared/theme/useColors';
-import { WEATHER_EMOJI, type DiarySummary } from '../api/diaryTypes';
+import { WEATHER_EMOJI, WEATHER_LABEL } from '@/shared/weather';
+import type { DiarySummary } from '../api/diaryTypes';
+import { formatShortDate } from '../model/format';
 
-/** 02 최근 기록. 0건이면 섹션 자체를 숨긴다(빈 리스트 UI를 만들지 않는다). */
+/** 02 `recent`. 0건이면 섹션 자체를 숨긴다(빈 목록 UI를 만들지 않는다) */
 export function RecentDiaries({ items }: { items: DiarySummary[] }) {
   const colors = useColors();
   if (items.length === 0) {
@@ -11,36 +14,67 @@ export function RecentDiaries({ items }: { items: DiarySummary[] }) {
   }
   return (
     <View style={styles.wrap}>
-      <Text style={[styles.title, { color: colors.textMuted }]}>최근 기록</Text>
-      {items.map((item) => (
-        <View key={item.id} accessible style={[styles.row, { borderColor: colors.border }]}>
-          <Text style={[styles.date, { color: colors.textMuted }]}>{formatDate(item.entryDate)}</Text>
-          <Text numberOfLines={1} style={[styles.content, { color: colors.text }]}>
-            {item.weather ? `${WEATHER_EMOJI[item.weather]} ` : ''}
-            {item.content}
-          </Text>
-        </View>
-      ))}
+      <Text accessibilityRole="header" style={[styles.title, { color: colors.text }]}>
+        최근 기록
+      </Text>
+      <View style={styles.row}>
+        {items.map((item) => (
+          <View
+            key={item.id}
+            accessible
+            accessibilityLabel={`${formatShortDate(item.entryDate)} ${
+              item.weather === null ? '' : WEATHER_LABEL[item.weather]
+            } ${item.content}`}
+            style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}
+          >
+            {/* 시안 `Rectangle`: 흰색에서 그날 날씨색으로 떨어지는 썸네일 */}
+            <LinearGradient
+              colors={[
+                'rgba(255,255,255,0.9)',
+                item.weather === null ? colors.decor : weatherColor[item.weather],
+              ] as const}
+              style={styles.thumb}
+            >
+              {/* 날씨색만으로는 구분되지 않아 글리프를 같이 둔다(MonthGrid와 같은 이유) */}
+              {item.weather === null ? null : (
+                <Text style={styles.glyph} accessibilityElementsHidden importantForAccessibility="no">
+                  {WEATHER_EMOJI[item.weather]}
+                </Text>
+              )}
+            </LinearGradient>
+            <Text style={[styles.date, { color: colors.text }]}>{formatShortDate(item.entryDate)}</Text>
+            <Text numberOfLines={1} style={[styles.excerpt, { color: colors.textMuted }]}>
+              {item.content}
+            </Text>
+          </View>
+        ))}
+      </View>
     </View>
   );
 }
 
-/** ISO 문자열은 표시 직전에만 변환한다 */
-function formatDate(isoDate: string): string {
-  const [, month, day] = isoDate.split('-');
-  return `${Number(month)}/${Number(day)}`;
-}
-
 const styles = StyleSheet.create({
-  wrap: { gap: space[2] },
-  title: { fontSize: font.sm },
-  row: {
-    flexDirection: 'row',
+  wrap: { gap: space[3] },
+  title: { fontSize: font.base, fontWeight: font.weightBold },
+  row: { flexDirection: 'row', gap: space[3] },
+  card: {
+    flex: 1,
     alignItems: 'center',
-    gap: space[3],
+    gap: space[2],
+    paddingHorizontal: space[2],
     paddingVertical: space[3],
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderWidth: 1,
+    borderRadius: 22,
   },
-  date: { fontSize: font.xs, width: 40 },
-  content: { flex: 1, fontSize: font.sm },
+  thumb: {
+    width: '100%',
+    height: 64,
+    borderRadius: radius.md,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    paddingBottom: 6,
+  },
+  glyph: { fontSize: 18, lineHeight: 22 },
+  date: { fontSize: font.xs, lineHeight: leading(font.xs, 1.2), fontWeight: font.weightBold },
+  excerpt: { fontSize: font.micro, lineHeight: leading(font.micro, 1.2) },
 });

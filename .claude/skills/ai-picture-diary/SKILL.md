@@ -53,7 +53,7 @@ description: "이 저장소에서 코드·스키마·문서를 쓰거나 고치�
 | 서버 상태 | TanStack Query v5 | `frontend-state` 기본값 |
 | 응답 형식 | 봉투 `{data, meta}` + `ErrorCode` enum | `api-design` 3장 |
 | 목록 | 커서 페이징 (커서 = entryDate Base64) | 하루 1건이라 정렬 키가 유일 |
-| 디자인 | 모바일 우선 + soft-modern, 브랜드 `#6c5ce7` | `CLAUDE.md` 선언 |
+| 디자인 | 모바일 우선 + `muted-sky`, 브랜드 `#3f6d8e` | `CLAUDE.md` 선언 |
 | AI | 현재 `MockDiaryPainter`(규칙 기반). `app.ai.provider`로 교체 | 실모델은 다음 라운드 |
 | 인증 | **없음.** `X-User-Id` 헤더 임시 | 핵심 루프 먼저. `spring-auth`는 다음 |
 
@@ -156,6 +156,7 @@ com.jellydiary
 | 문서 기반 답변, 임베딩, 벡터 검색 | `rag-pipeline` |
 | 화면/컴포넌트, 여백·라운드·색, 반응형 | `ui-fundamentals` |
 | 디자인 토큰, 테마, 다크 모드 | `design-system` |
+| 유리/글래스모피즘 표면, 반투명 버튼·패널 | `glass-button` |
 | 컴포넌트/훅/타입, 프론트 폴더 구조 | `frontend-architecture` |
 | 상태 위치, 스토어, 서버 데이터 캐시/무효화 | `frontend-state` |
 | 프론트 API 호출, 토큰 갱신, 에러 처리 | `frontend-api-client` |

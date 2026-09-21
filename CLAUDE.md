@@ -24,8 +24,9 @@
 ## 디자인 선언 (design-system 0장)
 
 - 주 타깃: **모바일 우선** (390x844 기준)
-- 프리셋: **soft-modern** (브랜드만 젤리 바이올렛 `#6c5ce7`으로 교체)
-- 토큰의 진실: `app/src/shared/theme/tokens.ts`. Figma 변수는 여기서 파생된다.
+- 프리셋: **muted-sky** (채도 낮은 하늘색. `.claude/skills/design-system/presets/muted-sky.md`)
+- 브랜드: 흐린 하늘 `#3f6d8e`
+- 토큰의 진실: `app/src/shared/theme/tokens.ts`. **색은 코드가 진실이다** - Figma 시안(복숭아)과 갈라져 있고 그 방향은 의도된 것이다(figma-workflow 4장). 레이아웃·구조는 여전히 시안이 진실이다.
 
 ## 글쓰기 규칙 (문서, 주석, 커밋 메시지, 대화 전부)
 

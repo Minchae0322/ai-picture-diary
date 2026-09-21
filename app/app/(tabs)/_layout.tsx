@@ -1,36 +1,50 @@
-import { Tabs } from 'expo-router';
-import { Text } from 'react-native';
-import { font } from '@/shared/theme/tokens';
+import { Redirect, Tabs } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useOnboardingDone } from '@/shared/lib/useOnboarding';
+import { font, shadow, space } from '@/shared/theme/tokens';
 import { useColors } from '@/shared/theme/useColors';
+import { tabIcon } from '@/shared/ui/TabIcon';
 
-/** 시안의 탭바 5개. 라우트 이름 = 파일 이름. */
+/** 시안의 탭바 5개. 라우트 이름 = 파일 이름. 07·09는 탭이 아니라 MY 하위다 */
 export default function TabsLayout() {
   const colors = useColors();
+  const insets = useSafeAreaInsets();
+  const onboardingDone = useOnboardingDone();
+
+  // 플래그를 읽는 동안은 아무것도 그리지 않는다. 온보딩이 한 프레임 번쩍이는 것을 막는다
+  if (onboardingDone === null) {
+    return null;
+  }
+  if (!onboardingDone) {
+    return <Redirect href="/onboarding" />;
+  }
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.primary,
+        tabBarActiveTintColor: colors.text,
         tabBarInactiveTintColor: colors.textSubtle,
-        tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
-        tabBarLabelStyle: { fontSize: font.xs },
+        tabBarStyle: [
+          shadow.up,
+          {
+            position: 'absolute',
+            backgroundColor: colors.surface,
+            borderTopColor: colors.border,
+            borderTopWidth: 1,
+            height: 66 + insets.bottom,
+            paddingTop: 14,
+            paddingBottom: Math.max(insets.bottom, space[6]),
+          },
+        ],
+        tabBarLabelStyle: { fontSize: font.micro, lineHeight: 12, marginTop: 6 },
       }}
     >
-      <Tabs.Screen name="index" options={{ title: '홈', tabBarIcon: icon('🏠') }} />
-      <Tabs.Screen name="calendar" options={{ title: '캘린더', tabBarIcon: icon('📅') }} />
-      <Tabs.Screen name="graph" options={{ title: '그래프', tabBarIcon: icon('📈') }} />
-      <Tabs.Screen name="community" options={{ title: '커뮤니티', tabBarIcon: icon('💬') }} />
-      <Tabs.Screen name="my" options={{ title: 'MY', tabBarIcon: icon('🙂') }} />
+      <Tabs.Screen name="index" options={{ title: '홈', tabBarIcon: tabIcon('index') }} />
+      <Tabs.Screen name="calendar" options={{ title: '캘린더', tabBarIcon: tabIcon('calendar') }} />
+      <Tabs.Screen name="graph" options={{ title: '그래프', tabBarIcon: tabIcon('graph') }} />
+      <Tabs.Screen name="community" options={{ title: '커뮤니티', tabBarIcon: tabIcon('community') }} />
+      <Tabs.Screen name="my" options={{ title: 'MY', tabBarIcon: tabIcon('my') }} />
     </Tabs>
   );
 }
-
-/** 이모지는 스크린리더가 이상하게 읽는다 - 라벨은 title이 담당하고 아이콘은 숨긴다. */
-const icon = (emoji: string) =>
-  function TabIcon() {
-    return (
-      <Text importantForAccessibility="no" accessibilityElementsHidden style={{ fontSize: 18 }}>
-        {emoji}
-      </Text>
-    );
-  };

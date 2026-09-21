@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -e
+cd "$(git rev-parse --show-toplevel)/api"
+[ -x ./gradlew ] || exit 0
+./gradlew -q spotlessApply
+cd ..
+git diff --name-only --cached -- '*.java' | xargs -r git add
+cd api
+./gradlew -q compileJava compileTestJava
+./gradlew -q test --tests '*ArchitectureTest'
+command -v gitleaks >/dev/null && gitleaks protect --staged --no-banner

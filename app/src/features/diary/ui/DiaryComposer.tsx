@@ -4,7 +4,8 @@ import { Button } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
 import { font, MIN_TOUCH_TARGET, radius, space } from '@/shared/theme/tokens';
 import { useColors } from '@/shared/theme/useColors';
-import { QUICK_WEATHERS, WEATHER_EMOJI, WEATHER_LABEL, type Weather } from '../api/diaryTypes';
+import { Icon } from '@/shared/ui/Icon';
+import { QUICK_WEATHERS, WEATHER_ICON, WEATHER_LABEL, type Weather } from '../api/diaryTypes';
 
 const MAX_LENGTH = 500;
 
@@ -74,9 +75,16 @@ export function DiaryComposer({ submitting, errorMessage, onSubmit }: Props) {
                   },
                 ]}
               >
-                <Text style={{ color: selected ? colors.primaryFg : colors.text, fontSize: font.sm }}>
-                  {WEATHER_EMOJI[weather]} {WEATHER_LABEL[weather]}
-                </Text>
+                <View style={styles.chipInner}>
+                  <Icon
+                    name={WEATHER_ICON[weather]}
+                    size={16}
+                    color={selected ? colors.primaryFg : colors.text}
+                  />
+                  <Text style={{ color: selected ? colors.primaryFg : colors.text, fontSize: font.sm }}>
+                    {WEATHER_LABEL[weather]}
+                  </Text>
+                </View>
               </Pressable>
             );
           })}
@@ -123,6 +131,7 @@ const styles = StyleSheet.create({
   counter: { alignSelf: 'flex-end', fontSize: font.xs, marginTop: space[1] },
   sectionTitle: { fontSize: font.sm, marginBottom: space[2] },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space[2] },
+  chipInner: { flexDirection: 'row', alignItems: 'center', gap: space[1] },
   chip: {
     minHeight: MIN_TOUCH_TARGET,
     justifyContent: 'center',

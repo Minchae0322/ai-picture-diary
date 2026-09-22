@@ -5,15 +5,16 @@ import com.jellydiary.common.error.ErrorCode;
 import com.jellydiary.common.logging.AppLog;
 import com.jellydiary.diary.config.DiaryProperties;
 import com.jellydiary.diary.domain.Diary;
-import com.jellydiary.diary.domain.DiaryPolicy;
-import com.jellydiary.diary.domain.DiaryGeneratedRequestedEvent;
+import com.jellydiary.diary.type.DiaryPolicy;
+import com.jellydiary.diary.event.DiaryGeneratedRequestedEvent;
 import com.jellydiary.diary.repository.DiaryRepository;
-import com.jellydiary.diary.domain.Weather;
+import com.jellydiary.diary.type.Weather;
 import java.time.Clock;
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,7 +42,7 @@ public class DiaryService {
             throw new BusinessException(ErrorCode.DIARY_ALREADY_EXISTS);
         }
 
-        Diary diary = diaryRepository.save(write(userId, today, content, userHint));
+        Diary diary = save(Diary.write(userId, today, content, userHint, policy()));
         requestPainting(diary, "diary.written");
 
         return diary.getId();
@@ -50,12 +51,7 @@ public class DiaryService {
     @Transactional
     public void regenerate(Long userId, Long diaryId) {
         Diary diary = load(userId, diaryId);
-
-        try {
-            diary.requestRegenerate(policy());
-        } catch (IllegalStateException e) {
-            throw new BusinessException(ErrorCode.DIARY_REGENERATE_LIMIT, e.getMessage());
-        }
+        diary.requestRegenerate(policy());
 
         requestPainting(diary, "diary.regenerate_requested");
     }
@@ -69,7 +65,7 @@ public class DiaryService {
     }
 
     public LocalDate today() {
-        return LocalDate.now(clock.withZone(properties.zone()));
+        return LocalDate.now(clock);
     }
 
     /** 도메인에 넘길 업무 상한. 값의 출처는 설정 한 곳이다. */
@@ -77,11 +73,15 @@ public class DiaryService {
         return properties.policy();
     }
 
-    private Diary write(Long userId, LocalDate today, String content, Weather userHint) {
+    /**
+     * 존재 검사와 저장 사이의 경쟁 상태는 부분 unique 인덱스가 막는다. 여기서 flush 해야 그 위반을
+     * '오늘은 이미 기록했어요'로 바꿀 수 있다 - 커밋 시점까지 미루면 이 메서드 밖에서 터진다.
+     */
+    private Diary save(Diary diary) {
         try {
-            return Diary.write(userId, today, content, userHint, policy());
-        } catch (IllegalArgumentException e) {
-            throw new BusinessException(ErrorCode.COMMON_INVALID_REQUEST, e.getMessage());
+            return diaryRepository.saveAndFlush(diary);
+        } catch (DataIntegrityViolationException e) {
+            throw new BusinessException(ErrorCode.DIARY_ALREADY_EXISTS);
         }
     }
 

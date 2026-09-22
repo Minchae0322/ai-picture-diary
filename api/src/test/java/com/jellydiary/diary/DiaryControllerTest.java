@@ -20,6 +20,7 @@ import com.jellydiary.diary.controller.DiaryController;
 import com.jellydiary.diary.domain.Diary;
 import com.jellydiary.diary.service.DiaryQueryService;
 import com.jellydiary.diary.service.DiaryService;
+import com.jellydiary.diary.service.DiaryStatsService;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -44,6 +45,7 @@ class DiaryControllerTest {
 
     @MockitoBean DiaryService diaryService;
     @MockitoBean DiaryQueryService diaryQueryService;
+    @MockitoBean DiaryStatsService diaryStatsService;
 
     @Test
     @DisplayName("기록 성공 시 201과 Location, 상태는 GENERATING")

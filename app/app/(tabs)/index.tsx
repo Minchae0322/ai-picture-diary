@@ -1,10 +1,16 @@
-import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Redirect, useRouter } from 'expo-router';
+import { StyleSheet, Text, View } from 'react-native';
 import { ApiError } from '@/shared/api/ApiError';
+import { formatFullDate } from '@/shared/format';
+import { Screen } from '@/shared/ui/Screen';
 import { Button } from '@/shared/ui/Button';
+import { ErrorRetry, Loading } from '@/shared/ui/StateBlock';
 import { font, space } from '@/shared/theme/tokens';
 import { useColors } from '@/shared/theme/useColors';
+import { earnedOn, useBadges } from '@/features/badge/hooks/useBadges';
+import { useSharePost } from '@/features/community/hooks/useCommunity';
 import {
+  useOverview,
   useRecentDiaries,
   useRegenerateDiary,
   useToday,
@@ -14,6 +20,9 @@ import { DiaryComposer } from '@/features/diary/ui/DiaryComposer';
 import { DiaryResult } from '@/features/diary/ui/DiaryResult';
 import { GeneratingCard } from '@/features/diary/ui/GeneratingCard';
 import { RecentDiaries } from '@/features/diary/ui/RecentDiaries';
+import { StreakBadge } from '@/features/diary/ui/StreakBadge';
+import { useOnboardingDone } from '@/features/onboarding/useOnboarding';
+import { useProfile } from '@/features/profile/hooks/useProfile';
 
 /**
  * 홈 탭 = 화면 02 / 03 / 04.
@@ -21,34 +30,48 @@ import { RecentDiaries } from '@/features/diary/ui/RecentDiaries';
  */
 export default function HomeScreen() {
   const colors = useColors();
-  const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const onboarding = useOnboardingDone();
+
   const today = useToday();
   const recent = useRecentDiaries(3);
+  const overview = useOverview();
+  const profile = useProfile();
+  const badges = useBadges();
   const write = useWriteDiary();
   const regenerate = useRegenerateDiary();
+  const share = useSharePost();
+
+  // 온보딩 여부를 알기 전에 홈을 그리면 온보딩이 깜빡였다 사라진다
+  if (onboarding === 'unknown') {
+    return (
+      <Screen scroll={false}>
+        <Loading />
+      </Screen>
+    );
+  }
+  if (onboarding === 'pending') {
+    return <Redirect href="/onboarding" />;
+  }
 
   const diary = today.data ?? null;
+  const newBadges = diary ? earnedOn(badges.data?.badges ?? [], diary.entryDate) : [];
 
   return (
-    <ScrollView
-      style={{ backgroundColor: colors.bg }}
-      contentContainerStyle={[
-        styles.content,
-        { paddingTop: insets.top + space[4], paddingBottom: insets.bottom + space[8] },
-      ]}
-      refreshControl={
-        <RefreshControl refreshing={today.isFetching && !today.isPending} onRefresh={() => today.refetch()} />
-      }
-    >
+    <Screen refreshing={today.isFetching && !today.isPending} onRefresh={() => today.refetch()}>
       <View style={styles.header}>
-        <Text style={[styles.date, { color: colors.textMuted }]}>{formatToday()}</Text>
-        <Text style={[styles.greeting, { color: colors.text }]}>안녕하세요 🍬</Text>
+        <Text style={[styles.date, { color: colors.textMuted }]}>{formatFullDate(new Date())}</Text>
+        <Text style={[styles.greeting, { color: colors.text }]}>
+          안녕하세요{profile.data ? `, ${profile.data.nickname}님` : ''}
+        </Text>
+        <StreakBadge days={overview.data?.streakDays ?? 0} />
       </View>
 
       {today.isPending ? (
-        <ActivityIndicator color={colors.primary} />
+        <Loading label="오늘 기록을 불러오는 중" />
       ) : today.isError ? (
-        <ErrorBlock error={today.error} onRetry={() => today.refetch()} />
+        // 조회가 실패해도 입력은 살려 둔다 - 카드 자리만 재시도로 바꾼다(02 화면 문서 5장)
+        <ErrorRetry error={today.error} onRetry={() => today.refetch()} />
       ) : diary === null ? (
         <DiaryComposer
           submitting={write.isPending}
@@ -64,22 +87,18 @@ export default function HomeScreen() {
           diary={diary}
           regenerating={regenerate.isPending}
           onRegenerate={() => regenerate.mutate(diary.id)}
+          onShare={() => share.mutate(diary.id)}
+          sharing={share.isPending}
+          shared={share.isSuccess}
+          shareError={share.error instanceof ApiError ? share.error.message : undefined}
+          earnedBadges={newBadges}
         />
       )}
 
-      {recent.data ? <RecentDiaries items={recent.data.items} /> : null}
-    </ScrollView>
-  );
-}
-
-function ErrorBlock({ error, onRetry }: { error: unknown; onRetry: () => void }) {
-  const colors = useColors();
-  const message = error instanceof ApiError ? error.message : '잠시 후 다시 시도해 주세요.';
-  return (
-    <View style={styles.block}>
-      <Text style={{ color: colors.textMuted, fontSize: font.sm }}>{message}</Text>
-      <Button label="다시 시도" size="medium" variant="ghost" onPress={onRetry} />
-    </View>
+      {recent.data ? (
+        <RecentDiaries items={recent.data.items} onSelect={(id) => router.push(`/diary/${id}`)} />
+      ) : null}
+    </Screen>
   );
 }
 
@@ -95,16 +114,9 @@ function FailedBlock({ onRetry, pending }: { onRetry: () => void; pending: boole
   );
 }
 
-function formatToday(): string {
-  const now = new Date();
-  const week = ['일', '월', '화', '수', '목', '금', '토'][now.getDay()];
-  return `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일 ${week}요일`;
-}
-
 const styles = StyleSheet.create({
-  content: { paddingHorizontal: space[4], gap: space[6] },
-  header: { gap: space[1] },
+  header: { gap: space[2] },
   date: { fontSize: font.xs },
   greeting: { fontSize: font.xl, fontWeight: font.weightBold },
-  block: { gap: space[3] },
+  block: { gap: space[3], alignItems: 'flex-start' },
 });

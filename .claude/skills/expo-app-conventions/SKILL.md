@@ -77,7 +77,11 @@ RN/Expo 프로젝트를 새로 만들 때, 화면·컴포넌트·훅을 쓸 때,
 ## 8. 접근성 props가 웹과 다르다
 
 - `aria-*`가 아니라 `accessibilityRole` / `accessibilityLabel` / `accessibilityHint` / `accessibilityState`.
-- 이모지는 스크린리더가 이상하게 읽는다. `accessibilityElementsHidden` + `importantForAccessibility="no"`로 숨기고 라벨을 따로 준다.
+- **UI에 이모지를 쓰지 않는다.** 아이콘은 SVG(`react-native-svg`) 컴포넌트다. 이유는 셋이다:
+  플랫폼·OS 버전마다 모양이 다르고, 색·굵기를 디자인 토큰에 맞출 수 없고, 스크린리더가 이름을 제멋대로 읽는다.
+  아이콘은 **한 파일**(`shared/ui/Icon.tsx`)에 이름 -> 도형 표로 모은다. 파일이 흩어지면 굵기와 뷰박스가 갈린다.
+- 아이콘이 **유일한 정보일 때만** `accessibilityLabel`을 준다. 옆에 같은 뜻의 글자가 있으면
+  `accessibilityElementsHidden` + `importantForAccessibility="no-hide-descendants"`로 숨긴다 - 안 그러면 두 번 읽는다.
 - 카드처럼 여러 텍스트를 담은 누를 수 있는 요소는 `accessible`을 켜서 **한 덩어리로** 읽히게 한다. 안 그러면 조각조각 읽힌다.
 - 비활성 버튼에는 왜 못 누르는지 `accessibilityHint`로 남긴다.
 

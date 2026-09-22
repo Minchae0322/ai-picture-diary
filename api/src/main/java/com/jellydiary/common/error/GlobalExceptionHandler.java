@@ -48,10 +48,13 @@ public class GlobalExceptionHandler {
         return reject(ErrorCode.COMMON_CONFLICT, ErrorCode.COMMON_CONFLICT.message());
     }
 
-    /** unique 제약 위반(하루 1건 등)은 409로 바꾼다. 경쟁 상태에서 존재 검사를 통과한 경우. */
+    /**
+     * unique 제약 위반은 409로 바꾼다. 어느 제약인지는 여기서 알 수 없으므로 도메인 뜻이 필요한 곳은
+     * 각 서비스가 saveAndFlush 로 직접 잡아 자기 ErrorCode 로 바꾼다(예: DiaryService 하루 1건).
+     */
     @ExceptionHandler(DataIntegrityViolationException.class)
     ResponseEntity<ErrorResponse> handleConstraint(DataIntegrityViolationException e) {
-        return reject(ErrorCode.DIARY_ALREADY_EXISTS, ErrorCode.DIARY_ALREADY_EXISTS.message());
+        return reject(ErrorCode.COMMON_CONFLICT, ErrorCode.COMMON_CONFLICT.message());
     }
 
     @ExceptionHandler(Exception.class)

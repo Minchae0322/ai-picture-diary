@@ -5,9 +5,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.jellydiary.common.config.JpaConfig;
 import com.jellydiary.diary.domain.Diary;
-import com.jellydiary.diary.domain.DiaryPolicy;
+import com.jellydiary.diary.type.DiaryPolicy;
 import com.jellydiary.diary.repository.DiaryRepository;
-import com.jellydiary.diary.domain.Weather;
+import com.jellydiary.diary.type.Weather;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;

@@ -1,9 +1,9 @@
 package com.jellydiary.diary.service.result;
 
 import com.jellydiary.diary.domain.Diary;
-import com.jellydiary.diary.domain.DiaryPolicy;
-import com.jellydiary.diary.domain.DiaryStatus;
-import com.jellydiary.diary.domain.Weather;
+import com.jellydiary.diary.type.DiaryPolicy;
+import com.jellydiary.diary.type.DiaryStatus;
+import com.jellydiary.diary.type.Weather;
 import java.time.LocalDate;
 
 /**

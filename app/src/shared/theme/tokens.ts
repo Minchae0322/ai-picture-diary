@@ -4,6 +4,8 @@
  * RN이라 CSS 변수가 없어 TS 객체로 표현한다(expo-app-conventions 4장).
  */
 
+import type { Weather } from '@/shared/weather';
+
 const primitive = {
   neutral0: '#ffffff',
   neutral50: '#f7f8fa',
@@ -24,7 +26,25 @@ const primitive = {
   green500: '#128a5e',
 } as const;
 
-const light = {
+/** 의미 토큰의 모양. primitive 가 as const 라 추론에 맡기면 리터럴 타입이 되어 다크 팔레트가 안 맞는다. */
+export type Colors = {
+  bg: string;
+  surface: string;
+  surfaceRaised: string;
+  border: string;
+  borderStrong: string;
+  text: string;
+  textMuted: string;
+  textSubtle: string;
+  primary: string;
+  primaryPressed: string;
+  primaryFg: string;
+  danger: string;
+  warning: string;
+  success: string;
+};
+
+const light: Colors = {
   bg: primitive.neutral50,
   surface: primitive.neutral0,
   surfaceRaised: primitive.neutral0,
@@ -39,9 +59,9 @@ const light = {
   danger: primitive.red500,
   warning: primitive.amber500,
   success: primitive.green500,
-} as const;
+};
 
-const dark: typeof light = {
+const dark: Colors = {
   bg: primitive.neutral950,
   surface: primitive.neutral900,
   surfaceRaised: primitive.neutral800,
@@ -58,8 +78,7 @@ const dark: typeof light = {
   success: primitive.green500,
 };
 
-export const colorsFor = (scheme: 'light' | 'dark' | null | undefined) => (scheme === 'dark' ? dark : light);
-export type Colors = typeof light;
+export const colorsFor = (scheme: string | null | undefined) => (scheme === 'dark' ? dark : light);
 
 export const space = { 1: 4, 2: 8, 3: 12, 4: 16, 6: 24, 8: 32, 12: 48, 16: 64 } as const;
 export const radius = { sm: 6, md: 10, lg: 16, xl: 24, full: 9999 } as const;
@@ -91,3 +110,30 @@ export const shadow = {
     elevation: 3,
   },
 } as const;
+
+/**
+ * 날씨 6종의 의미 색. 05 캘린더 셀과 06 차트가 같은 색을 쓴다.
+ * 색만으로 뜻을 전달하지 않는다 - 옆에 항상 이모지나 라벨이 붙는다(dataviz / ui-fundamentals).
+ */
+export type WeatherColors = Record<Weather, string>;
+
+const weatherLight: WeatherColors = {
+  SUNNY: '#e8a33d',
+  PARTLY_CLOUDY: '#7fa8d9',
+  CLOUDY: '#8b93a3',
+  RAIN: '#4f74b8',
+  SNOW: '#6fb5c7',
+  RAINBOW: primitive.brand500,
+};
+
+const weatherDark: WeatherColors = {
+  SUNNY: '#f0bd6b',
+  PARTLY_CLOUDY: '#9dc0e8',
+  CLOUDY: '#a7aebd',
+  RAIN: '#7d9cd9',
+  SNOW: '#8fd0e0',
+  RAINBOW: primitive.brand300,
+};
+
+export const weatherColorsFor = (scheme: string | null | undefined) =>
+  scheme === 'dark' ? weatherDark : weatherLight;

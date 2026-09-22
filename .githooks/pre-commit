@@ -1,11 +1,21 @@
 #!/usr/bin/env bash
 set -e
-cd "$(git rev-parse --show-toplevel)/api"
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT"
+
+# 1) 이모지 검사 - 가장 싸고 도구가 필요 없다
+STAGED=$(git diff --name-only --cached --diff-filter=ACM)
+if [ -n "$STAGED" ] && command -v node >/dev/null; then
+  echo "$STAGED" | xargs -r node .githooks/no-emoji.js
+fi
+
+# 2) 백엔드 - wrapper가 없으면 조용히 건너뛴다(최초 1회 `cd api && gradle wrapper`)
+cd "$ROOT/api"
 [ -x ./gradlew ] || exit 0
 ./gradlew -q spotlessApply
-cd ..
+cd "$ROOT"
 git diff --name-only --cached -- '*.java' | xargs -r git add
-cd api
+cd "$ROOT/api"
 ./gradlew -q compileJava compileTestJava
 ./gradlew -q test --tests '*ArchitectureTest'
 command -v gitleaks >/dev/null && gitleaks protect --staged --no-banner

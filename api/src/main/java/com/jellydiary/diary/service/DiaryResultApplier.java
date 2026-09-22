@@ -1,8 +1,8 @@
 package com.jellydiary.diary.service;
 
-import com.jellydiary.diary.domain.DiaryPainting;
-import com.jellydiary.diary.domain.DiaryPolicy;
 import com.jellydiary.diary.repository.DiaryRepository;
+import com.jellydiary.diary.type.DiaryPolicy;
+import com.jellydiary.llm.painter.DiaryPainting;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;

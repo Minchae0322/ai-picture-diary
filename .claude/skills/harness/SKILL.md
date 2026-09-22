@@ -112,6 +112,12 @@ description: 스프링/Gradle 프로젝트에 자동 검증 하네스(compile, t
 1. Claude Code hook: compile(`after-edit.sh`) 2. 테스트 분리 + Stop hook 3. ArchUnit 5개(1, 2, 4, 7, 8) + `freeze` 4. git pre-commit(Spotless `ratchetFrom` + compile + ArchUnit) 5. Error Prone(처음엔 `-XepAllErrorsAsWarnings`) 6. CI stage 분리.
 새 프로젝트는 1~6을 부트스트랩 때 한 번에, ArchUnit 9개 전부, 정적 분석 `-Werror` 포함.
 
+## 부록: 도구가 필요 없는 검사
+
+문법·구조 규칙 중에는 컴파일러도 린터도 안 잡아 주는 것이 있다(이모지 금지, 금지 문자열, 파일명 규칙).
+이런 건 **스테이지된 파일만 훑는 20줄짜리 스크립트**를 pre-commit 맨 앞에 둔다. 가장 싸고 도구 설치가 필요 없다.
+규칙을 문서에만 적어 두면 사람이 기억해야 하고, 사람은 기억하지 못한다.
+
 ## 하지 말 것
 
 - 매 수정마다 전체 테스트 hook. pre-commit 10초 초과(`--no-verify`가 습관이 된다). 경고 수백 개인 채로 정적 분석 유지.

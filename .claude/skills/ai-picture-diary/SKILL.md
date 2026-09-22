@@ -14,6 +14,7 @@ description: "이 저장소에서 코드·스키마·문서를 쓰거나 고치�
 
 - 저장소 구성: 모노레포. `api/`(Spring Boot 백엔드) + `app/`(Expo 모바일)
 - 시안: Figma `AI 감정 날씨일기 - Web App Sketch`, 10화면. 인덱스는 9장
+- 도메인 4개: `diary`(01~06) · `badge`(07) · `community`(08) · `profile`(09·10)
 
 ## 2. 도메인 어휘
 
@@ -25,7 +26,10 @@ description: "이 저장소에서 코드·스키마·문서를 쓰거나 고치�
 | 빠른 감정 칩 | 02 화면에서 사용자가 고르는 힌트. AI 판정을 대체하지 않는다 | `Diary.userHint` |
 | 그리기 | 감정 분석 + 이미지 생성의 한 묶음 | `DiaryPainter.paint()` |
 | 다시 그리기 | 같은 본문으로 재생성. 하루 상한 있음 | `Diary.requestRegenerate()` |
-| 연속 기록 | 끊기지 않고 기록한 일수. 뱃지의 기준 | (미구현) |
+| 연속 기록 | 끊기지 않고 기록한 일수. 뱃지의 기준 | `StreakCalculator.count()` - 계산은 여기 한 곳뿐 |
+| 뱃지 | 조건을 넘기면 서버가 주는 수집품. 정의는 데이터, 지표는 코드 | `tb_badge` / `BadgeMetric` / `tb_user_badge` |
+| 공유 | 04 결과를 08 피드에 **복사**해 올린다 | `CommunityPost.share()` |
+| 꾸미기 | 테마·캐릭터 선택. 일부는 Jelly Plus 전용 | `StoreItem` / `Profile.select()` |
 
 ## 3. 불변 규칙 (이 제품의 비즈니스 규칙)
 
@@ -72,18 +76,54 @@ com.jellydiary
 │   ├── service/                # 유스케이스, @Transactional, 이벤트 리스너, result/
 │   │   └── result/
 │   ├── repository/             # Spring Data 인터페이스, QueryDSL 조회
-│   ├── domain/                 # 엔티티, enum, 포트(DiaryPainter), 이벤트 record
-│   ├── infrastructure/         # 포트 구현(ai/), 외부 연동
+│   ├── domain/                 # 엔티티만. 테이블 1:1
+│   ├── type/                   # enum, 값 객체(정책·판정 입력). 상태 없는 타입
+│   ├── event/                  # 도메인 이벤트 record
 │   └── config/                 # @ConfigurationProperties (config-and-secrets 4장)
+├── llm/                        # 기술 컨텍스트. 모델 연동은 전부 여기. 업무 도메인이 아니다
+│   ├── config/                 # LlmProperties (app.llm.*)
+│   └── painter/                # 그림 생성 계약 + 구현 (DiaryPainter/DiaryPainting/MockDiaryPainter)
 └── common/                     # response, error, auth, logging, config, domain(BaseEntity)
+    └── util/                   # 순수 계산. final + private 생성자 + static, 상태 없음
 ```
 
-- 의존 방향: **`controller -> service -> repository -> domain`**, `infrastructure -> domain`. ArchUnit이 강제한다
+- **`domain/`에는 엔티티만 둔다.** 테이블이 아닌 것이 섞이면 "도메인 폴더"가 곧 쓰레기통이 된다.
+  enum·값 객체 -> `type/`, 이벤트 -> `event/`, 순수 계산 -> `common/util/`, 모델 연동 -> `llm/`.
+  ArchUnit 4번 규칙이 `..domain..`의 모든 클래스에 `@Entity`(또는 `@MappedSuperclass`)를 요구한다.
+- **의존 방향 관점에서 `domain/type/event/util`은 전부 같은 "도메인 층"이다.**
+  이 넷은 `controller`·`service`·`repository`·`config`와 스프링 웹을 모른다(ArchUnit 1·2번).
+- 의존 방향: **`controller -> service -> repository -> domain`**
   (`api/src/test/java/com/jellydiary/ArchitectureTest.java`).
 - **리포지토리는 `domain`이 아니라 `repository` 폴더에 둔다.** 도메인이 Spring Data를 모르게 하고, 조회 코드가 늘어날 자리를 미리 연다.
 - `config`는 계층이 아니라 부속이다. service가 참조해도 계층 규칙 위반이 아니다.
-- 새 도메인(badge, community...)도 같은 6개 폴더로 만든다. 계층 우선 최상위 폴더(`controller/diary`)는 금지.
-- 도메인 간 직접 참조 금지. 필요하면 `service`에서 조합하거나 이벤트로.
+- **순수 계산은 `common/util` 한 곳에 모은다.** 도메인 타입을 하나도 안 쓰는 계산에 도메인 폴더를 주면
+  같은 계산이 도메인마다 복사된다. 이름은 하는 일로 짓고(`StreakCalculator`, `WordCounter`, `NicknameGenerator`),
+  10개 메서드를 넘으면 쪼갠다. **단위 테스트 필수**(`ddd-spring` reference).
+  도메인 타입을 인자로 받아야만 하는 계산이 생기면 그때 그 도메인 안으로 내린다.
+- **모델 연동은 도메인이 아니라 `llm/` 컨텍스트에 전부 모은다.** 계약 인터페이스(`DiaryPainter`)와 구현체와
+  설정이 한 폴더 트리에 있다. 도메인 서비스는 인터페이스만 주입받고 LLM 타입은 모른다.
+  (`ddd-spring`·`llm-integration`은 포트를 도메인에 두고 구현만 `infrastructure/ai`로 빼라고 말하지만
+  **이 파일이 이긴다** - 모델 관련을 한자리에서 보는 쪽을 택했다.)
+  - 계약에 들어가도 되는 것은 **도메인 어휘**(`Weather`, 점수, 코멘트, 그림 URL)뿐이다. LLM 타입이 계약에
+    새면 도메인이 모델에 끌려간다. 이건 기계가 아니라 **리뷰가 막는다**.
+  - 프롬프트는 자바 문자열이 아니라 `api/src/main/resources/prompts/<기능>-v<n>.st`.
+- **`llm`과 `common`은 업무 도메인이 아니라 기술 컨텍스트**라 ArchUnit 3번(도메인 간 참조 금지)에서 빠진다.
+  `llm`은 계약에 도메인 어휘를 담아야 해서 **반대 방향도** 허용된다. 대신 11번이
+  `llm -> controller/service/repository`를 막는다 - 기술 컨텍스트가 업무 흐름을 되부르면 안 된다.
+  새 기술 컨텍스트를 만들면 3번의 예외 목록에 추가한다 - 안 그러면 도메인 간 참조로 잡힌다.
+- 새 도메인도 같은 모양으로 만든다. 필요 없는 폴더는 만들지 않는다(badge에는 `event/`가 없다).
+- 도메인 간 직접 참조 금지. 필요하면 **`service`에서 조합하거나 이벤트로.** ArchUnit 3번이 `service` 밖의 교차 참조를 막는다.
+
+### 예외를 던지는 자리 (api-design 3장)
+
+- **사용자에게 돌려줄 거절은 도메인이 `BusinessException(ErrorCode.XXX)`로 직접 던진다.**
+  서비스가 `IllegalArgumentException`을 잡아 `BusinessException`으로 번역하는 계층을 만들지 않는다 -
+  같은 규칙이 어느 코드로 나가는지가 두 곳에 흩어지고, 서로 다른 사유가 한 코드로 뭉개진다.
+- **사용자가 만들 수 없는 상황은 시스템 예외**(`IllegalArgumentException`/`IllegalStateException`)로 둔다.
+  어댑터 계약 위반(AI가 범위 밖 점수를 줌), 설정값 오류, 서비스가 이미 막은 도달 불가 방어선이 여기 해당한다.
+- 예외 -> HTTP 상태 변환은 `common/error/GlobalExceptionHandler` 한 곳.
+- 거절 사유가 둘이면 `ErrorCode`도 둘이다. 사용자가 읽는 문구가 달라야 하기 때문이다.
+- 테스트는 예외 타입이 아니라 **`ErrorCode`까지** 단언한다. 타입만 보면 코드 뭉개기를 놓친다.
 
 ### 계층별 책임
 
@@ -92,8 +132,9 @@ com.jellydiary
 | 규칙 | 이 프로젝트에서 |
 |---|---|
 | 인증을 컨트롤러가 확인하지 않는다 | `@LoginUser Long userId` + `common/auth/LoginUserArgumentResolver` (401 판단 한 곳) |
-| 엔티티는 service 밖으로 나가지 않는다 | `diary/service/result/<Xxx>Result` record -> `DiaryResponse.Detail.from(result)` |
+| 엔티티는 service 밖으로 나가지 않는다 | `<도메인>/service/result/<Xxx>Result` record -> `XxxResponse.from(result)` |
 | 파생 판단은 근거를 아는 계층이 | `canRegenerate`는 상한(`app.diary.daily-regenerate-limit`)을 아는 `DiaryQueryService`가 계산 |
+| 업무 상한은 설정에서 | `app.<도메인>.*` -> `XxxPolicy` 값 객체(`type/`) -> 도메인 메서드 인자 |
 | 로그는 헬퍼로 | `common/logging/AppLog` (`logging-observability`) |
 | 포맷 | Spotless `googleJavaFormat().aosp()` = 4칸. 커밋 훅이 `spotlessApply` |
 
@@ -127,6 +168,9 @@ com.jellydiary
 - 상한 없이 AI 호출 붙이기 (호출 수·토큰·재생성 횟수)
 - 프롬프트를 자바 문자열로 박기 - `resources/prompts/<기능>-v<n>.st`
 - 04 화면의 "AI generated" 표기 제거
+- **앱 UI에 이모지 넣기.** 아이콘은 `app/src/shared/ui/Icon.tsx`의 SVG로 (`expo-app-conventions` 8장)
+- **산출물 문서에 이모지 넣기.** 시안이 이모지를 써도 문서에는 말로 적는다 (`deliverable-write` 30행)
+  - 둘 다 커밋 훅이 막는다(`.githooks/no-emoji.js`)
 - 08 커뮤니티에 신고·차단 없이 배포 (스토어 심사 항목)
 
 ## 6. 다음에 읽을 범용 스킬
@@ -138,6 +182,8 @@ com.jellydiary
 |---|---|
 | 새 도메인/기능, 패키지 배치, 엔티티/서비스 책임 | `ddd-spring` |
 | 엔드포인트 추가/수정, 응답 포맷, 에러 코드, 페이징 | `api-design` |
+| 피드 정렬·추천·개인화, "인기" 기준 | `feed-ranking` |
+| 유사도 계산, 중복 검출, 오타 허용 검색 | `similarity-search` |
 | 로그인, 토큰, 소셜 로그인, 401/403 | `spring-auth` |
 | 테이블/컬럼/인덱스 추가·변경, 마이그레이션 SQL | `db-schema-and-migration` |
 | 트랜잭션 경계, 락, 동시성, 재시도, 중복 요청 | `transaction-and-concurrency` |
@@ -177,13 +223,16 @@ com.jellydiary
 
 ## 8. 지금 상태 / 아직 안 된 것
 
-- **핵심 루프(02→03→04)만 구현됨.** 나머지 7화면은 문서와 자리표시자뿐이다.
-- **빌드·테스트 미검증.** 이 환경에 JDK 21도 Gradle도 없어 `compileJava`/`test`를 한 번도 돌리지 못했다. 컴파일 오류가 남아 있을 수 있다.
+- **시안 10화면이 전부 구현됨** (2026-09-22). 도메인 4개: `diary`, `badge`, `community`, `profile`.
+- **백엔드 빌드·테스트 여전히 미검증.** 이 환경에 JDK 11만 있고 Gradle도 wrapper도 없어 `compileJava`/`test`를 한 번도 돌리지 못했다. 컴파일 오류가 남아 있을 수 있다. 앱은 `npx tsc --noEmit` 통과.
 - Gradle wrapper 없음: `cd api && gradle wrapper` 최초 1회 필요. 하네스 hook도 wrapper가 생겨야 동작한다.
 - 통합 테스트(`DiaryRepositoryTest`)는 Docker가 있어야 돈다: `./gradlew integrationTest`.
-- 인증 없음(`X-User-Id` 임시). 붙는 순간 `common/auth/CurrentUser*`는 삭제 대상.
-- 연속 기록·뱃지·캘린더 집계·커뮤니티 도메인 없음.
+- 인증 없음(`X-User-Id` 임시). 붙는 순간 `common/auth/CurrentUser*`는 삭제 대상이고, `ProfileService`의 첫 조회 자동 생성도 회원가입으로 옮긴다.
+- **배포를 막는 것**: 커뮤니티 신고 처리 도구·차단 없음, 계정 삭제 없음, 구독 복원 동선 없음 (`app-store-release`).
+- 댓글·구독 결제 도메인 없음. 뱃지 `FIRST_COMMENT`·`PREMIUM`은 그래서 영구 잠김이다.
+- 뱃지는 시안 12종만 정의됐다(시안이 말한 40종 중). "자주 쓴 말"은 형태소 분석기가 아니라 공백 토크나이저다.
 - 정적 분석은 Spotless만. Error Prone은 아직(harness 4층 도입 순서 5단계).
+- **Figma MCP는 무료 플랜 호출 한도가 있다.** 시안을 다시 읽어야 하면 한도를 먼저 확인한다.
 
 
 ## 9. 화면

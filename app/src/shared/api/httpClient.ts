@@ -7,7 +7,7 @@ const DEV_USER_ID = process.env.EXPO_PUBLIC_DEV_USER_ID ?? '1';
 const TIMEOUT_MS = 10_000;
 
 type Options = {
-  method?: 'GET' | 'POST';
+  method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
   body?: unknown;
   signal?: AbortSignal;
 };

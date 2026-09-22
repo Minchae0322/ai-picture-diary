@@ -24,9 +24,12 @@ app:
     daily-regenerate-limit: 3     # 재생성 상한 (llm-integration 4장)
     mood-min: -3                  # 기분 점수 범위. 06 그래프 축과 같은 값
     mood-max: 3
-  ai:
-    provider: ${AI_PROVIDER:mock} # mock | openai
-    mock-delay: ${AI_MOCK_DELAY:1500ms}
+  profile:
+    max-nickname-length: 30       # 업무 상한. DB 컬럼 길이(30) 이하여야 한다
+    default-ai-style: 수채화       # 10 "AI 그림 스타일"의 가입 시 초깃값
+  llm:
+    provider: ${LLM_PROVIDER:mock}   # mock | openai. 실모델 구현체는 <도메인>/infrastructure/llm
+    mock-delay: ${LLM_MOCK_DELAY:1500ms}
 
 management:
   endpoints:

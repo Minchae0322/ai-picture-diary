@@ -7,8 +7,17 @@
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "plugins": ["expo-router"],
-    "ios": { "supportsTablet": false, "bundleIdentifier": "com.jellydiary.app" },
-    "android": { "package": "com.jellydiary.app", "edgeToEdgeEnabled": true }
+    "plugins": [
+      "expo-router",
+      "expo-status-bar"
+    ],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.jellydiary.app"
+    },
+    "android": {
+      "package": "com.jellydiary.app",
+      "edgeToEdgeEnabled": true
+    }
   }
 }

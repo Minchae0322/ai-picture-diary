@@ -35,7 +35,7 @@ export function RecentDiaries({
           <Text style={[styles.date, { color: colors.textMuted }]}>
             {formatShortDate(item.entryDate)}
           </Text>
-          {item.emotion ? <EmotionFace emotion={item.emotion} size={20} /> : null}
+          {item.emotion ? <EmotionFace emotion={item.emotion} size={26} /> : null}
           <Text numberOfLines={1} style={[styles.content, { color: colors.text }]}>
             {item.content}
           </Text>

@@ -9,7 +9,7 @@ import com.jellydiary.diary.service.result.DiaryCalendarResult;
 import com.jellydiary.diary.service.result.DiaryOverviewResult;
 import com.jellydiary.diary.service.result.DiaryStatsResult;
 import com.jellydiary.diary.type.StatsPeriod;
-import com.jellydiary.diary.type.Weather;
+import com.jellydiary.diary.type.Emotion;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -60,13 +60,13 @@ public class DiaryStatsService {
 
         List<DiaryCalendarResult.Day> days =
                 diaries.stream()
-                        .filter(diary -> diary.getWeather() != null)
+                        .filter(diary -> diary.getEmotion() != null)
                         .map(
                                 diary ->
                                         new DiaryCalendarResult.Day(
                                                 diary.getEntryDate(),
                                                 diary.getId(),
-                                                diary.getWeather(),
+                                                diary.getEmotion(),
                                                 diary.getMoodScore()))
                         .toList();
 
@@ -102,16 +102,16 @@ public class DiaryStatsService {
     /** 일기가 DONE 이 된 순간의 뱃지 판정 스냅샷. 뱃지 도메인이 되묻지 않게 여기서 다 채운다. */
     public DiaryCompletedEvent snapshot(Diary diary) {
         Long userId = diary.getUserId();
-        Map<Weather, Integer> counts = new EnumMap<>(Weather.class);
+        Map<Emotion, Integer> counts = new EnumMap<>(Emotion.class);
         diaryRepository
-                .countByWeather(userId)
-                .forEach(row -> counts.put(row.weather(), (int) row.days()));
+                .countByEmotion(userId)
+                .forEach(row -> counts.put(row.emotion(), (int) row.days()));
 
         return new DiaryCompletedEvent(
                 userId,
                 diary.getId(),
                 diary.getEntryDate(),
-                diary.getWeather(),
+                diary.getEmotion(),
                 diary.getCreatedAt().atZone(clock.getZone()).getHour(),
                 (int) diaryRepository.countByUserId(userId),
                 streak(userId),
@@ -124,10 +124,10 @@ public class DiaryStatsService {
                 : diaryRepository.findByUserIdAndEntryDateBetweenOrderByEntryDate(userId, from, to);
     }
 
-    /** 그림이 실패해도 DONE 이지만, 날씨가 없는 GENERATING/FAILED 는 집계에서 뺀다. */
+    /** 그림이 실패해도 DONE 이지만, 감정이 없는 GENERATING/FAILED 는 집계에서 뺀다. */
     private List<Diary> painted(List<Diary> diaries) {
         return diaries.stream()
-                .filter(diary -> diary.getWeather() != null && diary.getMoodScore() != null)
+                .filter(diary -> diary.getEmotion() != null && diary.getMoodScore() != null)
                 .toList();
     }
 
@@ -136,16 +136,16 @@ public class DiaryStatsService {
         return average.isPresent() ? Math.round(average.getAsDouble() * 10) / 10.0 : null;
     }
 
-    private List<DiaryCalendarResult.WeatherDays> summarize(List<Diary> diaries) {
-        Map<Weather, Integer> counts = new EnumMap<>(Weather.class);
+    private List<DiaryCalendarResult.EmotionDays> summarize(List<Diary> diaries) {
+        Map<Emotion, Integer> counts = new EnumMap<>(Emotion.class);
         diaries.stream()
-                .map(Diary::getWeather)
-                .filter(weather -> weather != null)
-                .forEach(weather -> counts.merge(weather, 1, Integer::sum));
+                .map(Diary::getEmotion)
+                .filter(emotion -> emotion != null)
+                .forEach(emotion -> counts.merge(emotion, 1, Integer::sum));
 
         return counts.entrySet().stream()
-                .map(entry -> new DiaryCalendarResult.WeatherDays(entry.getKey(), entry.getValue()))
-                .sorted(Comparator.comparingInt(DiaryCalendarResult.WeatherDays::days).reversed())
+                .map(entry -> new DiaryCalendarResult.EmotionDays(entry.getKey(), entry.getValue()))
+                .sorted(Comparator.comparingInt(DiaryCalendarResult.EmotionDays::days).reversed())
                 .toList();
     }
 

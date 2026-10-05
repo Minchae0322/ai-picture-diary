@@ -3,7 +3,7 @@ package com.jellydiary.badge.service;
 import com.jellydiary.badge.type.BadgeCriteria;
 import com.jellydiary.community.event.PostSharedEvent;
 import com.jellydiary.diary.event.DiaryCompletedEvent;
-import com.jellydiary.diary.type.Weather;
+import com.jellydiary.diary.type.Emotion;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -38,10 +38,10 @@ public class BadgeEarningListener {
         return new BadgeCriteria(
                 event.totalCount(),
                 event.streakDays(),
-                event.countOf(Weather.SUNNY),
-                event.countOf(Weather.RAIN),
-                // "6종 전부"의 6은 날씨 enum이 안다. 뱃지 임계값에 숫자로 박지 않는다
-                event.distinctWeatherCount() >= Weather.values().length,
+                event.countOf(Emotion.HAPPY),
+                event.countOf(Emotion.SAD),
+                // "9종 전부"의 9는 감정 enum이 안다. 뱃지 임계값에 숫자로 박지 않는다
+                event.distinctEmotionCount() >= Emotion.values().length,
                 event.createdHour() == DAWN_HOUR,
                 0,
                 0,

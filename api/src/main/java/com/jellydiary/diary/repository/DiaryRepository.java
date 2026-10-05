@@ -32,9 +32,9 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
     @Query("select d.entryDate from Diary d where d.userId = :userId and d.entryDate >= :from")
     List<LocalDate> findEntryDatesFrom(@Param("userId") Long userId, @Param("from") LocalDate from);
 
-    /** 뱃지 판정용. 날씨 6종을 각각 세지 않고 한 번에 묶어 온다. */
+    /** 뱃지 판정용. 감정 9종을 각각 세지 않고 한 번에 묶어 온다. */
     @Query(
-            "select new com.jellydiary.diary.repository.WeatherCount(d.weather, count(d))"
-                + " from Diary d where d.userId = :userId and d.weather is not null group by d.weather")
-    List<WeatherCount> countByWeather(@Param("userId") Long userId);
+            "select new com.jellydiary.diary.repository.EmotionCount(d.emotion, count(d))"
+                + " from Diary d where d.userId = :userId and d.emotion is not null group by d.emotion")
+    List<EmotionCount> countByEmotion(@Param("userId") Long userId);
 }

@@ -1,6 +1,6 @@
 package com.jellydiary.diary.service.result;
 
-import com.jellydiary.diary.type.Weather;
+import com.jellydiary.diary.type.Emotion;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
@@ -10,10 +10,10 @@ import java.util.List;
  * (05 화면 문서 6장).
  */
 public record DiaryCalendarResult(
-        YearMonth month, List<Day> days, List<WeatherDays> summary, int recordedDays) {
+        YearMonth month, List<Day> days, List<EmotionDays> summary, int recordedDays) {
 
     /** 기록이 있는 날만 담는다. 빈 칸은 그리드가 날짜로 채운다. */
-    public record Day(LocalDate date, Long diaryId, Weather weather, Integer moodScore) {}
+    public record Day(LocalDate date, Long diaryId, Emotion emotion, Integer moodScore) {}
 
-    public record WeatherDays(Weather weather, int days) {}
+    public record EmotionDays(Emotion emotion, int days) {}
 }

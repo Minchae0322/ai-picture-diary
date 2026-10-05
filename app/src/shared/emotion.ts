@@ -77,6 +77,27 @@ export const EMOTION_IMAGE: Record<Emotion, number> = {
   ANGRY: require('@assets/images/emotions/angry.png'),
 };
 
+/**
+ * 캐릭터마다 렌더 배율이 다르다.
+ *
+ * 자산은 잉크 경계로 잘라 **긴 변이 캔버스를 채우도록** 다시 뽑았으므로 그림 자체는 더 커질 수 없다.
+ * 그런데 세로로 긴 캐릭터(가지 비율 0.42, 딸기 0.62)는 정사각 상자 안에서 면적을 적게 먹어 작아 보인다.
+ * 면적이 같아지도록 완전 보정하면 가지가 1.53배가 되어 상자를 크게 넘친다 - **절반만 보정한다.**
+ *
+ * `docs/screen/prototype.html` 의 SCALE 과 같은 값이다. **한쪽만 고치지 않는다.**
+ */
+export const EMOTION_SCALE: Record<Emotion, number> = {
+  HAPPY: 1.12,
+  ENERGETIC: 1.05,
+  SOSO: 1.0,
+  SHY: 1.01,
+  EMBARRASSED: 1.18,
+  TIRED: 1.07,
+  SAD: 1.24,
+  DEPRESSED: 1.02,
+  ANGRY: 1.05,
+};
+
 /** 서버가 준 문자열이 9종 밖이면 화면이 깨지지 않게 null 로 떨어뜨린다. */
 export function toEmotion(value: string | null | undefined): Emotion | null {
   return value && (EMOTIONS as string[]).includes(value) ? (value as Emotion) : null;

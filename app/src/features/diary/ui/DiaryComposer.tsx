@@ -76,7 +76,7 @@ export function DiaryComposer({ submitting, errorMessage, onSubmit }: Props) {
                 ]}
               >
                 <View style={styles.chipInner}>
-                  <EmotionFace emotion={emotion} size={20} />
+                  <EmotionFace emotion={emotion} size={26} />
                   <Text style={{ color: selected ? colors.primaryFg : colors.text, fontSize: font.sm , fontFamily: font.regular}}>
                     {EMOTION_LABEL[emotion]}
                   </Text>

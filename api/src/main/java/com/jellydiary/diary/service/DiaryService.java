@@ -8,7 +8,7 @@ import com.jellydiary.diary.domain.Diary;
 import com.jellydiary.diary.type.DiaryPolicy;
 import com.jellydiary.diary.event.DiaryGeneratedRequestedEvent;
 import com.jellydiary.diary.repository.DiaryRepository;
-import com.jellydiary.diary.type.Weather;
+import com.jellydiary.diary.type.Emotion;
 import java.time.Clock;
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +36,7 @@ public class DiaryService {
     private final Clock clock;
 
     @Transactional
-    public Long write(Long userId, String content, Weather userHint) {
+    public Long write(Long userId, String content, Emotion userHint) {
         LocalDate today = today();
         if (diaryRepository.existsByUserIdAndEntryDate(userId, today)) {
             throw new BusinessException(ErrorCode.DIARY_ALREADY_EXISTS);

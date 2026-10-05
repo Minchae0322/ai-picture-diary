@@ -84,6 +84,8 @@ export type Colors = {
   rule: string;
   /** 감정 색 위에 바로 얹히는 글자색. 감정 색이 테마 불변이라 이것도 고정이다 */
   emotionInk: string;
+  /** 감정 캐릭터가 얹히는 면. 과일 색을 깔면 같은 계열이라 캐릭터가 묻힌다 */
+  faceBg: string;
 };
 
 const light: Colors = {
@@ -116,6 +118,13 @@ const light: Colors = {
   highlightText: primitive.paper,
   rule: 'rgba(63,63,63,0.22)',
   emotionInk: primitive.slate900,
+  /**
+   * 측정(ΔE, OKLab x100): 블루베리 47.3 / 가지 43.8 / 체리 35.4 / 토마토 33.5 / 딸기 30.9 /
+   * 당근 23.4 / 아보카도 21.9 / 키위 18.9 / **복숭아 13.4** - 연분홍이라 이 하늘색과 밝기가 비슷해 제일 약하다.
+   * 바닐라 배경과는 ΔE 12.3 이라 면 자체로 경계가 보인다. 위에 글자가 오면 #253544 로 8.32:1.
+   * 그림이 테마를 따라 바뀌지 않으므로 이 면도 다크에서 같은 값이다.
+   */
+  faceBg: '#b8d7e7',
 };
 
 const dark: Colors = {
@@ -150,6 +159,8 @@ const dark: Colors = {
   rule: 'rgba(255,255,255,0.12)',
   /** 감정 색이 다크에서도 같은 값이라 라이트와 같다 */
   emotionInk: primitive.slate900,
+  /** 캐릭터 그림이 테마를 따라 바뀌지 않으니 이 면도 같다 */
+  faceBg: '#b8d7e7',
 };
 
 export const colorsFor = (scheme: string | null | undefined) => (scheme === 'dark' ? dark : light);

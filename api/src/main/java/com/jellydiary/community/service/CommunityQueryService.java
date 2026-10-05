@@ -13,7 +13,7 @@ import com.jellydiary.community.type.FeedTaste;
 import com.jellydiary.community.type.PostSort;
 import com.jellydiary.diary.service.DiaryQueryService;
 import com.jellydiary.diary.service.result.DiaryDetailResult;
-import com.jellydiary.diary.type.Weather;
+import com.jellydiary.diary.type.Emotion;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Arrays;
@@ -41,9 +41,9 @@ public class CommunityQueryService {
     private final DiaryQueryService diaryQueryService;
     private final Clock clock;
 
-    public Page findFeed(Long userId, PostSort sort, List<String> weathers, String cursor, int size) {
+    public Page findFeed(Long userId, PostSort sort, List<String> emotions, String cursor, int size) {
         int limit = Math.min(Math.max(size, 1), MAX_SIZE);
-        List<String> filter = weatherFilter(weathers);
+        List<String> filter = emotionFilter(emotions);
         PageRequest page = PageRequest.ofSize(limit + 1);
 
         // 오늘 기록이 없으면 추천할 재료가 없다. 빈 화면 대신 최신순으로 떨어뜨린다(feed-ranking 5장)
@@ -58,7 +58,7 @@ public class CommunityQueryService {
 
         // 커서는 재배열 "전"의 점수 순서에서 뽑는다. 섞은 뒤의 마지막 글로 뽑으면 다음 페이지가 겹친다
         String nextCursor = hasNext ? encode(applied, taste, items.getLast()) : null;
-        List<CommunityPost> shown = diversify(applied, taste, weathers, items);
+        List<CommunityPost> shown = diversify(applied, taste, emotions, items);
 
         // 정렬별로 지표를 나눠 보려면 로그에 sort 가 있어야 한다(feed-ranking 7장)
         AppLog.event(log, "community.feed_read")
@@ -71,18 +71,18 @@ public class CommunityQueryService {
     }
 
     /**
-     * 상위 구간에 다른 날씨를 섞는다(feed-ranking 4장). 재배열일 뿐이라 페이지의 글 목록은 그대로다.
+     * 상위 구간에 다른 감정을 섞는다(feed-ranking 4장). 재배열일 뿐이라 페이지의 글 목록은 그대로다.
      *
-     * <p>사용자가 날씨를 직접 골랐으면 섞지 않는다 - "비 오는 글만 보여 줘"에 맑음을 끼워 넣는 것은
+     * <p>사용자가 감정을 직접 골랐으면 섞지 않는다 - "비 오는 글만 보여 줘"에 맑음을 끼워 넣는 것은
      * 다양성이 아니라 요청 무시다.
      */
     private List<CommunityPost> diversify(
             PostSort sort, Optional<FeedTaste> taste, List<String> requested, List<CommunityPost> items) {
-        boolean pickedWeather = requested != null && !requested.isEmpty();
-        if (sort != PostSort.RECOMMENDED || pickedWeather || taste.isEmpty()) {
+        boolean pickedEmotion = requested != null && !requested.isEmpty();
+        if (sort != PostSort.RECOMMENDED || pickedEmotion || taste.isEmpty()) {
             return items;
         }
-        return FeedDiversity.mix(items, CommunityPost::getWeather, taste.orElseThrow().weather());
+        return FeedDiversity.mix(items, CommunityPost::getEmotion, taste.orElseThrow().emotion());
     }
 
     private List<CommunityPost> find(
@@ -95,7 +95,7 @@ public class CommunityQueryService {
             case RECOMMENDED ->
                     postRepository.findRecommended(
                             filter,
-                            taste.orElseThrow().weather(),
+                            taste.orElseThrow().emotion(),
                             taste.orElseThrow().moodScore(),
                             taste.orElseThrow().freshSince(),
                             position.rank(),
@@ -112,7 +112,7 @@ public class CommunityQueryService {
                 switch (sort) {
                     case RECOMMENDED ->
                             taste.orElseThrow()
-                                    .score(last.getWeather(), last.getMoodScore(), last.getCreatedAt());
+                                    .score(last.getEmotion(), last.getMoodScore(), last.getCreatedAt());
                     case POPULAR -> last.getLikeCount();
                     case LATEST -> 0;
                 };
@@ -123,27 +123,27 @@ public class CommunityQueryService {
     private Optional<FeedTaste> taste(Long userId) {
         return diaryQueryService
                 .findToday(userId)
-                .filter(diary -> diary.weather() != null && diary.moodScore() != null)
+                .filter(diary -> diary.emotion() != null && diary.moodScore() != null)
                 .map(this::toTaste);
     }
 
     private FeedTaste toTaste(DiaryDetailResult diary) {
-        return FeedTaste.of(diary.weather().name(), diary.moodScore(), Instant.now(clock));
+        return FeedTaste.of(diary.emotion().name(), diary.moodScore(), Instant.now(clock));
     }
 
-    /** 필터가 없으면 전체 날씨. 빈 목록을 쿼리에 넣지 않으려는 것이며 의미도 같다. */
-    private List<String> weatherFilter(List<String> weathers) {
-        if (weathers == null || weathers.isEmpty()) {
-            return Arrays.stream(Weather.values()).map(Weather::name).toList();
+    /** 필터가 없으면 전체 감정. 빈 목록을 쿼리에 넣지 않으려는 것이며 의미도 같다. */
+    private List<String> emotionFilter(List<String> emotions) {
+        if (emotions == null || emotions.isEmpty()) {
+            return Arrays.stream(Emotion.values()).map(Emotion::name).toList();
         }
-        return weathers.stream().map(this::requireWeather).toList();
+        return emotions.stream().map(this::requireEmotion).toList();
     }
 
-    private String requireWeather(String name) {
+    private String requireEmotion(String name) {
         try {
-            return Weather.valueOf(name).name();
+            return Emotion.valueOf(name).name();
         } catch (IllegalArgumentException e) {
-            throw new BusinessException(ErrorCode.COMMON_INVALID_REQUEST, "알 수 없는 날씨: " + name);
+            throw new BusinessException(ErrorCode.COMMON_INVALID_REQUEST, "알 수 없는 감정: " + name);
         }
     }
 
@@ -167,7 +167,7 @@ public class CommunityQueryService {
                                 new CommunityPostResult(
                                         post.getId(),
                                         post.getAuthorName(),
-                                        post.getWeather(),
+                                        post.getEmotion(),
                                         post.getContent(),
                                         post.getLikeCount(),
                                         post.getCommentCount(),

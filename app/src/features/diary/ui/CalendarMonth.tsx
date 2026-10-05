@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { EmotionFace } from '@/shared/ui/EmotionFace';
 import { font, radius, space } from '@/shared/theme/tokens';
-import { useColors, useEmotionColors } from '@/shared/theme/useColors';
+import { useColors } from '@/shared/theme/useColors';
 import { EMOTION_IMAGE, emotionLabel, type Emotion } from '@/shared/emotion';
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
@@ -22,7 +22,6 @@ type Props = {
  */
 export function CalendarMonth({ month, days, today, onSelect }: Props) {
   const colors = useColors();
-  const emotionColors = useEmotionColors();
   const byDate = new Map(days.map((day) => [day.date, day]));
   const cells = buildCells(month, byDate);
   const leadingBlanks = new Date(`${month}-01T00:00:00`).getDay();
@@ -60,14 +59,15 @@ export function CalendarMonth({ month, days, today, onSelect }: Props) {
                 style={[
                   styles.mark,
                   {
-                    backgroundColor: recorded ? `${emotionColors[cell.emotion!]}33` : 'transparent',
+                    // 과일 색을 깔면 같은 계열이라 캐릭터가 묻는다. 면은 faceBg 하나로 고정한다
+                    backgroundColor: recorded ? colors.faceBg : 'transparent',
                     borderColor: isToday ? colors.primary : recorded ? 'transparent' : colors.border,
                     borderWidth: isToday ? 2 : 1,
                   },
                 ]}
               >
                 {recorded ? (
-                  <EmotionFace emotion={cell.emotion!} size={22} />
+                  <EmotionFace emotion={cell.emotion!} size={30} />
                 ) : null}
               </View>
               <Text style={[styles.day, { color: isToday ? colors.primary : colors.textMuted }]}>

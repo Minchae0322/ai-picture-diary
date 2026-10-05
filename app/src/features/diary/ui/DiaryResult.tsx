@@ -61,7 +61,7 @@ export function DiaryResult({
 
         {diary.emotion ? (
           <View style={styles.emotionRow}>
-            <EmotionFace emotion={diary.emotion} size={30} />
+            <EmotionFace emotion={diary.emotion} size={40} />
             <Text style={[styles.emotion, { color: colors.text }]}>
               {EMOTION_LABEL[diary.emotion]}
               {diary.moodScore !== null ? ` · 기분 ${formatScore(diary.moodScore)}` : ''}

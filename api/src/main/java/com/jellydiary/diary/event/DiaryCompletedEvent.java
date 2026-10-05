@@ -1,6 +1,6 @@
 package com.jellydiary.diary.event;
 
-import com.jellydiary.diary.type.Weather;
+import com.jellydiary.diary.type.Emotion;
 import java.time.LocalDate;
 import java.util.Map;
 
@@ -12,17 +12,17 @@ public record DiaryCompletedEvent(
         Long userId,
         Long diaryId,
         LocalDate entryDate,
-        Weather weather,
+        Emotion emotion,
         int createdHour,
         int totalCount,
         int streakDays,
-        Map<Weather, Integer> weatherCounts) {
+        Map<Emotion, Integer> emotionCounts) {
 
-    public int countOf(Weather target) {
-        return weatherCounts.getOrDefault(target, 0);
+    public int countOf(Emotion target) {
+        return emotionCounts.getOrDefault(target, 0);
     }
 
-    public int distinctWeatherCount() {
-        return weatherCounts.size();
+    public int distinctEmotionCount() {
+        return emotionCounts.size();
     }
 }

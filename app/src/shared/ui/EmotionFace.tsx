@@ -1,5 +1,5 @@
 import { Image, StyleSheet } from 'react-native';
-import { EMOTION_IMAGE, emotionLabel, type Emotion } from '@/shared/emotion';
+import { EMOTION_IMAGE, EMOTION_SCALE, emotionLabel, type Emotion } from '@/shared/emotion';
 
 type Props = {
   emotion: Emotion;
@@ -11,10 +11,12 @@ type Props = {
 /**
  * 감정 캐릭터 그림. `Icon.tsx` 의 SVG 아이콘과 달리 **그림 자산**이라 여기서 따로 다룬다.
  *
- * 원본이 정사각이고 캐릭터가 그 안에 여백째로 들어 있어, 크기를 정사각으로 주고
- * `contain` 으로 맞추면 과일마다 다른 비율이 저절로 지켜진다.
+ * 자산은 잉크 경계로 잘려 긴 변이 캔버스를 채운다. 거기에 감정별 배율(`EMOTION_SCALE`)을 곱해
+ * 세로로 긴 캐릭터가 작아 보이는 것을 메운다. **`size` 는 기준값이고 실제 변은 그보다 클 수 있다** -
+ * 담는 상자에 그만큼 여유를 둔다.
  */
-export function EmotionFace({ emotion, size = 24, label = false }: Props) {
+export function EmotionFace({ emotion, size = 28, label = false }: Props) {
+  const side = Math.round(size * EMOTION_SCALE[emotion]);
   const a11y = label
     ? { accessibilityRole: 'image' as const, accessibilityLabel: emotionLabel(emotion) }
     : { accessibilityElementsHidden: true, importantForAccessibility: 'no-hide-descendants' as const };
@@ -22,7 +24,7 @@ export function EmotionFace({ emotion, size = 24, label = false }: Props) {
   return (
     <Image
       source={EMOTION_IMAGE[emotion]}
-      style={[styles.art, { width: size, height: size }]}
+      style={[styles.art, { width: side, height: side }]}
       resizeMode="contain"
       {...a11y}
     />

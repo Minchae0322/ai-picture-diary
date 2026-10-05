@@ -3,7 +3,7 @@ import { EmotionFace } from '@/shared/ui/EmotionFace';
 import { Card } from '@/shared/ui/Card';
 import { formatRelative } from '@/shared/format';
 import { font, MIN_TOUCH_TARGET, radius, space } from '@/shared/theme/tokens';
-import { useColors, useEmotionColors } from '@/shared/theme/useColors';
+import { useColors } from '@/shared/theme/useColors';
 import { Icon } from '@/shared/ui/Icon';
 import { EMOTION_IMAGE, EMOTION_LABEL, toEmotion } from '@/shared/emotion';
 import type { CommunityPost } from '../api/communityApi';
@@ -20,7 +20,6 @@ type Props = {
  */
 export function PostCard({ post, onToggleLike, onReport }: Props) {
   const colors = useColors();
-  const emotionColors = useEmotionColors();
   const emotion = toEmotion(post.emotion);
 
   return (
@@ -31,8 +30,8 @@ export function PostCard({ post, onToggleLike, onReport }: Props) {
       </View>
 
       {emotion ? (
-        <View style={[styles.emotion, { backgroundColor: `${emotionColors[emotion]}22` }]}>
-          <EmotionFace emotion={emotion} size={18} />
+        <View style={[styles.emotion, { backgroundColor: colors.faceBg, borderColor: colors.border }]}>
+          <EmotionFace emotion={emotion} size={24} />
           <Text style={[styles.emotionText, { color: colors.text }]}>{EMOTION_LABEL[emotion]}</Text>
         </View>
       ) : null}

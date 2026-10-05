@@ -21,6 +21,6 @@ export function MonthSummary({ summary }: { summary: { weather: Weather; days: n
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: space[4] },
   item: { alignItems: 'center', minWidth: 60, gap: 2 },
-  days: { fontSize: font.base, fontWeight: font.weightBold },
-  label: { fontSize: font.xs },
+  days: { fontSize: font.base, fontFamily: font.bold },
+  label: { fontSize: font.xs , fontFamily: font.regular},
 });

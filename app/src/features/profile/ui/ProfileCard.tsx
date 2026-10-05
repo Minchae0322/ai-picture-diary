@@ -70,8 +70,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   identity: { flex: 1, gap: 2 },
-  name: { fontSize: font.lg, fontWeight: font.weightBold },
-  meta: { fontSize: font.xs },
+  name: { fontSize: font.lg, fontFamily: font.bold },
+  meta: { fontSize: font.xs , fontFamily: font.regular},
   plus: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -80,9 +80,9 @@ const styles = StyleSheet.create({
     paddingVertical: space[1],
     borderRadius: radius.full,
   },
-  plusText: { fontSize: font.xs },
+  plusText: { fontSize: font.xs , fontFamily: font.regular},
   stats: { flexDirection: 'row' },
   stat: { flex: 1, alignItems: 'center', gap: 2 },
-  statValue: { fontSize: font.lg, fontWeight: font.weightBold },
-  statLabel: { fontSize: font.xs },
+  statValue: { fontSize: font.lg, fontFamily: font.bold },
+  statLabel: { fontSize: font.xs , fontFamily: font.regular},
 });

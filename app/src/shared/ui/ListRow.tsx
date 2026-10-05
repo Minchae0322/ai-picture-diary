@@ -56,6 +56,6 @@ const styles = StyleSheet.create({
     gap: space[3],
   },
   left: { flexDirection: 'row', alignItems: 'center', gap: space[3], flexShrink: 1 },
-  label: { fontSize: font.base, flexShrink: 1 },
-  value: { fontSize: font.sm },
+  label: { fontSize: font.base, fontFamily: font.regular, flexShrink: 1 },
+  value: { fontSize: font.sm , fontFamily: font.regular},
 });

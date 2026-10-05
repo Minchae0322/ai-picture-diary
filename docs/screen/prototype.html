@@ -1,0 +1,1399 @@
+<meta charset="utf-8">
+<title>젤리 다이어리</title>
+<style>
+/* SUIT (수트) - 가변 폰트 한 벌로 100~900을 모두 낸다.
+   Google Fonts에 없는 서체라 파일을 저장소에 두고 직접 얹는다.
+   출처: https://github.com/sunn-us/SUIT (SIL Open Font License 1.1) */
+@font-face {
+  font-family: "SUIT";
+  src: url("fonts/SUIT-Variable.woff2") format("woff2-variations"),
+       url("fonts/SUIT-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+/*
+  AI 감정 날씨일기 - 동작하는 HTML 프로토타입
+  ---------------------------------------------------------------
+  색·간격·라운드는 app/src/shared/theme/tokens.ts 와 같은 값이다.
+  값의 출처: .claude/skills/design-system/presets/muted-sky.md
+  토큰을 고치면 아래 :root 도 같이 고친다.
+
+  실제 앱(Expo/RN)이 아니라 같은 규칙을 옮긴 재현이다. 서버를 부르지 않고
+  AI 판정은 MockDiaryPainter 와 같은 규칙 기반 대역이다.
+*/
+
+:root {
+  /* ---- 앱 토큰 (라이트) ---- */
+    --sky-50:#faf4dc; --sky-100:#faf4dc; --sky-200:#faf4dc;
+  --glow: rgba(255,251,236,.85);
+  --text:#253544; --muted:#4e6375; --subtle:#5b6e7f; --decor:#a8bccd;
+  --primary:#3f6d8e; --primary-pressed:#325a77; --primary-fg:#ffffff; --accent-soft:#5b9bc4;
+  --primary-shadow: rgba(63,109,142,.32);
+  --surface: rgba(255,255,255,.92);
+  --surface-solid:#ffffff;
+  --raised-a: rgba(255,255,255,.92);
+  --raised-b: rgba(255,253,247,.95);
+  --border: rgba(37,53,68,.12);
+  --border-strong:#ece3c2;
+  --rule: rgba(63,63,63,.22);
+  --track: rgba(37,53,68,.10);
+  --scrim: rgba(37,53,68,.32);
+  --danger:#b0434e;
+  --highlight:#7c5445;
+  --hl-text:#faf4dc;   /* 배경 바닐라와 같은 값. 다크에서도 그대로 쓴다 */
+
+  --w-SUNNY:#e5b877; --w-PARTLY_CLOUDY:#dcc9a6; --w-CLOUDY:#b6bfc8;
+  --w-RAIN:#8fa9c8; --w-SNOW:#cfe0ee; --w-RAINBOW:#c79ab4;
+  --t-home:#5b9bc4; --t-calendar:#e5b877; --t-graph:#a99ac7; --t-community:#8fbfae; --t-my:#c79ab4;
+
+  --r-xl:34px; --r-lg:24px; --r-md:16px; --r-sm:10px; --r-full:999px;
+  --shadow-sm: 0 4px 10px rgba(37,53,68,.08);
+  --shadow-md: 0 10px 12px rgba(37,53,68,.12);
+  --shadow-up: 0 -6px 20px rgba(37,53,68,.10);
+
+  --page-bg:#ffffff; --page-fg:#2f2f28; --page-dim:#6d6d62;
+  --page-card:#f4f3ee; --page-line: rgba(47,47,40,.16);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --sky-50:#111a21; --sky-100:#18242d; --sky-200:#18242d;
+    --glow: rgba(143,191,224,.16);
+    --text:#e8f0f6; --muted:#b3c4d1; --subtle:#8ea1b1; --decor:#5d6d7b;
+    --primary:#8fbfe0; --primary-pressed:#b3d4ec; --primary-fg:#0e1a23; --accent-soft:#8fbfe0;
+    --primary-shadow: rgba(0,0,0,.5);
+    --surface:#1c2831; --surface-solid:#1c2831;
+    --raised-a:#26343f; --raised-b:#1c2831;
+    --border: rgba(255,255,255,.10);
+    --border-strong: rgba(255,255,255,.18);
+    --rule: rgba(255,255,255,.12);
+    --track: rgba(255,255,255,.12);
+    --scrim: rgba(0,0,0,.55);
+    --danger:#ef8b95;
+    --page-bg:#0d1419; --page-fg:#e4edf3; --page-dim:#94a6b4;
+    --page-card:#161f26; --page-line: rgba(255,255,255,.13);
+  }
+}
+:root[data-theme="dark"] {
+    --sky-50:#111a21; --sky-100:#18242d; --sky-200:#18242d;
+    --glow: rgba(143,191,224,.16);
+    --text:#e8f0f6; --muted:#b3c4d1; --subtle:#8ea1b1; --decor:#5d6d7b;
+    --primary:#8fbfe0; --primary-pressed:#b3d4ec; --primary-fg:#0e1a23; --accent-soft:#8fbfe0;
+    --primary-shadow: rgba(0,0,0,.5);
+    --surface:#1c2831; --surface-solid:#1c2831;
+    --raised-a:#26343f; --raised-b:#1c2831;
+    --border: rgba(255,255,255,.10);
+    --border-strong: rgba(255,255,255,.18);
+    --rule: rgba(255,255,255,.12);
+    --track: rgba(255,255,255,.12);
+    --scrim: rgba(0,0,0,.55);
+    --danger:#ef8b95;
+    --page-bg:#0d1419; --page-fg:#e4edf3; --page-dim:#94a6b4;
+    --page-card:#161f26; --page-line: rgba(255,255,255,.13);
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--page-bg);
+  color: var(--page-fg);
+  font-family: "SUIT", "Noto Sans KR", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 6px; }
+@media (prefers-reduced-motion: reduce) { * { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+
+/* ================= 페이지 크롬 ================= */
+.shell { display: flex; flex-direction: column; min-height: 100%; }
+
+.bar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px;
+  padding: 14px 20px; background: var(--page-bg); border-bottom: 1px solid var(--page-line);
+}
+.brand { display: flex; align-items: baseline; gap: 10px; margin-right: auto; }
+.brand h1 { margin: 0; font-size: 16px; font-weight: 900; letter-spacing: -.02em; }
+.brand span { font-size: 12px; color: var(--page-dim); }
+.group { display: flex; gap: 6px; padding: 4px; background: var(--page-card); border: 1px solid var(--page-line); border-radius: 999px; }
+.group button {
+  border: 0; background: transparent; border-radius: 999px;
+  padding: 7px 14px; font-size: 12.5px; font-weight: 700; color: var(--page-dim);
+}
+.group button[aria-pressed="true"] { background: var(--page-fg); color: var(--page-bg); }
+.ghost {
+  border: 1px solid var(--page-line); background: var(--page-card); color: var(--page-fg);
+  border-radius: 999px; padding: 8px 15px; font-size: 12.5px; font-weight: 700;
+}
+.ghost:hover { border-color: var(--primary); color: var(--primary); }
+
+.note {
+  margin: 16px 20px 0; padding: 12px 16px; max-width: 760px;
+  border: 1px solid var(--page-line); border-left: 3px solid var(--accent-soft);
+  border-radius: 10px; background: var(--page-card);
+  font-size: 12.5px; line-height: 1.65; color: var(--page-dim);
+}
+.note b { color: var(--page-fg); font-weight: 700; }
+
+.stage { flex: 1; display: grid; place-items: start center; padding: 24px 16px 56px; }
+.stage.all { place-items: start; }
+
+/* ================= 폰 ================= */
+.phone {
+  position: relative; width: 390px; height: 844px; flex: none; overflow: hidden;
+  border-radius: 44px; border: 1px solid var(--page-line);
+  background: linear-gradient(180deg, var(--sky-50) 0%, var(--sky-100) 55%, var(--sky-200) 100%);
+  color: var(--text); box-shadow: 0 22px 50px rgba(0,0,0,.18);
+  display: flex; flex-direction: column;
+  transition: background .3s ease;
+}
+.phone::before {
+  content: ""; position: absolute; right: -170px; top: -160px; width: 420px; height: 420px;
+  border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, var(--glow) 0%, transparent 70%);
+}
+.status { position: relative; display: flex; justify-content: space-between; align-items: center; padding: 18px 28px 0; flex: none; }
+.status b { font-size: 14px; font-weight: 700; }
+.status i { width: 58px; height: 12px; border-radius: 4px; background: color-mix(in srgb, var(--text) 35%, transparent); }
+
+.view { position: relative; flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; }
+.view::-webkit-scrollbar { width: 0; }
+.pad { display: flex; flex-direction: column; gap: 24px; padding: 20px 28px 32px; }
+.pad.g20 { padding-left: 20px; padding-right: 20px; }
+
+/* 탭바 */
+.tabbar { position: relative; flex: none; display: flex; padding: 14px 0 24px; background: var(--surface); border-top: 1px solid var(--border); box-shadow: var(--shadow-up); }
+.tabbar button { flex: 1; border: 0; background: none; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 0; min-height: 44px; }
+.tabbar i { width: 24px; height: 24px; border-radius: 50%; display: block; transition: opacity .2s ease; }
+.tabbar span { font-size: 10px; line-height: 1.2; color: var(--subtle); }
+.tabbar [aria-selected="true"] span { color: var(--text); font-weight: 700; }
+
+/* ================= 공통 조각 ================= */
+
+/* 형광펜처럼 글자 뒤를 지나가는 바닐라 띠. 위아래를 조금 비워 블록이 아니라 획으로 읽히게 한다.
+   채도를 낮추고 알파 0.8을 줘서 배경이 살짝 비친다. 색상 차이(ΔE 11.7)로 보인다 */
+.hl {
+  /* 글자색이 배경 바닐라와 같아서, 띠 밖으로 나간 획은 배경에 묻혀 사라진다.
+     그래서 **띠가 글자 획을 빠짐없이 덮는 것이 조건**이다. 줄일 수 있는 바닥은 잉크 높이다.
+
+     세로 padding 으로는 더 줄일 수 없다. padding 은 더하기만 되고, 배경이 깔리는
+     인라인 박스는 이미 폰트의 ascent+descent = (988+260)/1000 = 1.248em 이기 때문이다.
+     그래서 배경을 그라디언트로 그려 높이를 em 으로 직접 준다.
+
+     SUIT-Heavy 의 이 한글들(오늘의 기분/그림일기) 잉크는 CFF charstring 측정값으로
+     baseline 기준 -0.093em ~ 0.821em, 높이 0.914em 이다.
+     띠는 -0.130em ~ 0.870em(1em)으로 잡아 위 1.7px / 아래 1.3px 여유를 남긴다(34px 기준).
+     background-position 의 0.118em 은 인라인 박스 위끝(+0.988em)에서 띠 위끝(+0.870em)까지다.
+
+     결과: 띠 45.2px -> 34px, 위아래 줄 사이 틈 4.2px -> 15.3px */
+  background-image: linear-gradient(var(--highlight), var(--highlight));
+  background-repeat: no-repeat;
+  background-size: 100% 1em;
+  background-position: 0 0.118em;
+  padding: 0 .12em;
+  color: var(--hl-text);
+}
+.h1 { margin: 0; font-size: 34px; line-height: 1.04; font-weight: 900; letter-spacing: -.025em; }
+.h2 { margin: 0; font-size: 17px; line-height: 1.45; font-weight: 700; }
+.h3 { margin: 0; font-size: 14px; font-weight: 700; }
+.mut { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
+.sub { margin: 0; color: var(--subtle); font-size: 12px; line-height: 1.45; }
+.stack { display: flex; flex-direction: column; gap: 12px; }
+.row { display: flex; align-items: center; gap: 12px; }
+.wrap { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.card {
+  border-radius: var(--r-xl); border: 1.5px solid var(--border); padding: 20px;
+  background: linear-gradient(180deg, var(--raised-a), var(--raised-b));
+  box-shadow: var(--shadow-md); display: flex; flex-direction: column; gap: 12px;
+}
+.card.flat { border-radius: var(--r-lg); background: var(--surface); }
+
+.chip {
+  display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  padding: 9px 14px 9px 12px; border-radius: var(--r-full);
+  border: 1px solid var(--border-strong); background: var(--surface);
+  font-size: 12px; font-weight: 500; color: var(--text);
+  transition: background .15s ease, border-color .15s ease;
+}
+button.chip:hover { border-color: var(--primary); }
+.chip i { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+.chip[aria-pressed="true"] { background: var(--primary); border-color: var(--primary); color: var(--primary-fg); font-weight: 700; }
+.chip[aria-pressed="true"] i { box-shadow: 0 0 0 1.5px var(--primary-fg); }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  height: 48px; padding: 0 24px; border: 0; border-radius: var(--r-full);
+  background: var(--primary); color: var(--primary-fg); font-size: 15px; font-weight: 700;
+  transition: background .15s ease, opacity .15s ease, transform .1s ease;
+}
+.btn:hover { background: var(--primary-pressed); }
+.btn:active { transform: scale(.98); }
+.btn.xl { height: 63px; font-size: 17px; width: 100%; box-shadow: 0 10px 22px var(--primary-shadow); }
+.btn.sm { height: 33px; padding: 0 16px; font-size: 13px; }
+.btn.md { height: 40px; font-size: 14px; }
+.btn.soft { background: var(--surface-solid); color: var(--primary); border: 1.5px solid var(--border-strong); box-shadow: none; }
+.btn.soft:hover { border-color: var(--primary); background: var(--surface-solid); }
+.btn.ghost { background: none; color: var(--primary); box-shadow: none; }
+.btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+.btn:disabled:hover { background: var(--primary); }
+.btn.soft:disabled:hover { background: var(--surface-solid); border-color: var(--border-strong); }
+
+.bar-track { height: 8px; border-radius: 4px; background: var(--track); overflow: hidden; }
+.bar-track > i { display: block; height: 100%; border-radius: 4px; background: var(--primary); transition: width .4s ease; }
+
+.link { border: 0; background: none; padding: 10px 0; color: var(--muted); font-size: 14px; font-weight: 500; text-align: left; min-height: 44px; }
+.link:hover { color: var(--primary); }
+
+/* ---- 01 ---- */
+/* 남는 공간은 auto 마진 두 개가 반씩 나눠 먹는다: 그림 위와 글 아래.
+   그림과 글 사이에는 gap(24)만 남아 글이 그림 바로 밑에 붙는다 */
+.onb { display: flex; flex-direction: column; justify-content: flex-start; height: 100%; padding: 32px 45px 24px; gap: 24px; }
+/* 화면 제목(.h1)은 한 줄 기준의 1.04다. 01의 헤드라인은 두 줄이라 줄 사이를 넓힌다 */
+.onb .h1 { line-height: 1.45; }
+.onb .copy-sub { margin-top: 22px; font-size: 15px; line-height: 1.6; }
+/* 01 히어로 - 손그림 로고. 투명 배경 PNG라 하늘 그라디언트 위에 그대로 얹힌다.
+   -------------------------------------------------------------------------
+   원본 2048x2048 안에서 실제 그림은 x 384~1736, y 322~1586 (알파 경계 상자를 재서 나온 값).
+   가로의 34%가 투명 여백이고 중심도 정중앙에서 오른쪽 36px 치우쳐 있어서,
+   PNG를 그냥 가운데 두면 그림은 가운데로 오지 않는다.
+
+   그래서 **그림 영역을 레이아웃 박스로 삼고** 그 안에 원본을 밀어 넣는다.
+   박스 밖(투명 여백)은 잘리지만 보이는 것은 하나도 잘리지 않고, 중앙 정렬이 정확해진다.
+   크기를 바꾸려면 --art-w 하나만 고친다. 원본을 바꾸면 경계 상자 네 값을 다시 잰다 */
+/* 히어로가 놓이는 자리. 좌우 -45로 `.onb` 의 여백을 상쇄해 폰 폭(390)을 다 쓴다.
+   이게 없으면 그림이 300px 칼럼보다 넓어질 때 flex의 auto 마진이 0으로 풀려
+   왼쪽에 붙고 오른쪽만 잘린다 */
+.hero-slot {
+  /* flex 를 주지 않는다. 주면 남는 공간을 그림이 다 먹어 글이 바닥에 붙는다.
+     margin-top:auto 가 남는 공간의 절반을 그림 위에 둬서 그림이 제자리에 온다 */
+  position: relative;
+  flex: 0 0 auto; display: flex; align-items: center; justify-content: center;
+  margin: auto -45px 0;
+  padding-top: 32px;   /* 아래 .foot 의 margin-bottom 과 짝. 그림 위치를 고정한다 */
+}
+/* 노트 괘선. 32px 간격의 1px 선, 좌우 28px 여백.
+   -------------------------------------------------------------------------
+   그림과 같은 크기로 깔면 빽빽한 줄은 그림에 가려 양옆 조각만 남아 "선이 빠진" 것처럼 보인다.
+   그래서 종이를 그림보다 위아래로 넓게 빼서 깨끗한 줄이 먼저 눈에 들어오게 한다.
+   레이아웃에 영향을 주지 않도록 absolute 로 띄운다 */
+/* 노트 괘선.
+   -------------------------------------------------------------------------
+   repeating-linear-gradient 로 1px 선을 그리면 브라우저가 그라디언트를 리샘플링하며
+   일부 선을 통째로 날린다(요소 높이가 386.3px 처럼 소수일 때 특히). 그래서 선을 실제 요소로 둔다.
+   RN 의 NotebookLines.tsx 와 같은 방식·같은 좌표다.
+
+   종이를 그림보다 위아래로 넓게 빼는 이유: 그림이 줄을 거의 다 가려서
+   가려지지 않은 줄이 몇 개는 있어야 "줄 쳐진 종이"로 읽힌다. */
+.rule-sheet {
+  position: absolute; left: 28px; right: 28px; top: -72px; bottom: -20px;
+  pointer-events: none; overflow: hidden;
+}
+.rule-sheet i { position: absolute; left: 0; right: 0; height: 1px; background: var(--rule); }
+.hero-art {
+  --art-w: 280px;                    /* 그림의 표시 가로. 이 값만 바꾸면 나머지가 따라온다 */
+  --src: 2048;                       /* 원본 한 변 */
+  --bx: 381; --by: 317;              /* 그림 경계 상자의 좌상단 (alpha > 0 기준) */
+  --bw: 1359; --bh: 1273;            /* 그림 경계 상자의 크기 */
+
+  position: relative;
+  width: var(--art-w);
+  height: calc(var(--art-w) * var(--bh) / var(--bw));
+  flex: none;
+  overflow: hidden;
+}
+.hero-art img {
+  position: absolute;
+  width: calc(var(--art-w) * var(--src) / var(--bw));
+  height: auto;
+  left: calc(var(--art-w) * var(--bx) / var(--bw) * -1);
+  top: calc(var(--art-w) * var(--by) / var(--bw) * -1);
+}
+
+/* 푸터를 32 올린다. 그냥 올리면 auto 마진이 다시 나뉘며 그림도 16 따라 올라가므로,
+   히어로에 같은 32를 padding-top 으로 얹어 그 이동을 상쇄한다(계산: X = M 일 때 그림 위치 불변) */
+.onb .foot { display: flex; flex-direction: column; align-items: center; gap: 16px; margin-top: auto; margin-bottom: 32px; }
+.dots { display: flex; gap: 8px; }
+.dots i { width: 8px; height: 8px; border-radius: 999px; background: var(--accent-soft); opacity: .25; }
+.dots i.on { width: 22px; opacity: 1; }
+
+/* ---- 02 ---- */
+.canvas {
+  height: 150px; border-radius: var(--r-lg);
+  border: 2px dashed color-mix(in srgb, var(--accent-soft) 35%, transparent);
+  background: var(--surface); display: grid; place-content: center; justify-items: center; gap: 8px;
+}
+.canvas b { font-size: 44px; line-height: 1; font-weight: 900; color: var(--accent-soft); }
+.composer {
+  display: flex; align-items: flex-end; gap: 12px; min-height: 53px;
+  padding: 8px 8px 8px 20px; border-radius: var(--r-full);
+  border: 1.5px solid var(--border-strong); background: var(--surface-solid);
+}
+.composer textarea {
+  flex: 1; border: 0; background: none; resize: none; padding: 9px 0; margin: 0;
+  font: inherit; font-size: 14px; line-height: 1.45; color: var(--text);
+  max-height: 96px; field-sizing: content;
+}
+.composer textarea:focus { outline: none; }
+.composer textarea::placeholder { color: var(--subtle); }
+
+.recent { display: flex; gap: 12px; }
+.recent > button {
+  flex: 1; border: 1px solid var(--border); background: var(--surface); border-radius: 22px;
+  display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px 8px;
+}
+.recent .thumb { width: 100%; height: 64px; border-radius: var(--r-md); display: grid; place-items: end center; padding-bottom: 6px; font-size: 18px; }
+.recent b { font-size: 12px; font-weight: 700; }
+.recent small { font-size: 10px; color: var(--muted); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---- 03 ---- */
+.overlay { position: absolute; inset: 0; background: var(--scrim); display: grid; place-items: center; padding: 0 28px; z-index: 5; animation: fade .25s ease; }
+@keyframes fade { from { opacity: 0 } }
+.loader { display: flex; align-items: center; justify-content: center; gap: 12px; height: 150px; }
+.loader i { border-radius: 50%; display: block; animation: breathe 1.4s ease-in-out infinite; }
+@keyframes breathe { 0%,100% { transform: scale(.88); opacity: .45 } 50% { transform: scale(1); opacity: .9 } }
+.indet { position: relative; height: 8px; border-radius: 4px; background: var(--track); overflow: hidden; }
+.indet i { position: absolute; top: 0; bottom: 0; width: 35%; border-radius: 4px; background: var(--primary); animation: slide 1.4s ease-in-out infinite; }
+@keyframes slide { from { left: -35% } to { left: 100% } }
+
+/* ---- 04 ---- */
+.art { position: relative; width: 100%; aspect-ratio: 1; border-radius: var(--r-xl); border: 1.5px solid var(--border); background: var(--surface); overflow: hidden; }
+.art i { position: absolute; border-radius: 50%; opacity: .85; animation: pop .4s ease backwards; }
+@keyframes pop { from { transform: scale(.6); opacity: 0 } }
+.aitag { position: absolute; left: 16px; top: 16px; padding: 6px 12px; border-radius: var(--r-full); border: 1px solid var(--border); background: var(--surface-solid); font-size: 12px; font-weight: 500; color: var(--muted); }
+.actions { display: flex; gap: 12px; }
+.actions .btn { flex: 1; padding: 0 12px; }
+.actions .btn:last-child { flex: 0 0 76px; }
+
+/* ---- 05 ---- */
+.grid7 { display: grid; grid-template-columns: repeat(7, 1fr); row-gap: 8px; }
+.grid7 > b { text-align: center; font-size: 12px; font-weight: 500; color: var(--subtle); }
+.cell { border: 0; background: none; padding: 4px 0; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.cell i { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-size: 15px; }
+.cell i.empty { border: 1.5px solid var(--border-strong); }
+.cell i.today { box-shadow: 0 0 0 2px var(--primary); }
+.cell span { font-size: 13px; color: var(--muted); }
+.cell.future { opacity: .35; }
+.cell.sel i { transform: scale(1.12); }
+.sum { display: flex; gap: 12px; }
+.sum > div { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.sum .top { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.sum .top i { width: 10px; height: 10px; border-radius: 50%; }
+.sum small { font-size: 12px; color: var(--muted); }
+
+/* ---- 06 ---- */
+.seg { display: inline-flex; padding: 4px; border-radius: var(--r-full); border: 1.5px solid var(--border); background: var(--surface); }
+.seg button { min-width: 72px; border: 0; background: none; padding: 9px 16px; border-radius: var(--r-full); font-size: 15px; font-weight: 700; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--primary); color: var(--primary-fg); }
+.kpi { display: flex; gap: 12px; }
+.kpi > div { flex: 1; padding: 16px 8px; gap: 8px; align-items: center; }
+.kpi i { width: 10px; height: 10px; border-radius: 50%; }
+.kpi b { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.kpi small { font-size: 12px; color: var(--muted); }
+
+/* ---- 07 ---- */
+.badges { display: grid; grid-template-columns: repeat(3, 1fr); row-gap: 16px; }
+.badges > div { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
+.medal { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; font-size: 16px; }
+.medal.lock { border: 1.5px dashed var(--border-strong); }
+.badges b { font-size: 14px; font-weight: 700; }
+.badges small { font-size: 12px; color: var(--muted); }
+
+/* ---- 08 ---- */
+/* 닉네임 첫 글자가 들어간다. 배경인 날씨 색이 테마를 따라 바뀌지 않으니 글자색도 고정이다.
+   측정: 날씨 6색 전부 4.5:1 통과, 최악은 비 #8fa9c8 위 5.19:1 */
+.avatar { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center;
+  font-size: 18px; font-weight: 700; color: #253544; flex: none; }
+.post { display: flex; gap: 12px; }
+.post .thumb { width: 76px; height: 76px; flex: none; border-radius: var(--r-md); display: grid; place-items: center; font-size: 26px; }
+.post .txt { flex: 1; display: flex; flex-direction: column; justify-content: space-between; gap: 12px; min-width: 0; }
+.react { display: flex; gap: 16px; }
+.react button { border: 0; background: none; padding: 4px 0; font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.react button[aria-pressed="true"] { color: var(--primary); font-weight: 700; }
+.fab {
+  position: absolute; right: 20px; bottom: calc(24px + 66px); z-index: 4;
+  height: 52px; padding: 0 24px; border: 0; border-radius: var(--r-full);
+  background: var(--primary); color: var(--primary-fg); font-size: 15px; font-weight: 700;
+  box-shadow: 0 10px 22px var(--primary-shadow);
+}
+
+/* ---- 09 ---- */
+.banner { display: flex; align-items: center; gap: 16px; padding: 20px; border-radius: var(--r-lg); background: linear-gradient(135deg, var(--primary), var(--accent-soft)); color: var(--primary-fg); box-shadow: var(--shadow-md); }
+.banner b { display: block; font-size: 24px; font-weight: 900; }
+.banner small { font-size: 13px; opacity: .92; }
+.themes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+.themes button { text-align: left; padding: 12px; border-radius: var(--r-lg); border: 1.5px solid var(--border); background: var(--surface); }
+.themes button[aria-pressed="true"] { border-color: var(--primary); }
+.themes .prev { height: 84px; border-radius: var(--r-md); padding: 8px; display: flex; justify-content: flex-end; }
+.themes .plus { align-self: flex-start; padding: 4px 8px; border-radius: var(--r-full); background: var(--surface-solid); color: var(--text); font-size: 10px; font-weight: 700; }
+.themes b { display: block; margin-top: 6px; font-size: 14px; font-weight: 700; }
+.themes small { font-size: 12px; color: var(--muted); }
+.chars { display: flex; gap: 12px; }
+.chars button { flex: 1; border: 0; background: none; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 0; }
+.chars i { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; font-size: 14px; }
+.chars i.lock { border: 1.5px dashed var(--border-strong); }
+.chars small { font-size: 12px; color: var(--muted); }
+
+/* ---- 10 ---- */
+.av { width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(180deg, var(--w-RAINBOW), var(--w-SUNNY)); flex: none; }
+.stats { display: flex; }
+.stats button { flex: 1; border: 0; background: none; display: flex; align-items: baseline; gap: 6px; padding: 0; }
+.stats b { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.stats small { font-size: 12px; color: var(--muted); }
+.settings { border-radius: var(--r-lg); border: 1.5px solid var(--border); background: var(--surface); overflow: hidden; }
+.settings button { width: 100%; border: 0; background: none; display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 20px; text-align: left; }
+.settings button + button { border-top: 1px solid var(--border); }
+.settings button:hover { background: color-mix(in srgb, var(--primary) 7%, transparent); }
+.settings .lbl { flex: 1; font-size: 15px; font-weight: 500; }
+.settings .val { font-size: 14px; color: var(--muted); }
+.settings .danger .lbl { color: var(--danger); }
+
+/* =========================================================================
+   글래스 CTA (01 온보딩) - skill: glass-button
+   -------------------------------------------------------------------------
+   통째로 지우면 원래의 solid 버튼으로 돌아간다. 마크업에서 .glass 클래스와
+   .cta-stage 래퍼, 배경 구름 두 장, 라벨을 감싼 <span>까지 같이 지운다(스킬 "레이어가 글자를 가릴 때").
+
+   값을 고른 근거:
+   - 뒤 배경이 손그림 줄무늬다. 선을 또렷하게 통과시키려고 blur를 3px까지 낮췄다.
+     blur를 낮추면 채도가 빠지므로 saturate를 140%로 올려 보정한다(스킬 4번)
+     (스킬 2번 표의 "또렷하게 비침" 구간). blur(10px)
+   - blur를 낮추면 채도가 빠져 saturate(125%)로 보정(스킬 4번)
+   - 밝은 배경 위라 흰 글자를 쓰지 않는다. 라벨은 var(--text)(#253544)다(스킬 6번)
+   - 흰 오버레이 0.10 = 뒤 패턴을 비추는 권장 구간 0.06~0.10(스킬 3번).
+     그만큼 갈색 줄이 비쳐 라벨 대비가 떨어지므로 라벨에만 흰 헤일로를 준다
+   ========================================================================= */
+.cta-stage { position: relative; display: flex; width: 100%; }
+
+/* 유리가 흐릴 대상. 손그림 대각선 띠가 화면 바닥을 가로지른다.
+   -------------------------------------------------------------------------
+   원본은 정사각이라 그대로 두면 폭만큼 높이를 차지해 화면 절반을 먹는다.
+   높이를 230 으로 자르고(버튼 윗변이 바닥에서 203px), 그 안에서 그림을 바닥에 붙인다.
+   left/right 를 0 으로 두는 이유: 절대 위치는 padding box 기준이라 -45 를 주면 폰보다 넓어진다 */
+.bottom-art {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  height: 230px; overflow: hidden; pointer-events: none;
+}
+/* absolute 요소는 정적 형제보다 위에 그려진다. 그냥 두면 이 띠가 링크와 점을 덮는다.
+   나머지를 positioned 로 만들면 DOM 순서상 뒤에 와서 위에 그려진다.
+   **z-index 는 주지 않는다** - 스태킹 컨텍스트가 생기면 유리 버튼의 backdrop 이 끊길 수 있다 */
+.onb > *:not(.bottom-art), .onb .foot > * { position: relative; }
+.bottom-art img { position: absolute; left: 0; bottom: 0; width: 100%; height: auto; display: block; }
+
+.btn.glass {
+  position: relative; z-index: 1;          /* 도형 위에 얹힌다 */
+  color: var(--text);
+  background: rgba(255,255,255,0.10);
+  backdrop-filter: blur(3px) saturate(140%);
+  -webkit-backdrop-filter: blur(3px) saturate(140%);
+  border: 1px solid rgba(255,255,255,0.35);
+  box-shadow:
+    0 8px 32px rgba(37,53,68,0.18),
+    inset 0 1px 1px rgba(255,255,255,0.9),
+    inset 0 -1px 1px rgba(255,255,255,0.4),
+    inset 0 0 22px rgba(255,255,255,0.12);
+}
+.btn.glass:hover { background: rgba(255,255,255,0.18); }  /* 기본의 1.8배. 2~3배를 넘기지 않는다 */
+.btn.glass:active { transform: scale(.985); }
+.btn.glass > span {
+  position: relative; z-index: 1;                       /* ::after 레이어가 라벨을 덮지 않게 */
+  /* 유리를 투명하게 할수록 뒤 갈색 줄이 비쳐 라벨 대비가 3:1 아래로 떨어진다.
+     오버레이를 다시 올리는 대신 글자 둘레만 흰빛으로 띄운다 */
+  text-shadow: 0 1px 2px rgba(255,255,255,.95), 0 0 7px rgba(255,255,255,.8);
+}
+
+/* 11시·5시 모서리 빛 반사선. padding + 이중 마스크 + exclude */
+.btn.glass::before {
+  content: ""; position: absolute; inset: -1px;
+  border-radius: inherit; padding: 1px;
+  background: linear-gradient(135deg,
+    rgba(255,255,255,0.95) 0%,
+    rgba(255,255,255,0.80) 7%,
+    rgba(255,255,255,0)    20%,
+    rgba(255,255,255,0)    80%,
+    rgba(255,255,255,0.80) 93%,
+    rgba(255,255,255,0.95) 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* 가장자리 굴절감. 부모 블러 위에 한 번 더 얹어 테두리만 두꺼운 유리로 */
+.btn.glass::after {
+  content: ""; position: absolute; inset: 0;
+  border-radius: inherit;
+  backdrop-filter: blur(2.5px) brightness(1.1) saturate(125%);
+  -webkit-backdrop-filter: blur(2.5px) brightness(1.1) saturate(125%);
+  -webkit-mask:
+    linear-gradient(to right,  #000, transparent 18px),
+    linear-gradient(to left,   #000, transparent 18px),
+    linear-gradient(to bottom, #000, transparent 14px),
+    linear-gradient(to top,    #000, transparent 14px);
+  -webkit-mask-composite: source-over;
+  mask:
+    linear-gradient(to right,  #000, transparent 18px),
+    linear-gradient(to left,   #000, transparent 18px),
+    linear-gradient(to bottom, #000, transparent 14px),
+    linear-gradient(to top,    #000, transparent 14px);
+  mask-composite: add;
+  pointer-events: none;
+}
+
+/* 어두운 배경에서는 반대로 - 밝은 글자에 옅은 흰 오버레이(스킬 6번의 뒤집은 경우).
+   라벨 색은 var(--text)라 테마가 바뀌면 따라온다. 여기서는 유리 값만 다시 정한다 */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .btn.glass {
+    background: rgba(255,255,255,0.10);
+    border-color: rgba(255,255,255,0.20);
+    box-shadow:
+      0 8px 32px rgba(0,0,0,0.45),
+      inset 0 1px 1px rgba(255,255,255,0.35),
+      inset 0 -1px 1px rgba(255,255,255,0.14),
+      inset 0 0 22px rgba(255,255,255,0.08);
+  }
+  :root:not([data-theme="light"]) .btn.glass:hover { background: rgba(255,255,255,0.18); }
+  /* 다크에서는 라벨이 밝다. 흰 헤일로는 번짐이 되므로 어둡게 뒤집는다 */
+  :root:not([data-theme="light"]) .btn.glass > span {
+    text-shadow: 0 1px 2px rgba(0,0,0,.6), 0 0 7px rgba(0,0,0,.45);
+  }
+}
+:root[data-theme="dark"] .btn.glass {
+  background: rgba(255,255,255,0.10);
+  border-color: rgba(255,255,255,0.20);
+  box-shadow:
+    0 8px 32px rgba(0,0,0,0.45),
+    inset 0 1px 1px rgba(255,255,255,0.35),
+    inset 0 -1px 1px rgba(255,255,255,0.14),
+    inset 0 0 22px rgba(255,255,255,0.08);
+}
+:root[data-theme="dark"] .btn.glass:hover { background: rgba(255,255,255,0.18); }
+:root[data-theme="dark"] .btn.glass > span {
+  text-shadow: 0 1px 2px rgba(0,0,0,.6), 0 0 7px rgba(0,0,0,.45);
+}
+
+/* backdrop-filter가 없는 브라우저에서는 유리가 성립하지 않는다. 불투명 면으로 내린다 */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .btn.glass { background: rgba(255,255,255,0.72); }
+  .btn.glass::after { display: none; }
+}
+
+/* ---- 토스트 / 시트 ---- */
+.toast {
+  position: absolute; left: 20px; right: 20px; bottom: calc(24px + 66px + 12px); z-index: 30;
+  padding: 14px 18px; border-radius: var(--r-md);
+  background: var(--text); color: var(--sky-50);
+  font-size: 13px; line-height: 1.5; box-shadow: var(--shadow-md);
+  animation: rise .22s ease;
+}
+@keyframes rise { from { transform: translateY(8px); opacity: 0 } }
+.sheet-wrap { position: absolute; inset: 0; z-index: 40; background: var(--scrim); display: flex; align-items: flex-end; animation: fade .2s ease; }
+.sheet { width: 100%; background: var(--surface-solid); border-radius: var(--r-xl) var(--r-xl) 0 0; padding: 24px 24px 32px; display: flex; flex-direction: column; gap: 12px; animation: up .25s ease; }
+@keyframes up { from { transform: translateY(24px) } }
+.sheet h3 { margin: 0 0 4px; font-size: 17px; font-weight: 700; }
+.sheet .opt { border: 0; background: none; text-align: left; padding: 14px 0; font-size: 15px; font-weight: 500; border-top: 1px solid var(--border-strong); }
+.sheet .opt.danger { color: var(--danger); }
+
+/* ---- 전체 보기 ---- */
+.deck { display: flex; flex-wrap: wrap; gap: 36px 24px; align-items: flex-start; width: 100%; }
+.deck figure { margin: 0; width: 390px; }
+.deck .phone { pointer-events: none; }
+.deck figcaption { padding: 12px 4px 0; font-size: 13px; color: var(--page-fg); }
+.deck figcaption b { font-weight: 800; }
+.deck figcaption em { font-style: normal; color: var(--page-dim); font-size: 12px; }
+
+@media (max-width: 460px) {
+  .phone { width: 100%; max-width: 390px; height: 780px; border-radius: 32px; }
+  .stage { padding: 16px 16px 40px; }
+}
+</style>
+
+<div class="shell">
+  <div class="bar">
+    <div class="brand">
+      <h1>젤리 다이어리</h1>
+      <span>HTML 프로토타입 · 390x844</span>
+    </div>
+
+    <div class="group" role="group" aria-label="보기 모드">
+      <button id="mode-app" aria-pressed="true">앱</button>
+      <button id="mode-all" aria-pressed="false">전체 보기</button>
+    </div>
+    <div class="group" role="group" aria-label="테마">
+      <button id="theme-light" aria-pressed="true">라이트</button>
+      <button id="theme-dark" aria-pressed="false">다크</button>
+    </div>
+    <button class="ghost" id="replay-onb">온보딩부터</button>
+    <button class="ghost" id="reset-day">오늘 기록 지우기</button>
+  </div>
+
+  <p class="note">
+    <b>실행 중인 Expo 앱이 아니라 같은 규칙을 옮긴 재현이다.</b>
+    색·간격·라운드는 <code>app/src/shared/theme/tokens.ts</code>와 같은 값이고,
+    AI 판정은 서버의 <code>MockDiaryPainter</code>처럼 <b>본문의 낱말을 보는 규칙 기반 대역</b>이다 - 실제 모델을 부르지 않는다.
+    05~10의 숫자는 앱과 마찬가지로 목 데이터다.
+    <br>한 줄 써서 <b>기록</b>을 눌러 보면 02 → 03 → 04 흐름이 그대로 돈다.
+  </p>
+
+  <main class="stage" id="stage">
+    <div class="phone" id="phone"></div>
+  </main>
+</div>
+
+<script>
+'use strict';
+
+/* =========================================================================
+   도메인 상수 - app/src/shared/weather/weather.ts 와 같은 값
+   ========================================================================= */
+const WEATHERS = ['SUNNY', 'PARTLY_CLOUDY', 'CLOUDY', 'RAIN', 'SNOW', 'RAINBOW'];
+const LABEL = { SUNNY:'맑음', PARTLY_CLOUDY:'구름조금', CLOUDY:'흐림', RAIN:'비', SNOW:'눈', RAINBOW:'무지개' };
+const GLYPH = { SUNNY:'☀️', PARTLY_CLOUDY:'⛅', CLOUDY:'☁️', RAIN:'🌧️', SNOW:'❄️', RAINBOW:'🌈' };
+const QUICK = ['SUNNY', 'PARTLY_CLOUDY', 'CLOUDY', 'RAIN'];
+const MOOD_MIN = -3, MOOD_MAX = 3;
+const MAX_LENGTH = 500, COUNTER_FROM = 450, REGEN_LIMIT = 3;
+
+const wc = (w) => `var(--w-${w})`;
+const mood = (n) => (n > 0 ? '+' + n : String(n));
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+
+/* =========================================================================
+   목 데이터 - 앱의 mock*.ts 와 같은 값
+   ========================================================================= */
+const VIEWER = { nickname:'승희', character:'젤리곰', joinedAt:'2026.03.02', plus:true };
+const STATS = { streakDays:14, totalDiaries:142, badgesOwned:12, badgesTotal:40 };
+
+const SEED_RECENT = [
+  { id:'r1', d:-1, w:'SUNNY', c:'햇살 가득한 하루' },
+  { id:'r2', d:-2, w:'RAIN', c:'비 오는 날' },
+  { id:'r3', d:-3, w:'RAINBOW', c:'설레는 밤' },
+];
+
+const BADGES = [
+  { n:'첫 기록', c:'1일', own:true }, { n:'젤리 7', c:'7일 연속', own:true },
+  { n:'젤리 14', c:'14일 연속', own:true }, { n:'맑음 수집가', c:'맑음 10회', own:true },
+  { n:'비 오는 날', c:'비 5회', own:true }, { n:'무지개 30', c:'30일 연속', own:false },
+  { n:'사계절', c:'365일', own:false }, { n:'감정 탐험가', c:'6종 전부', own:false },
+  { n:'새벽 기록', c:'04시 기록', own:false }, { n:'공유왕', c:'10회 공유', own:false },
+  { n:'첫 댓글', c:'커뮤니티', own:false }, { n:'프리미엄', c:'구독 시작', own:false },
+];
+const BADGE_TINT = ['SUNNY','PARTLY_CLOUDY','RAINBOW','RAIN','CLOUDY','SNOW'];
+
+const FEED_SEED = [
+  { id:'p1', who:'복숭아젤리', t:'2시간 전', w:'RAIN', c:'비 오는 날 창가에서 커피 한 잔', likes:128, cm:14, liked:false },
+  { id:'p2', who:'해바라기', t:'5시간 전', w:'SUNNY', c:'드디어 이직 합격! 오늘은 무조건 맑음', likes:342, cm:56, liked:true },
+  { id:'p3', who:'밤하늘', t:'어제', w:'CLOUDY', c:'아무것도 안 한 날. 그래도 괜찮아', likes:87, cm:9, liked:false },
+];
+
+const THEMES = [
+  { id:'paper', n:'Paper', d:'기본', g:'#faf4dc,#ece3c2', plus:false },
+  { id:'night', n:'Night Jelly', d:'밤의 젤리', g:'#18242d,#2f4356', plus:true },
+  { id:'mint', n:'Mint Soda', d:'청량한 민트', g:'#f2fbf8,#8fbfae', plus:false },
+  { id:'lav', n:'Lavender', d:'라벤더 드림', g:'#f5f2fb,#a99ac7', plus:true },
+];
+const CHARS = [
+  { n:'젤리곰', t:'#c79ab4', own:true }, { n:'별사탕', t:'#e5b877', own:false },
+  { n:'구름이', t:'#8fa9c8', own:false }, { n:'새싹', t:'#8fbfae', own:false },
+];
+const STORE_CATS = [['theme','테마'], ['character','캐릭터'], ['background','배경'], ['font','폰트']];
+
+const MONTH_SCORES = [1,2,-1,0,2,3,1,null,-2,0,1,2,2,null,1,0,-1,1,3,2,1,null,0,1,2,2,1,-1,0,1];
+const WORDS = ['회의','산책','피곤','맛있다'];
+
+/* =========================================================================
+   규칙 기반 AI 대역 - 서버 MockDiaryPainter 와 같은 생각
+   ========================================================================= */
+const RULES = [
+  { w:'RAINBOW', m:3, k:['최고','완벽','대박','꿈같','벅차','무지개'], c:'말끝에 힘이 실려 있어요. 오래 기억될 하루네요.' },
+  { w:'SUNNY', m:2, k:['합격','기쁘','좋','행복','설레','즐거','성공','잘 끝','가볍','웃'], c:'성취감이 느껴지는 하루였네요. 이런 날은 오래 기억돼요.' },
+  { w:'RAIN', m:-2, k:['슬프','울','눈물','힘들','속상','외로','지치','실패','아프'], c:'오늘은 좀 무거웠군요. 비 온 뒤에 땅이 굳는다고 하죠.' },
+  { w:'SNOW', m:-1, k:['춥','조용','고요','멍','혼자','차분'], c:'조용한 하루였네요. 가끔은 이런 날도 필요해요.' },
+  { w:'CLOUDY', m:-1, k:['피곤','그냥','보통','바쁘','정신없','애매'], c:'뚜렷하지 않은 하루도 하루예요. 기록해 둔 게 어디예요.' },
+];
+function paint(text) {
+  for (const r of RULES) if (r.k.some((k) => text.includes(k))) return { weather:r.w, mood:r.m, comment:r.c };
+  return { weather:'PARTLY_CLOUDY', mood:1, comment:'잔잔한 하루였네요. 내일은 어떤 날씨일까요?' };
+}
+
+/* =========================================================================
+   상태
+   ========================================================================= */
+const today = new Date();
+const iso = (y, m, d) => `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+const TODAY_ISO = iso(today.getFullYear(), today.getMonth()+1, today.getDate());
+
+const S = {
+  mode: 'app',
+  route: 'tabs',          // 'onboarding' | 'tabs'
+  tab: 'home',
+  push: null,             // null | 'badges' | 'store'
+  diary: null,            // {content, hint, status, weather, mood, comment, regen, seed}
+  draft: '',
+  hint: null,
+  recent: SEED_RECENT.map((r) => {
+    const d = new Date(today); d.setDate(d.getDate() + r.d);
+    return { id:r.id, date: iso(d.getFullYear(), d.getMonth()+1, d.getDate()), w:r.w, c:r.c };
+  }),
+  cal: { y: today.getFullYear(), m: today.getMonth() + 1 },
+  calSel: null,
+  range: 'month',
+  feed: FEED_SEED.map((p) => ({ ...p })),
+  sort: 'popular',
+  filters: [],
+  storeCat: 'theme',
+  theme: 'paper',
+  toast: null,
+  sheet: null,
+};
+let toastTimer = null, genTimer = null;
+
+function toast(msg) {
+  S.toast = msg;
+  render();
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { S.toast = null; render(); }, 2400);
+}
+
+/* =========================================================================
+   화면 조각
+   ========================================================================= */
+function tabbar(active) {
+  const tabs = [['home','홈'], ['calendar','캘린더'], ['graph','그래프'], ['community','커뮤니티'], ['my','MY']];
+  return `<nav class="tabbar" role="tablist">${tabs.map(([id, name]) => `
+    <button role="tab" aria-selected="${active === id}" data-act="tab" data-v="${id}">
+      <i style="background:var(--t-${id});opacity:${active === id ? 1 : .28}"></i><span>${name}</span>
+    </button>`).join('')}</nav>`;
+}
+const status = () => `<div class="status"><b>9:41</b><i></i></div>`;
+
+function chip(label, opts = {}) {
+  const { dot, on = false, act, v, lock = false, pressable = true } = opts;
+  const tag = act ? 'button' : 'span';
+  const attrs = act ? ` data-act="${act}" data-v="${v ?? ''}"${pressable ? ` aria-pressed="${on}"` : ''}` : (on ? ' aria-pressed="true"' : '');
+  const style = dot && !on ? ` style="background:color-mix(in srgb, ${dot} 28%, transparent);border-color:color-mix(in srgb, ${dot} 55%, transparent)"` : '';
+  return `<${tag} class="chip"${attrs}${style}>${dot ? `<i style="background:${dot}"></i>` : ''}${lock ? '🔒 ' : ''}${esc(label)}</${tag}>`;
+}
+
+function artwork(weather, seedBase) {
+  const spots = [[110,40,60], [86,150,40], [70,110,170], [60,215,150], [48,60,215]];
+  const palette = [wc(weather), 'var(--accent-soft)', wc('SUNNY'), wc('PARTLY_CLOUDY'), 'var(--primary)'];
+  const seed = seedBase % palette.length;
+  return `<div class="art">
+    ${spots.map(([s, x, y], i) => `<i style="left:${(x/334*100).toFixed(1)}%;top:${(y/334*100).toFixed(1)}%;width:${(s/334*100).toFixed(1)}%;aspect-ratio:1;background:${palette[(i + seed) % palette.length]};animation-delay:${i * 60}ms"></i>`).join('')}
+    <span class="aitag">AI generated</span>
+  </div>`;
+}
+
+/* ---------------- 01 온보딩 ---------------- */
+function viewOnboarding() {
+  return `${status()}
+  <div class="view"><div class="onb">
+    <div class="bottom-art" aria-hidden="true"><img src="images/bottom.png" alt="" width="2048" height="2048"></div>
+    <div class="hero-slot"><span class="rule-sheet" aria-hidden="true"><i style="top:63px"></i><i style="top:95px"></i><i style="top:127px"></i><i style="top:159px"></i><i style="top:191px"></i><i style="top:223px"></i><i style="top:255px"></i><i style="top:287px"></i><i style="top:319px"></i><i style="top:351px"></i></span><div class="hero-art"><img src="images/onboarding.png" alt="AI Diary" width="2048" height="2048"></div></div>
+    <div>
+      <h2 class="h1"><span class="hl">오늘의 기분</span>을<br>나만의 <span class="hl">그림일기</span>로</h2>
+      <p class="mut copy-sub">한 줄만 적으면 AI가 기분을 읽고<br>그날의 그림일기를 만들어 줍니다.</p>
+    </div>
+    <div class="foot">
+      <div class="cta-stage">
+        <button class="btn xl glass" data-act="start"><span>무료로 시작하기</span></button>
+      </div>
+      <button class="link" data-act="start" style="text-align:center">이미 계정이 있어요</button>
+      <span class="dots"><i class="on"></i><i></i><i></i></span>
+    </div>
+  </div></div>`;
+}
+
+/* ---------------- 02/03/04 홈 ---------------- */
+function viewHome() {
+  const d = S.diary;
+  const body = d && d.status === 'DONE' ? resultBlock(d) : composerBlock();
+  const week = ['일','월','화','수','목','금','토'][today.getDay()];
+  return `${status()}
+  <div class="view"><div class="pad">
+    <div class="row" style="align-items:flex-start">
+      <div style="flex:1">
+        <p class="mut" style="font-weight:500">${today.getFullYear()}년 ${today.getMonth()+1}월 ${today.getDate()}일 ${week}요일</p>
+        <h2 style="margin:4px 0 0;font-size:24px;font-weight:700">안녕하세요, ${VIEWER.nickname}님</h2>
+      </div>
+      ${STATS.streakDays > 0 ? chip(`${STATS.streakDays}일 연속`, { dot: wc('SUNNY') }) : ''}
+    </div>
+    ${body}
+    ${recentBlock()}
+  </div></div>
+  ${d && d.status === 'GENERATING' ? generatingOverlay(d.content) : ''}
+  ${tabbar('home')}`;
+}
+
+function composerBlock() {
+  const ready = S.draft.trim().length > 0;
+  return `
+  <div class="card">
+    <h3 class="h2">아직 오늘의 날씨가 없어요</h3>
+    <p class="mut" style="margin-top:-8px">한 줄 기록하면 AI가 오늘을 그려줍니다</p>
+    <div class="canvas"><b>?</b><p class="sub">AI 그림 영역</p></div>
+    <div class="composer">
+      <label class="sr-only" for="draft" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">오늘의 한 줄 기록</label>
+      <textarea id="draft" rows="1" maxlength="${MAX_LENGTH}" placeholder="오늘 어땠나요?">${esc(S.draft)}</textarea>
+      <button class="btn sm" id="send" data-act="write"${ready ? '' : ' disabled'}>기록</button>
+    </div>
+    ${S.draft.length >= COUNTER_FROM ? `<p class="mut" style="align-self:flex-end">${S.draft.length} / ${MAX_LENGTH}</p>` : ''}
+  </div>
+  <div class="stack">
+    <h3 class="h3">빠른 감정 선택</h3>
+    <div class="wrap">${QUICK.map((w) => chip(LABEL[w], { dot: wc(w), on: S.hint === w, act:'hint', v:w })).join('')}</div>
+  </div>`;
+}
+
+function generatingOverlay(text) {
+  const jellies = [[66,'var(--accent-soft)',0], [82,'var(--primary)',160], [56,'var(--accent-soft)',320]];
+  return `<div class="overlay">
+    <div class="card" style="width:100%;max-width:334px;gap:24px;padding:32px 20px">
+      <p style="margin:0;font-size:15px;font-weight:500;line-height:1.45">“${esc(text)}”</p>
+      <div class="loader">${jellies.map(([s,b,dl]) => `<i style="width:${s}px;height:${s}px;background:${b};animation-delay:${dl}ms"></i>`).join('')}</div>
+      <h3 class="h2">AI가 오늘을 그리는 중...</h3>
+      <div class="indet" role="progressbar" aria-label="AI가 오늘을 그리는 중"><i></i></div>
+      <p class="mut" style="margin-top:-12px">감정을 읽고 그림을 그리고 있어요</p>
+    </div>
+  </div>`;
+}
+
+function resultBlock(d) {
+  const left = REGEN_LIMIT - d.regen;
+  return `
+  ${artwork(d.weather, d.seed)}
+  <span class="chip" style="align-self:flex-start;padding:8px 16px 8px 14px;background:var(--surface);border:1.5px solid var(--border);font-size:14px;font-weight:700">
+    <i style="width:14px;height:14px;background:${wc(d.weather)}"></i>${LABEL[d.weather]} · 기분 ${mood(d.mood)}
+  </span>
+  <p style="margin:0;font-size:17px;line-height:1.45;font-weight:500">“${esc(d.content)}”</p>
+  <p class="mut">AI 코멘트 · ${esc(d.comment)}</p>
+  <div class="actions">
+    <button class="btn soft" data-act="regen"${left > 0 ? '' : ' disabled'} title="${left > 0 ? `오늘 ${left}번 남음` : '오늘은 더 다시 그릴 수 없어요'}">다시 그리기</button>
+    <button class="btn soft" disabled title="생성과 동시에 저장돼요">저장하기</button>
+    <button class="btn soft" data-act="share">공유</button>
+  </div>
+  <p class="sub">다시 그리기는 하루 ${REGEN_LIMIT}번. ${left}번 남았어요.</p>
+  ${STATS.streakDays === 14 ? `<div class="card flat" style="flex-direction:row;align-items:center;gap:12px;padding:16px 20px">
+    <span style="width:32px;height:32px;border-radius:50%;background:var(--accent-soft);flex:none"></span>
+    <b style="font-size:14px">${STATS.streakDays}일 연속 달성! “젤리 14”</b>
+  </div>` : ''}`;
+}
+
+function recentBlock() {
+  if (S.recent.length === 0) return '';
+  return `<div class="stack">
+    <h3 class="h3">최근 기록</h3>
+    <div class="recent">${S.recent.map((r) => `
+      <button data-act="recent" data-v="${r.id}">
+        <span class="thumb" style="background:linear-gradient(180deg,rgba(255,255,255,.9),${wc(r.w)})">${GLYPH[r.w]}</span>
+        <b>${Number(r.date.slice(5,7))}/${Number(r.date.slice(8,10))}</b>
+        <small>${esc(r.c)}</small>
+      </button>`).join('')}</div>
+  </div>`;
+}
+
+/* ---------------- 05 캘린더 ---------------- */
+function monthEntries(y, m) {
+  const days = new Date(y, m, 0).getDate();
+  const out = new Map();
+  for (let d = 1; d <= days; d += 1) {
+    if ((d + m) % 4 === 0) continue;
+    out.set(iso(y, m, d), WEATHERS[(d * 7 + 3) % WEATHERS.length]);
+  }
+  return out;
+}
+function viewCalendar() {
+  const { y, m } = S.cal;
+  const entries = monthEntries(y, m);
+  const lead = new Date(y, m - 1, 1).getDay();
+  const days = new Date(y, m, 0).getDate();
+
+  let cells = '';
+  for (let i = 0; i < lead; i += 1) cells += '<span></span>';
+  for (let d = 1; d <= days; d += 1) {
+    const date = iso(y, m, d);
+    const w = entries.get(date);
+    const isToday = date === TODAY_ISO;
+    const future = date > TODAY_ISO;
+    const cls = ['cell', future ? 'future' : '', S.calSel === date ? 'sel' : ''].filter(Boolean).join(' ');
+    const dot = w
+      ? `<i class="${isToday ? 'today' : ''}" style="background:${wc(w)}">${GLYPH[w]}</i>`
+      : `<i class="empty ${isToday ? 'today' : ''}"></i>`;
+    cells += `<button class="${cls}" data-act="day" data-v="${date}"${w ? '' : ' disabled'}
+      aria-label="${d}일, ${w ? LABEL[w] : '기록 없음'}">${dot}<span${isToday ? ' style="color:var(--primary);font-weight:700"' : ''}>${d}</span></button>`;
+  }
+
+  const counted = new Map();
+  entries.forEach((w) => counted.set(w, (counted.get(w) || 0) + 1));
+  const summary = [...counted.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4);
+  const sel = S.calSel ? entries.get(S.calSel) : null;
+
+  return `${status()}
+  <div class="view"><div class="pad g20">
+    <div class="stack" style="gap:8px">
+      <h2 class="h1">감정 캘린더</h2>
+      <div class="row" style="gap:4px">
+        <button class="link" data-act="month" data-v="-1" aria-label="이전 달" style="padding:10px 12px;font-size:20px;font-weight:700">‹</button>
+        <b style="font-size:15px">${y}년 ${m}월</b>
+        <button class="link" data-act="month" data-v="1" aria-label="다음 달" style="padding:10px 12px;font-size:20px;font-weight:700">›</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="grid7">${['일','월','화','수','목','금','토'].map((d) => `<b>${d}</b>`).join('')}</div>
+      <div class="grid7">${cells}</div>
+      ${sel ? `<p class="mut" style="text-align:center">${Number(S.calSel.slice(8,10))}일 · ${LABEL[sel]} ${GLYPH[sel]} · 과거 상세 화면은 아직 없어요</p>` : ''}
+    </div>
+    <div class="card">
+      <h3 class="h2">이번 달 요약</h3>
+      ${summary.length === 0
+        ? `<p class="mut">이 달은 아직 기록이 없어요</p>`
+        : `<div class="sum">${summary.map(([w, n]) => `<div><span class="top"><i style="background:${wc(w)}"></i>${n}일</span><small>${LABEL[w]}</small></div>`).join('')}</div>`}
+    </div>
+  </div></div>
+  ${tabbar('calendar')}`;
+}
+
+/* ---------------- 06 그래프 ---------------- */
+function trend(range) {
+  if (range === 'week') return ['월','화','수','목','금','토','일'].map((l, i) => ({ l, s: MONTH_SCORES[i] ?? null }));
+  if (range === 'year') return Array.from({ length: 12 }, (_, i) => ({ l: `${i+1}월`, s: MONTH_SCORES[i*2] ?? null }));
+  return MONTH_SCORES.map((s, i) => ({ l: String(i+1), s }));
+}
+function chart(points) {
+  const W = 280, H = 160, AX = 26;
+  const step = points.length > 1 ? W / (points.length - 1) : 0;
+  const x = (i) => i * step;
+  const y = (s) => H - ((s - MOOD_MIN) / (MOOD_MAX - MOOD_MIN)) * H;
+
+  const segs = []; let cur = [];
+  points.forEach((p, i) => {
+    if (p.s === null) { if (cur.length) segs.push(cur); cur = []; return; }
+    cur.push([i, p.s]);
+  });
+  if (cur.length) segs.push(cur);
+
+  const grid = Array.from({ length: 5 }, (_, i) => `<line x1="0" y1="${(H/4)*i}" x2="${W}" y2="${(H/4)*i}" stroke="var(--track)" stroke-width="1"/>`).join('');
+  const lines = segs.map((seg) => `<path d="${seg.map(([i,s], k) => `${k ? 'L' : 'M'}${x(i).toFixed(1)},${y(s).toFixed(1)}`).join(' ')}" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`).join('');
+  const dots = points.map((p, i) => p.s === null ? '' : `<circle cx="${x(i).toFixed(1)}" cy="${y(p.s).toFixed(1)}" r="4.5" fill="var(--primary)" stroke="var(--surface-solid)" stroke-width="2"/>`).join('');
+  const ticks = [3,1,-1].map((t) => `<text x="${W + AX}" y="${(y(t) + 4).toFixed(1)}" fill="var(--subtle)" font-size="12" text-anchor="end">${mood(t)}</text>`).join('');
+
+  return `<svg viewBox="0 -8 ${W + AX} ${H + 16}" width="100%" height="${H + 16}" role="img" aria-label="기분 추이 차트">
+    ${grid}${lines}${dots}${ticks}
+  </svg>`;
+}
+function viewGraph() {
+  const points = trend(S.range);
+  const rec = points.filter((p) => p.s !== null);
+  const avg = rec.length ? Math.round((rec.reduce((a, p) => a + p.s, 0) / rec.length) * 10) / 10 : null;
+  const best = rec.length ? rec.reduce((t, p) => (p.s > t.s ? p : t)) : null;
+  const title = { week:'이번 주 기분 추이', month:'이번 달 기분 추이', year:'올해 기분 추이' }[S.range];
+
+  return `${status()}
+  <div class="view"><div class="pad g20">
+    <div class="stack" style="gap:16px">
+      <h2 class="h1">감정 그래프</h2>
+      <div class="seg" role="group" aria-label="기간 선택">
+        ${[['week','주'],['month','월'],['year','년']].map(([v, l]) => `<button data-act="range" data-v="${v}" aria-pressed="${S.range === v}">${l}</button>`).join('')}
+      </div>
+    </div>
+    <div class="card">
+      <h3 class="h2">${title}</h3>
+      <p class="mut" style="margin-top:-8px">${avg === null ? '아직 기록이 없어요' : `평균 ${mood(avg)} · 기록 ${rec.length}일`}</p>
+      ${rec.length < 3 ? `<p class="mut" style="padding:24px 0">기록이 3일 이상 쌓이면 추이를 보여드려요</p>` : chart(points)}
+      <p class="sub">기록이 없는 날은 선을 끊는다. 0으로 채우지 않는다</p>
+    </div>
+    <div class="kpi">
+      <div class="card flat"><i style="background:${wc('SUNNY')}"></i><b>${avg === null ? '-' : mood(avg)}</b><small>평균 기분</small></div>
+      <div class="card flat"><i style="background:${wc('RAINBOW')}"></i><b>${best ? best.l : '-'}</b><small>최고의 날</small></div>
+      <div class="card flat"><i style="background:${wc('RAIN')}"></i><b>${STATS.streakDays}일</b><small>연속 기록</small></div>
+    </div>
+    <div class="card">
+      <h3 class="h2">자주 쓴 말</h3>
+      <div class="wrap">${WORDS.map((w) => chip(w, { act:'word', v:w, pressable:false })).join('')}</div>
+    </div>
+  </div></div>
+  ${tabbar('graph')}`;
+}
+
+/* ---------------- 07 뱃지 ---------------- */
+function viewBadges() {
+  const next = BADGES.find((b) => !b.own);
+  return `${status()}
+  <div class="view"><div class="pad">
+    <div class="stack" style="gap:8px">
+      <button class="link" data-act="back" aria-label="뒤로" style="font-size:16px">←</button>
+      <h2 class="h1">뱃지 컬렉션</h2>
+      <p class="mut" style="font-size:14px">${STATS.badgesOwned} / ${STATS.badgesTotal}개 수집${next ? ` · 다음 뱃지 “${next.n}”까지 ${next.c}` : ''}</p>
+    </div>
+    <div class="bar-track" style="height:10px;border-radius:5px" role="progressbar" aria-label="${STATS.badgesOwned} / ${STATS.badgesTotal}개 수집">
+      <i style="width:${(STATS.badgesOwned / STATS.badgesTotal * 100).toFixed(0)}%"></i>
+    </div>
+    <div class="badges">${BADGES.map((b, i) => `
+      <div>
+        ${b.own
+          ? `<span class="medal" style="background:linear-gradient(180deg,rgba(255,255,255,.9),${wc(BADGE_TINT[i % BADGE_TINT.length])})"></span>`
+          : `<span class="medal lock">🔒</span>`}
+        <b>${b.n}</b><small>${b.c}</small>
+      </div>`).join('')}</div>
+    <p class="sub">시안에 있는 12종만 표시합니다. 나머지 28종은 서버 마스터 데이터로 채웁니다.</p>
+  </div></div>`;
+}
+
+/* ---------------- 08 커뮤니티 ---------------- */
+function viewCommunity() {
+  let list = S.filters.length ? S.feed.filter((p) => S.filters.includes(p.w)) : S.feed.slice();
+  if (S.sort === 'popular') list.sort((a, b) => b.likes - a.likes);
+
+  return `${status()}
+  <div class="view"><div class="pad g20">
+    <h2 class="h1">오늘의 날씨 피드</h2>
+    <div class="wrap">
+      ${chip('인기', { on: S.sort === 'popular', act:'sort', v:'popular' })}
+      ${chip('최신', { on: S.sort === 'recent', act:'sort', v:'recent' })}
+      ${['SUNNY','RAIN'].map((w) => chip(LABEL[w], { dot: wc(w), on: S.filters.includes(w), act:'filter', v:w })).join('')}
+    </div>
+    ${list.length === 0
+      ? `<div class="stack" style="align-items:flex-start"><p class="mut">이 날씨의 기록이 아직 없어요</p><button class="btn md soft" data-act="clear-filter">필터 해제</button></div>`
+      : list.map((p) => `
+      <div class="card flat" style="gap:16px">
+        <div class="row">
+          <span class="avatar" style="background:${wc(p.w)}">${esc([...p.who][0])}</span>
+          <span style="flex:1;min-width:0">
+            <b style="display:block;font-size:14px;font-weight:700">${esc(p.who)}</b>
+            <small style="display:block;font-size:12px;color:var(--muted)">${p.t}</small>
+          </span>
+          <span class="chip" style="padding:5px 12px 5px 8px"><i style="width:10px;height:10px;background:${wc(p.w)}"></i>${LABEL[p.w]}</span>
+          <button class="link" data-act="report" data-v="${p.id}" aria-label="${esc(p.who)}의 글 신고 또는 차단" style="padding:4px 6px;font-size:20px;line-height:1">···</button>
+        </div>
+        <div class="post">
+          <span class="thumb" style="background:linear-gradient(180deg,rgba(255,255,255,.9),${wc(p.w)})">${GLYPH[p.w]}</span>
+          <span class="txt">
+            <span style="font-size:14px;line-height:1.45">${esc(p.c)}</span>
+            <span class="react">
+              <button data-act="like" data-v="${p.id}" aria-pressed="${p.liked}" aria-label="좋아요 ${p.likes}개">♥ ${p.likes}</button>
+              <button data-act="soon" data-v="댓글">💬 ${p.cm}</button>
+              <button data-act="soon" data-v="공유">↗ 공유</button>
+            </span>
+          </span>
+        </div>
+      </div>`).join('')}
+  </div></div>
+  <button class="fab" data-act="soon" data-v="공유 작성">+ 오늘 공유</button>
+  ${tabbar('community')}`;
+}
+
+/* ---------------- 09 상점 ---------------- */
+function viewStore() {
+  const body = S.storeCat === 'theme'
+    ? `<div class="themes">${THEMES.map((t) => `
+        <button data-act="theme" data-v="${t.id}" aria-pressed="${S.theme === t.id}">
+          <span class="prev" style="background:linear-gradient(180deg,${t.g})">${t.plus ? '<span class="plus">Plus</span>' : ''}</span>
+          <b>${t.n}</b><small>${S.theme === t.id ? '기본 · 사용 중' : t.d}</small>
+        </button>`).join('')}</div>
+      <div class="stack"><h3 class="h2">캐릭터</h3>${charRow()}</div>`
+    : S.storeCat === 'character'
+      ? charRow()
+      : `<p class="mut">${STORE_CATS.find(([v]) => v === S.storeCat)[1]} 목록은 시안에 없어 아직 정하지 않았습니다.</p>`;
+
+  return `${status()}
+  <div class="view"><div class="pad">
+    <div class="stack" style="gap:8px">
+      <button class="link" data-act="back" aria-label="뒤로" style="font-size:16px">←</button>
+      <h2 class="h1">꾸미기</h2>
+    </div>
+    <div class="banner">
+      <span style="flex:1"><b>Jelly Plus</b><small>모든 테마 · 캐릭터 · 무제한 다시 그리기</small></span>
+      <button class="btn md soft" data-act="soon" data-v="구독 결제">구독</button>
+    </div>
+    <div class="wrap">${STORE_CATS.map(([v, l]) => chip(l, { on: S.storeCat === v, act:'store-cat', v })).join('')}</div>
+    ${body}
+    <button class="btn md ghost" data-act="soon" data-v="구매 복원" style="align-self:flex-start">구매 복원</button>
+  </div></div>`;
+}
+function charRow() {
+  return `<div class="chars">${CHARS.map((c) => `
+    <button data-act="char" data-v="${c.n}" aria-label="${c.n}${c.own ? ', 보유함' : ', 잠김'}">
+      <i class="${c.own ? '' : 'lock'}" style="${c.own ? `background:${c.t}` : ''}">${c.own ? '' : '🔒'}</i>
+      <small>${c.n}</small>
+    </button>`).join('')}</div>`;
+}
+
+/* ---------------- 10 마이페이지 ---------------- */
+function viewMy() {
+  const rows = [
+    ['🔔','리마인더 알림','매일 오후 9시','soon'],
+    ['🎨','테마 변경', THEMES.find((t) => t.id === S.theme).n, 'go-store'],
+    ['🤖','AI 그림 스타일','수채화','soon'],
+    ['🔒','일기 잠금','ON','soon'],
+    ['📤','데이터 내보내기','CSV / PDF','soon'],
+    ['👤','계정 · 로그아웃','','soon'],
+  ];
+  return `${status()}
+  <div class="view"><div class="pad g20">
+    <h2 class="h1">MY</h2>
+    <div class="card">
+      <div class="row" style="gap:16px">
+        <span class="av"></span>
+        <span style="flex:1;display:flex;flex-direction:column;align-items:flex-start;gap:4px">
+          <b style="font-size:20px;font-weight:700">${VIEWER.nickname}</b>
+          <small style="font-size:12px;color:var(--muted)">${VIEWER.character} · ${VIEWER.joinedAt} 가입</small>
+          ${VIEWER.plus ? `<span class="chip" style="padding:4px 12px;font-size:12px;font-weight:700">Jelly Plus</span>` : ''}
+        </span>
+      </div>
+      <div class="stats">
+        <button><b>${STATS.totalDiaries}</b><small>총 기록</small></button>
+        <button><b>${STATS.streakDays}일</b><small>연속</small></button>
+        <button data-act="go-badges"><b>${STATS.badgesOwned}</b><small>뱃지</small></button>
+      </div>
+    </div>
+    <div class="settings">
+      ${rows.map(([g, l, v, act]) => `
+        <button data-act="${act}" data-v="${esc(l)}">
+          <span style="flex:none">${g}</span><span class="lbl">${l}</span><span class="val">${v || '설정 안 함'} ›</span>
+        </button>`).join('')}
+      <button class="danger" data-act="delete-account">
+        <span style="flex:none">🗑️</span><span class="lbl">계정 삭제</span><span class="val">›</span>
+      </button>
+    </div>
+    <p class="sub" style="text-align:center">로컬 우선 저장 · 서버 동기화는 연결됐을 때</p>
+  </div></div>
+  ${tabbar('my')}`;
+}
+
+/* =========================================================================
+   렌더
+   ========================================================================= */
+function screenHtml() {
+  if (S.route === 'onboarding') return viewOnboarding();
+  if (S.push === 'badges') return viewBadges();
+  if (S.push === 'store') return viewStore();
+  return { home: viewHome, calendar: viewCalendar, graph: viewGraph, community: viewCommunity, my: viewMy }[S.tab]();
+}
+
+function overlays() {
+  let out = '';
+  if (S.toast) out += `<div class="toast" role="status">${esc(S.toast)}</div>`;
+  if (S.sheet) {
+    out += `<div class="sheet-wrap" data-act="close-sheet"><div class="sheet">
+      <h3>${esc(S.sheet.title)}</h3>
+      <p class="mut">${esc(S.sheet.body)}</p>
+      ${S.sheet.options.map((o, i) => `<button class="opt ${o.danger ? 'danger' : ''}" data-act="sheet-opt" data-v="${i}">${esc(o.label)}</button>`).join('')}
+    </div></div>`;
+  }
+  return out;
+}
+
+const phone = document.getElementById('phone');
+const stage = document.getElementById('stage');
+
+function render() {
+  if (S.mode === 'all') { renderAll(); return; }
+  const active = document.activeElement;
+  const keepFocus = active && active.id === 'draft';
+  const caret = keepFocus ? active.selectionStart : 0;
+
+  phone.innerHTML = screenHtml() + overlays();
+
+  if (keepFocus) {
+    const next = document.getElementById('draft');
+    if (next) { next.focus(); next.setSelectionRange(caret, caret); }
+  }
+}
+
+/* 전체 보기 - 같은 렌더러로 10장을 정지 상태로 펼친다 */
+function renderAll() {
+  const snapshot = JSON.parse(JSON.stringify({ route:S.route, tab:S.tab, push:S.push, diary:S.diary, draft:S.draft, hint:S.hint, calSel:S.calSel, toast:S.toast, sheet:S.sheet }));
+  const frames = [
+    ['01', '온보딩 / 시작', '', () => { S.route = 'onboarding'; }],
+    ['02', '홈 · 오늘 기록 전', '', () => { S.route='tabs'; S.tab='home'; S.push=null; S.diary=null; }],
+    ['03', 'AI 생성 중', '진행률 대신 불확정 막대', () => { S.diary = { content:'오늘 팀 회의가 잘 끝나서 마음이 가볍다', status:'GENERATING' }; }],
+    ['04', '오늘의 결과', '', () => { S.diary = { content:'오늘 팀 회의가 잘 끝나서 마음이 가볍다', status:'DONE', weather:'SUNNY', mood:2, comment:'성취감이 느껴지는 하루였네요. 이런 날은 오래 기억돼요.', regen:0, seed:0 }; }],
+    ['05', '감정 캘린더', '셀에 날씨 글리프 추가', () => { S.diary=null; S.tab='calendar'; }],
+    ['06', '감정 그래프', '', () => { S.tab='graph'; }],
+    ['07', '뱃지 컬렉션', '탭 아님 · MY 하위', () => { S.tab='my'; S.push='badges'; }],
+    ['08', '커뮤니티', '··· = 신고·차단, 시안에 없던 것', () => { S.push=null; S.tab='community'; }],
+    ['09', '테마 · 캐릭터 상점', '구매 복원 = 시안에 없던 것', () => { S.tab='my'; S.push='store'; }],
+    ['10', '마이페이지', '계정 삭제 = 시안에 없던 것', () => { S.push=null; S.tab='my'; }],
+  ];
+
+  S.toast = null; S.sheet = null;
+  const html = frames.map(([num, name, note, setup]) => {
+    setup();
+    return `<figure><div class="phone">${screenHtml()}</div>
+      <figcaption><b>${num}</b> ${name}${note ? ` <em>(${note})</em>` : ''}</figcaption></figure>`;
+  }).join('');
+
+  Object.assign(S, snapshot);
+  stage.innerHTML = `<div class="deck">${html}</div>`;
+}
+
+/* =========================================================================
+   동작
+   ========================================================================= */
+function startGenerating() {
+  const text = S.draft.trim();
+  if (!text) return;
+  S.diary = { content: text, hint: S.hint, status: 'GENERATING', regen: 0, seed: 0 };
+  S.draft = ''; S.hint = null;
+  render();
+  clearTimeout(genTimer);
+  genTimer = setTimeout(() => {
+    const judged = paint(S.diary.content);
+    Object.assign(S.diary, judged, { status: 'DONE' });
+    S.recent = [{ id:'today', date: TODAY_ISO, w: judged.weather, c: S.diary.content }, ...S.recent].slice(0, 3);
+    render();
+  }, 2200);
+}
+
+function regenerate() {
+  if (!S.diary || S.diary.regen >= REGEN_LIMIT) return;
+  const keep = S.diary.content, n = S.diary.regen + 1;
+  S.diary = { content: keep, status: 'GENERATING', regen: n, seed: n };
+  render();
+  clearTimeout(genTimer);
+  genTimer = setTimeout(() => {
+    const judged = paint(keep);
+    Object.assign(S.diary, judged, { status: 'DONE' });
+    S.diary.comment = judged.comment + ' (다시 그린 그림이에요)';
+    render();
+    toast(`다시 그렸어요. 오늘 ${REGEN_LIMIT - n}번 남았어요.`);
+  }, 1600);
+}
+
+const ACTIONS = {
+  start: () => { S.route = 'tabs'; S.tab = 'home'; },
+  tab: (v) => { S.tab = v; S.push = null; },
+  back: () => { S.push = null; },
+  hint: (v) => { S.hint = S.hint === v ? null : v; },
+  write: () => startGenerating(),
+  regen: () => regenerate(),
+  share: () => { S.tab = 'community'; S.push = null; toast('공유 작성 화면은 아직 없어 피드로 왔어요'); },
+  recent: () => toast('과거 날짜 상세 화면은 아직 없어요'),
+  month: (v) => {
+    const z = S.cal.m - 1 + Number(v);
+    S.cal = { y: S.cal.y + Math.floor(z / 12), m: ((z % 12) + 12) % 12 + 1 };
+    S.calSel = null;
+  },
+  day: (v) => { S.calSel = S.calSel === v ? null : v; },
+  range: (v) => { S.range = v; },
+  word: (v) => toast(`“${v}” 탭 동작은 아직 정하지 않았어요`),
+  sort: (v) => { S.sort = v; },
+  filter: (v) => { S.filters = S.filters.includes(v) ? S.filters.filter((w) => w !== v) : [...S.filters, v]; },
+  'clear-filter': () => { S.filters = []; },
+  like: (v) => {
+    const p = S.feed.find((x) => x.id === v);
+    if (p) { p.liked = !p.liked; p.likes += p.liked ? 1 : -1; }
+  },
+  report: (v) => {
+    const p = S.feed.find((x) => x.id === v);
+    S.sheet = {
+      title: `${p.who}의 글`, body: '어떻게 할까요? 신고·차단은 시안에 없지만 스토어 심사에 필수라 넣었습니다.',
+      options: [
+        { label: '신고', danger: true, run: () => toast('신고했어요. 서버 접수는 다음 라운드입니다') },
+        { label: '이 사용자 차단', danger: true, run: () => toast('차단했어요. 서버 접수는 다음 라운드입니다') },
+        { label: '취소', run: () => {} },
+      ],
+    };
+  },
+  'store-cat': (v) => { S.storeCat = v; },
+  theme: (v) => {
+    const t = THEMES.find((x) => x.id === v);
+    if (t.plus) { toast(`${t.n}은 Jelly Plus 전용이에요`); return; }
+    S.theme = v; toast(`${t.n} 테마를 골랐어요. 실제 적용은 다음 라운드입니다`);
+  },
+  char: (v) => {
+    const c = CHARS.find((x) => x.n === v);
+    toast(c.own ? `${c.n} 적용은 다음 라운드입니다` : `${c.n}은 Jelly Plus로 열 수 있어요`);
+  },
+  'go-badges': () => { S.push = 'badges'; },
+  'go-store': () => { S.push = 'store'; },
+  'delete-account': () => {
+    S.sheet = {
+      title: '계정 삭제', body: '기록과 그림이 모두 지워집니다. 되돌릴 수 없어요.',
+      options: [
+        { label: '삭제', danger: true, run: () => toast('삭제 흐름은 다음 라운드입니다') },
+        { label: '취소', run: () => {} },
+      ],
+    };
+  },
+  soon: (v) => toast(`${v} 화면은 다음 라운드에 붙습니다`),
+  'close-sheet': () => { S.sheet = null; },
+  'sheet-opt': (v) => {
+    const opt = S.sheet.options[Number(v)];
+    S.sheet = null;
+    render();
+    opt.run();
+  },
+};
+
+phone.addEventListener('click', (e) => {
+  const el = e.target.closest('[data-act]');
+  if (!el || el.disabled) return;
+  // 시트 배경을 눌렀을 때만 닫히게 한다. 시트 안쪽 클릭은 통과시키지 않는다
+  if (el.dataset.act === 'close-sheet' && e.target !== el) return;
+  const fn = ACTIONS[el.dataset.act];
+  if (!fn) return;
+  const before = JSON.stringify(S.sheet);
+  fn(el.dataset.v);
+  if (el.dataset.act !== 'sheet-opt' || before !== JSON.stringify(S.sheet)) render();
+});
+
+phone.addEventListener('input', (e) => {
+  if (e.target.id !== 'draft') return;
+  S.draft = e.target.value;
+  const send = document.getElementById('send');
+  if (send) send.disabled = S.draft.trim().length === 0;
+  if (S.draft.length >= COUNTER_FROM) render();
+});
+
+phone.addEventListener('keydown', (e) => {
+  if (e.target.id === 'draft' && e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); startGenerating(); }
+});
+
+/* ---- 도구 막대 ---- */
+const modeApp = document.getElementById('mode-app');
+const modeAll = document.getElementById('mode-all');
+function setMode(m) {
+  S.mode = m;
+  modeApp.setAttribute('aria-pressed', String(m === 'app'));
+  modeAll.setAttribute('aria-pressed', String(m === 'all'));
+  stage.classList.toggle('all', m === 'all');
+  if (m === 'app') { stage.innerHTML = ''; stage.appendChild(phone); }
+  render();
+}
+modeApp.addEventListener('click', () => setMode('app'));
+modeAll.addEventListener('click', () => setMode('all'));
+
+const tLight = document.getElementById('theme-light');
+const tDark = document.getElementById('theme-dark');
+function setTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  tLight.setAttribute('aria-pressed', String(t === 'light'));
+  tDark.setAttribute('aria-pressed', String(t === 'dark'));
+}
+tLight.addEventListener('click', () => setTheme('light'));
+tDark.addEventListener('click', () => setTheme('dark'));
+setTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+
+document.getElementById('replay-onb').addEventListener('click', () => {
+  clearTimeout(genTimer);
+  S.route = 'onboarding'; S.push = null; S.diary = null; S.draft = ''; S.hint = null;
+  if (S.mode !== 'app') setMode('app'); else render();
+});
+document.getElementById('reset-day').addEventListener('click', () => {
+  clearTimeout(genTimer);
+  S.diary = null; S.draft = ''; S.hint = null; S.route = 'tabs'; S.tab = 'home'; S.push = null;
+  S.recent = SEED_RECENT.map((r) => {
+    const d = new Date(today); d.setDate(d.getDate() + r.d);
+    return { id:r.id, date: iso(d.getFullYear(), d.getMonth()+1, d.getDate()), w:r.w, c:r.c };
+  });
+  if (S.mode !== 'app') setMode('app'); else render();
+  toast('오늘 기록을 지웠어요. 다시 써 보세요');
+});
+
+render();
+</script>

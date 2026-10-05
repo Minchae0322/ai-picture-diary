@@ -1,0 +1,933 @@
+<!doctype html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI 감정 날씨일기 - 화면 10종 미리보기</title>
+<style>
+/* SUIT (수트) - 가변 폰트 한 벌로 100~900을 모두 낸다.
+   Google Fonts에 없는 서체라 파일을 저장소에 두고 직접 얹는다.
+   출처: https://github.com/sunn-us/SUIT (SIL Open Font License 1.1) */
+@font-face {
+  font-family: "SUIT";
+  src: url("fonts/SUIT-Variable.woff2") format("woff2-variations"),
+       url("fonts/SUIT-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+/*
+  이 파일은 `app/src/shared/theme/tokens.ts`와 같은 값을 CSS로 옮긴 정적 미리보기다.
+  토큰을 고치면 여기도 같이 고친다. 값의 출처는 .claude/skills/design-system/presets/muted-sky.md
+*/
+:root {
+  --sky-50:#faf4dc; --sky-100:#faf4dc; --sky-200:#faf4dc; --mist:#f6f6ef;
+  --glow: rgba(255,251,236,.85);
+
+  --text:#253544; --muted:#4e6375; --subtle:#5b6e7f; --decor:#a8bccd;
+  --primary:#3f6d8e; --primary-pressed:#325a77; --primary-fg:#ffffff; --accent-soft:#5b9bc4;
+  --primary-shadow: rgba(63,109,142,.32);
+
+  --surface: rgba(255,255,255,.92);
+  --surface-solid:#ffffff;
+  --raised-a: rgba(255,255,255,.92);
+  --raised-b: rgba(255,231,214,.85);
+  --border: rgba(37,53,68,.12);
+  --border-strong:#ece3c2;
+  --rule: rgba(63,63,63,.22);
+  --track: rgba(37,53,68,.10);
+  --scrim: rgba(37,53,68,.32);
+  --highlight:#7c5445;
+  --hl-text:#faf4dc;   /* 배경 바닐라와 같은 값. 다크에서도 그대로 쓴다 */
+
+  --w-sunny:#e5b877; --w-partly:#dcc9a6; --w-cloudy:#b6bfc8;
+  --w-rain:#8fa9c8; --w-snow:#cfe0ee; --w-rainbow:#c79ab4;
+  --t-home:#5b9bc4; --t-cal:#e5b877; --t-graph:#a99ac7; --t-comm:#8fbfae; --t-my:#c79ab4;
+
+  --r-xl:34px; --r-lg:24px; --r-md:16px; --r-sm:10px; --r-full:999px;
+  --shadow-sm: 0 4px 10px rgba(37,53,68,.08);
+  --shadow-md: 0 10px 12px rgba(37,53,68,.12);
+  --shadow-up: 0 -6px 20px rgba(37,53,68,.10);
+
+  --page-bg:#ffffff; --page-fg:#2f2f28; --page-card:#f4f3ee; --page-line: rgba(47,47,40,.16);
+}
+[data-theme="dark"] {
+  --sky-50:#111a21; --sky-100:#18242d; --sky-200:#18242d; --mist:#1c2831;
+  --glow: rgba(143,191,224,.16);
+
+  --text:#e8f0f6; --muted:#b3c4d1; --subtle:#8ea1b1; --decor:#5d6d7b;
+  --primary:#8fbfe0; --primary-pressed:#b3d4ec; --primary-fg:#0e1a23; --accent-soft:#8fbfe0;
+  --primary-shadow: rgba(0,0,0,.5);
+
+  --surface:#1c2831; --surface-solid:#1c2831;
+  --raised-a:#26343f; --raised-b:#1c2831;
+  --border: rgba(255,255,255,.10);
+  --border-strong: rgba(255,255,255,.18);
+    --rule: rgba(255,255,255,.12);
+  --track: rgba(255,255,255,.12);
+  --scrim: rgba(0,0,0,.55);
+
+  --page-bg:#0d1419; --page-fg:#e4edf3; --page-card:#161f26; --page-line: rgba(255,255,255,.13);
+}
+
+* { box-sizing: border-box; }
+body {
+  margin:0; padding:0 0 64px;
+  background: var(--page-bg); color: var(--page-fg);
+  font: 14px/1.5 "SUIT", "Noto Sans KR", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, sans-serif;
+}
+header {
+  position: sticky; top:0; z-index:10;
+  padding: 20px 24px; background: var(--page-bg);
+  border-bottom: 1px solid var(--page-line);
+  display:flex; flex-wrap:wrap; gap:16px; align-items:center;
+}
+header h1 { margin:0; font-size:20px; font-weight:800; letter-spacing:-.01em; }
+header .sub { margin:0; font-size:13px; opacity:.72; flex-basis:100%; }
+.controls { margin-left:auto; display:flex; gap:8px; }
+button.ctl {
+  font: inherit; font-size:13px; font-weight:700;
+  padding:8px 16px; border-radius:999px; cursor:pointer;
+  border:1.5px solid var(--page-line); background: var(--page-card); color: var(--page-fg);
+}
+button.ctl[aria-pressed="true"] { background: var(--page-fg); color: var(--page-bg); border-color: var(--page-fg); }
+
+.notice {
+  margin: 20px 24px 0; padding: 14px 18px;
+  border:1px solid var(--page-line); border-left:4px solid var(--w-sunny);
+  border-radius:12px; background: var(--page-card); font-size:13px; line-height:1.6;
+}
+.notice b { font-weight:800; }
+
+.deck {
+  display:flex; flex-wrap:wrap; gap:36px 28px;
+  padding: 28px 24px; align-items:flex-start;
+}
+figure { margin:0; width:390px; }
+figcaption { padding: 12px 4px 0; font-size:13px; }
+figcaption .num { font-weight:800; }
+figcaption .links { margin-top:4px; font-size:12px; opacity:.7; }
+figcaption a { color: inherit; }
+
+/* ---------- 폰 프레임 ---------- */
+.phone {
+  position:relative; width:390px; height:844px; overflow:hidden;
+  border-radius:44px; border:1px solid var(--page-line);
+  background: linear-gradient(180deg, var(--sky-50) 0%, var(--sky-100) 55%, var(--sky-200) 100%);
+  color: var(--text); box-shadow: 0 18px 40px rgba(0,0,0,.14);
+  display:flex; flex-direction:column;
+}
+.phone::before { /* sunlight 글로우 */
+  content:""; position:absolute; right:-170px; top:-160px; width:420px; height:420px;
+  border-radius:50%; pointer-events:none;
+  background: radial-gradient(circle, var(--glow) 0%, transparent 70%);
+}
+.status { position:relative; display:flex; justify-content:space-between; align-items:center; padding:18px 28px 0; }
+.status .time { font-size:14px; font-weight:700; }
+.status .icons { width:58px; height:12px; border-radius:4px; background: color-mix(in srgb, var(--text) 35%, transparent); }
+.body { position:relative; flex:1; overflow:hidden; display:flex; flex-direction:column; gap:24px; padding:20px 28px 0; }
+.body.g20 { padding-left:20px; padding-right:20px; }
+
+/* ---------- 조각 ---------- */
+
+/* 형광펜처럼 글자 뒤를 지나가는 바닐라 띠. 위아래를 조금 비워 블록이 아니라 획으로 읽히게 한다.
+   채도를 낮추고 알파 0.8을 줘서 배경이 살짝 비친다. 색상 차이(ΔE 11.7)로 보인다 */
+.hl {
+  /* 글자색이 배경 바닐라와 같아서, 띠 밖으로 나간 획은 배경에 묻혀 사라진다.
+     그래서 **띠가 글자 획을 빠짐없이 덮는 것이 조건**이다. 줄일 수 있는 바닥은 잉크 높이다.
+
+     세로 padding 으로는 더 줄일 수 없다. padding 은 더하기만 되고, 배경이 깔리는
+     인라인 박스는 이미 폰트의 ascent+descent = (988+260)/1000 = 1.248em 이기 때문이다.
+     그래서 배경을 그라디언트로 그려 높이를 em 으로 직접 준다.
+
+     SUIT-Heavy 의 이 한글들(오늘의 기분/그림일기) 잉크는 CFF charstring 측정값으로
+     baseline 기준 -0.093em ~ 0.821em, 높이 0.914em 이다.
+     띠는 -0.130em ~ 0.870em(1em)으로 잡아 위 1.7px / 아래 1.3px 여유를 남긴다(34px 기준).
+     background-position 의 0.118em 은 인라인 박스 위끝(+0.988em)에서 띠 위끝(+0.870em)까지다.
+
+     결과: 띠 45.2px -> 34px, 위아래 줄 사이 틈 4.2px -> 15.3px */
+  background-image: linear-gradient(var(--highlight), var(--highlight));
+  background-repeat: no-repeat;
+  background-size: 100% 1em;
+  background-position: 0 0.118em;
+  padding: 0 .12em;
+  color: var(--hl-text);
+}
+.h1 { font-size:34px; line-height:1.02; font-weight:900; margin:0; letter-spacing:-.02em; }
+.h2 { font-size:17px; line-height:1.45; font-weight:700; margin:0; }
+.h3 { font-size:14px; font-weight:700; margin:0; }
+.muted { color: var(--muted); font-size:13px; line-height:1.45; margin:0; }
+.subtle { color: var(--subtle); font-size:12px; margin:0; }
+.card {
+  border-radius: var(--r-xl); border:1.5px solid var(--border); padding:20px;
+  background: linear-gradient(180deg, var(--raised-a), var(--raised-b));
+  box-shadow: var(--shadow-md); display:flex; flex-direction:column; gap:12px;
+}
+.card.lg { border-radius: var(--r-lg); background: var(--surface); }
+.row { display:flex; gap:12px; align-items:center; }
+.chip {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:9px 14px 9px 12px; border-radius:var(--r-full);
+  border:1px solid var(--border-strong); background: var(--surface);
+  font-size:12px; font-weight:500; color:var(--text); white-space:nowrap;
+}
+.chip .dot { width:12px; height:12px; border-radius:50%; }
+.chip.on { background: var(--primary); border-color: var(--primary); color: var(--primary-fg); font-weight:700; }
+.btn {
+  display:inline-flex; align-items:center; justify-content:center;
+  height:48px; padding:0 24px; border-radius:var(--r-full);
+  background: var(--primary); color: var(--primary-fg); font-size:15px; font-weight:700;
+}
+.btn.xl { height:63px; font-size:17px; width:100%; box-shadow: 0 10px 22px var(--primary-shadow); }
+.btn.sm { height:33px; padding:0 16px; font-size:13px; }
+.btn.soft { background: var(--surface-solid); color: var(--primary); border:1.5px solid var(--border-strong); box-shadow:none; }
+.btn.soft.off { opacity:.45; }
+.bar { height:8px; border-radius:4px; background: var(--track); overflow:hidden; }
+.bar > i { display:block; height:100%; border-radius:4px; background: var(--primary); }
+
+/* 탭바 */
+.tabbar {
+  position:relative; margin-top:auto; display:flex; padding:14px 0 24px;
+  background: var(--surface); border-top:1px solid var(--border); box-shadow: var(--shadow-up);
+}
+.tabbar div { flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; }
+.tabbar i { width:24px; height:24px; border-radius:50%; display:block; }
+.tabbar span { font-size:10px; line-height:1.2; color: var(--subtle); }
+.tabbar .on span { color: var(--text); font-weight:700; }
+
+
+/* ---- 글래스 CTA (01 온보딩) - skill: glass-button ----
+   prototype.html 의 같은 블록과 값이 같다. 통째로 지우면 solid 버튼으로 돌아간다 */
+.cta-stage { position:relative; display:flex; width:100%; }
+/* 손그림 대각선 띠. 버튼 윗변까지만 보이게 높이를 자른다. prototype.html 과 같은 값 */
+.bottom-art { position:absolute; left:0; right:0; bottom:0; height:230px; overflow:hidden; pointer-events:none; }
+/* absolute 라 정적 형제 위에 그려진다. 나머지를 positioned 로 만들어 뒤로 보낸다.
+   z-index 는 주지 않는다 - 유리 버튼의 backdrop 이 끊길 수 있다 */
+.body > *:not(.bottom-art), .onb-foot > * { position:relative; }
+.bottom-art img { position:absolute; left:0; bottom:0; width:100%; height:auto; display:block; }
+.btn.glass {
+  position:relative; z-index:1;
+  color: var(--text);
+  background: rgba(255,255,255,0.10);
+  backdrop-filter: blur(3px) saturate(140%);
+  -webkit-backdrop-filter: blur(3px) saturate(140%);
+  border: 1px solid rgba(255,255,255,0.35);
+  box-shadow:
+    0 8px 32px rgba(37,53,68,0.18),
+    inset 0 1px 1px rgba(255,255,255,0.9),
+    inset 0 -1px 1px rgba(255,255,255,0.4),
+    inset 0 0 22px rgba(255,255,255,0.12);
+}
+.btn.glass > span { position:relative; z-index:1;
+  /* 투명해질수록 뒤 갈색 줄에 라벨이 묻힌다. 글자 둘레만 흰빛으로 띄운다 */
+  text-shadow: 0 1px 2px rgba(255,255,255,.95), 0 0 7px rgba(255,255,255,.8); }
+.btn.glass::before {
+  content:""; position:absolute; inset:-1px; border-radius:inherit; padding:1px;
+  background: linear-gradient(135deg,
+    rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.80) 7%,
+    rgba(255,255,255,0) 20%, rgba(255,255,255,0) 80%,
+    rgba(255,255,255,0.80) 93%, rgba(255,255,255,0.95) 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events:none;
+}
+.btn.glass::after {
+  content:""; position:absolute; inset:0; border-radius:inherit;
+  backdrop-filter: blur(2.5px) brightness(1.1) saturate(125%);
+  -webkit-backdrop-filter: blur(2.5px) brightness(1.1) saturate(125%);
+  -webkit-mask:
+    linear-gradient(to right,#000,transparent 18px), linear-gradient(to left,#000,transparent 18px),
+    linear-gradient(to bottom,#000,transparent 14px), linear-gradient(to top,#000,transparent 14px);
+  -webkit-mask-composite: source-over;
+  mask:
+    linear-gradient(to right,#000,transparent 18px), linear-gradient(to left,#000,transparent 18px),
+    linear-gradient(to bottom,#000,transparent 14px), linear-gradient(to top,#000,transparent 14px);
+  mask-composite: add;
+  pointer-events:none;
+}
+[data-theme="dark"] .btn.glass {
+  background: rgba(255,255,255,0.10);
+  border-color: rgba(255,255,255,0.20);
+  box-shadow:
+    0 8px 32px rgba(0,0,0,0.45),
+    inset 0 1px 1px rgba(255,255,255,0.35),
+    inset 0 -1px 1px rgba(255,255,255,0.14),
+    inset 0 0 22px rgba(255,255,255,0.08);
+}
+/* 다크에서는 라벨이 밝다. 흰 헤일로를 어둡게 뒤집는다 */
+[data-theme="dark"] .btn.glass > span { text-shadow: 0 1px 2px rgba(0,0,0,.6), 0 0 7px rgba(0,0,0,.45); }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .btn.glass { background: rgba(255,255,255,0.72); }
+  .btn.glass::after { display:none; }
+}
+
+/* ---------- 화면별 ---------- */
+/* 남는 공간은 auto 마진 둘이 반씩: 그림 위와 글 아래. prototype.html 과 같은 구조 */
+.hero { flex:0 0 auto; display:flex; align-items:center; justify-content:center; margin:auto -45px 0; padding-top:32px;
+  position:relative; }
+/* 괘선 종이. 그림보다 위아래로 넓게 빼야 줄이 그림에 가려도 패턴이 읽힌다 */
+/* 노트 괘선. 1px 선을 그라디언트로 그리면 브라우저가 일부를 날린다 - 실제 요소로 둔다 */
+.rule-sheet { position:absolute; left:28px; right:28px; top:-72px; bottom:-20px; pointer-events:none; overflow:hidden; }
+.rule-sheet i { position:absolute; left:0; right:0; height:1px; background: var(--rule); }
+/* 01 헤드라인은 두 줄이라 줄 사이를 넓힌다. prototype.html 과 같은 값 */
+.onb-copy .h1 { line-height:1.45; }
+.onb-copy .copy-sub { margin-top:22px; font-size:15px; line-height:1.6; }
+.onb-foot { margin-top:auto; margin-bottom:32px; }
+/* 01 히어로 - 손그림 로고. prototype.html 과 같은 그림·같은 타이밍 */
+/* 그림 영역(알파 경계 상자 x 384~1736, y 322~1586)을 레이아웃 박스로 삼는다.
+   prototype.html 의 같은 블록과 값이 같다 */
+.hero-art { --art-w:280px; --src:2048; --bx:381; --by:317; --bw:1359; --bh:1273;
+  position:relative; width:var(--art-w); height:calc(var(--art-w) * var(--bh) / var(--bw));
+  flex:none; overflow:hidden; }
+.hero-art img { position:absolute; width:calc(var(--art-w) * var(--src) / var(--bw)); height:auto;
+  left:calc(var(--art-w) * var(--bx) / var(--bw) * -1); top:calc(var(--art-w) * var(--by) / var(--bw) * -1); }
+.dots { display:flex; gap:8px; justify-content:center; }
+.dots i { width:8px; height:8px; border-radius:var(--r-full); background: var(--accent-soft); opacity:.25; }
+.dots i:first-child { width:22px; opacity:1; }
+
+.canvas {
+  height:150px; border-radius: var(--r-lg);
+  border:2px dashed color-mix(in srgb, var(--accent-soft) 35%, transparent);
+  background: var(--surface); display:grid; place-items:center; gap:8px; align-content:center;
+}
+.canvas b { font-size:44px; line-height:1; font-weight:900; color: var(--accent-soft); }
+.input {
+  display:flex; align-items:center; gap:12px; min-height:53px;
+  padding:8px 8px 8px 20px; border-radius:var(--r-full);
+  border:1.5px solid var(--border-strong); background: var(--surface-solid);
+}
+.input span { flex:1; color: var(--subtle); font-size:14px; }
+
+.recent { display:flex; gap:12px; }
+.recent > div {
+  flex:1; display:flex; flex-direction:column; align-items:center; gap:8px;
+  padding:12px 8px; border-radius:22px; border:1px solid var(--border); background: var(--surface);
+}
+.thumb { width:100%; height:64px; border-radius:var(--r-md); display:grid; place-items:end center; padding-bottom:6px; font-size:18px; }
+.recent b { font-size:12px; }
+.recent small { font-size:10px; color: var(--muted); }
+
+.overlay { position:absolute; inset:0; background: var(--scrim); display:grid; place-items:center; padding:0 28px; }
+.loader { display:flex; align-items:center; justify-content:center; gap:12px; height:150px; }
+.loader i { border-radius:50%; display:block; }
+
+.art {
+  position:relative; width:100%; aspect-ratio:1; border-radius:var(--r-xl);
+  border:1.5px solid var(--border); background: var(--surface); overflow:hidden;
+}
+.art i { position:absolute; border-radius:50%; opacity:.85; }
+.aitag {
+  position:absolute; left:16px; top:16px; padding:6px 12px; border-radius:var(--r-full);
+  border:1px solid var(--border); background: var(--surface-solid);
+  font-size:12px; font-weight:500; color: var(--muted);
+}
+
+.grid7 { display:grid; grid-template-columns:repeat(7,1fr); row-gap:8px; }
+.grid7 > b { text-align:center; font-size:12px; font-weight:500; color: var(--subtle); }
+.cell { display:flex; flex-direction:column; align-items:center; gap:6px; padding:4px 0; }
+.cell i { width:32px; height:32px; border-radius:50%; display:grid; place-items:center; font-size:15px; }
+.cell i.empty { border:1.5px solid var(--border-strong); }
+.cell i.today { border:2px solid var(--primary); }
+.cell span { font-size:13px; color: var(--muted); }
+
+.sum { display:flex; gap:12px; }
+.sum > div { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; }
+.sum .top { display:flex; align-items:center; gap:6px; font-size:14px; font-weight:700; }
+.sum .top i { width:10px; height:10px; border-radius:50%; }
+.sum small { font-size:12px; color: var(--muted); }
+
+.seg { display:inline-flex; padding:4px; gap:0; border-radius:var(--r-full); border:1.5px solid var(--border); background: var(--surface); }
+.seg b { min-width:72px; text-align:center; padding:9px 16px; border-radius:var(--r-full); font-size:15px; font-weight:700; color: var(--muted); }
+.seg b.on { background: var(--primary); color: var(--primary-fg); }
+
+.kpi { display:flex; gap:12px; }
+.kpi > div { flex:1; align-items:center; gap:8px; padding:16px 8px; }
+.kpi i { width:10px; height:10px; border-radius:50%; display:block; margin:0 auto; }
+.kpi b { display:block; text-align:center; font-size:20px; font-weight:700; }
+.kpi small { display:block; text-align:center; font-size:12px; color: var(--muted); }
+
+.badges { display:grid; grid-template-columns:repeat(3,1fr); row-gap:16px; }
+.badges > div { display:flex; flex-direction:column; align-items:center; gap:6px; }
+.medal { width:46px; height:46px; border-radius:50%; display:grid; place-items:center; font-size:16px; }
+.medal.lock { border:1.5px dashed var(--border-strong); }
+.badges b { font-size:14px; font-weight:700; }
+.badges small { font-size:12px; color: var(--muted); }
+
+.feed { display:flex; flex-direction:column; gap:16px; }
+.feed .card { gap:16px; }
+/* 닉네임 첫 글자. 배경인 날씨 색이 테마 불변이라 글자색도 고정이다(날씨 6색 최악 5.19:1) */
+.avatar { width:36px; height:36px; border-radius:50%; display:grid; place-items:center;
+  font-size:18px; font-weight:700; color:#253544; }
+.feed .who b { display:block; font-size:14px; font-weight:700; }
+.feed .who small { display:block; font-size:12px; color: var(--muted); }
+.feed .post { display:flex; gap:12px; }
+.feed .post .thumb { width:76px; height:76px; flex:none; border-radius:var(--r-md); display:grid; place-items:center; font-size:26px; padding:0; }
+.feed .post .txt { flex:1; display:flex; flex-direction:column; justify-content:space-between; gap:12px; }
+.feed .react { display:flex; gap:16px; font-size:14px; color: var(--muted); }
+.fab {
+  position:absolute; right:20px; bottom:96px; height:52px; padding:0 24px;
+  border-radius:var(--r-full); background: var(--primary); color: var(--primary-fg);
+  display:grid; place-items:center; font-size:15px; font-weight:700; box-shadow: 0 10px 22px var(--primary-shadow);
+}
+
+.banner {
+  display:flex; align-items:center; gap:16px; padding:20px; border-radius:var(--r-lg);
+  background: linear-gradient(135deg, var(--primary), var(--accent-soft)); color: var(--primary-fg);
+  box-shadow: var(--shadow-md);
+}
+.banner b { font-size:24px; font-weight:900; display:block; }
+.banner small { font-size:13px; }
+.themes { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+.themes > div { padding:12px; border-radius:var(--r-lg); border:1.5px solid var(--border); background: var(--surface); }
+.themes .prev { height:84px; border-radius:var(--r-md); padding:8px; display:flex; justify-content:flex-end; }
+.themes .plus { height:fit-content; padding:4px 8px; border-radius:var(--r-full); background: var(--surface-solid); color: var(--text); font-size:10px; font-weight:700; }
+.themes b { display:block; margin-top:6px; font-size:14px; font-weight:700; }
+.themes small { font-size:12px; color: var(--muted); }
+.chars { display:flex; gap:12px; }
+.chars > div { flex:1; display:flex; flex-direction:column; align-items:center; gap:8px; }
+.chars i { width:42px; height:42px; border-radius:50%; display:grid; place-items:center; font-size:14px; }
+.chars i.lock { border:1.5px dashed var(--border-strong); }
+.chars small { font-size:12px; color: var(--muted); }
+
+.profile .av { width:64px; height:64px; border-radius:50%; background: linear-gradient(180deg, var(--w-rainbow), var(--w-sunny)); }
+.profile b { font-size:20px; font-weight:700; }
+.stats { display:flex; }
+.stats > div { flex:1; display:flex; align-items:baseline; gap:6px; }
+.stats b { font-size:14px; font-weight:700; }
+.stats small { font-size:12px; color: var(--muted); }
+.settings { border-radius:var(--r-lg); border:1.5px solid var(--border); background: var(--surface); overflow:hidden; }
+.settings div { display:flex; align-items:center; gap:12px; min-height:56px; padding:0 20px; }
+.settings div + div { border-top:1px solid var(--border); }
+.settings span { flex:1; font-size:15px; font-weight:500; }
+.settings em { font-style:normal; font-size:14px; color: var(--muted); }
+.settings .danger span { color:#b0434e; }
+[data-theme="dark"] .settings .danger span { color:#ef8b95; }
+
+@media (max-width: 900px) {
+  .deck { justify-content:center; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>AI 감정 날씨일기 · 화면 10종</h1>
+  <div class="controls">
+    <button class="ctl" id="light" aria-pressed="true">라이트</button>
+    <button class="ctl" id="dark" aria-pressed="false">다크</button>
+  </div>
+  <p class="sub">
+    프리셋 <b>muted-sky</b> · 390x844 ·
+    시안 <a href="https://www.figma.com/design/zbYEQIRk1ttPOFzojh2hcL/AI-%25EA%25B0%2590%25EC%25A0%2595-%25EB%2582%25A0%25EC%2094%25A8%25EC%259D%25BC%25EA%25B8%25B0---Web-App-Sketch?node-id=2-7">01 · Mobile Screens</a>
+  </p>
+</header>
+
+<p class="notice">
+  <b>이것은 실행 중인 앱의 화면이 아니다.</b> `app/src/shared/theme/tokens.ts`와 같은 값을 CSS로 옮겨 그린 정적 미리보기다.
+  레이아웃 검토와 다크 모드 확인용이며, 실제 동작·데이터·애니메이션은 들어 있지 않다.
+  토큰을 고치면 이 파일의 `:root` 값도 같이 고친다.
+  <br>다크 모드는 <b>시안에 없어 파생한 팔레트</b>다. 토글로 확인할 수 있는 유일한 자리다.
+</p>
+
+<div class="deck">
+
+<!-- ================= 01 온보딩 ================= -->
+<figure>
+  <div class="phone">
+    <div class="status"><span class="time">9:41</span><span class="icons"></span></div>
+    <div class="body" style="padding:20px 45px 0;">
+      <div class="bottom-art" aria-hidden="true"><img src="images/bottom.png" alt="" width="2048" height="2048"></div>
+      <div class="hero">
+        <span class="rule-sheet" aria-hidden="true"><i style="top:63px"></i><i style="top:95px"></i><i style="top:127px"></i><i style="top:159px"></i><i style="top:191px"></i><i style="top:223px"></i><i style="top:255px"></i><i style="top:287px"></i><i style="top:319px"></i><i style="top:351px"></i></span>
+        <div class="hero-art"><img src="images/onboarding.png" alt="AI Diary" width="2048" height="2048"></div>
+      </div>
+      <div class="onb-copy">
+        <h2 class="h1"><span class="hl">오늘의 기분</span>을<br>나만의 <span class="hl">그림일기</span>로</h2>
+        <p class="muted copy-sub">한 줄만 적으면 AI가 기분을 읽고<br>그날의 그림일기를 만들어 줍니다.</p>
+      </div>
+      <div class="onb-foot" style="display:flex;flex-direction:column;align-items:center;gap:16px;padding-bottom:24px">
+        <div class="cta-stage">
+          <span class="btn xl glass"><span>무료로 시작하기</span></span>
+        </div>
+        <span class="muted" style="font-weight:500;font-size:14px">이미 계정이 있어요</span>
+        <span class="dots"><i></i><i></i><i></i></span>
+      </div>
+    </div>
+  </div>
+  <figcaption>
+    <span class="num">01</span> 온보딩 / 시작
+    <div class="links"><a href="01-onboarding.md">문서</a> · <code>app/app/onboarding.tsx</code></div>
+  </figcaption>
+</figure>
+
+<!-- ================= 02 홈 ================= -->
+<figure>
+  <div class="phone">
+    <div class="status"><span class="time">9:41</span><span class="icons"></span></div>
+    <div class="body">
+      <div class="row" style="align-items:flex-start">
+        <div style="flex:1">
+          <p class="muted" style="font-weight:500">2026년 8월 24일 월요일</p>
+          <h2 style="margin:4px 0 0;font-size:24px;font-weight:700">안녕하세요, 승희님</h2>
+        </div>
+        <span class="chip" style="background:rgba(255,196,107,.28);border-color:rgba(255,196,107,.55);font-weight:700">
+          <i class="dot" style="background:var(--w-sunny)"></i>14일 연속
+        </span>
+      </div>
+
+      <div class="card">
+        <h3 class="h2">아직 오늘의 날씨가 없어요</h3>
+        <p class="muted" style="margin-top:-8px">한 줄 기록하면 AI가 오늘을 그려줍니다</p>
+        <div class="canvas"><b>?</b><span class="subtle">AI 그림 영역</span></div>
+        <div class="input"><span>오늘 어땠나요?</span><span class="btn sm">기록</span></div>
+      </div>
+
+      <div>
+        <h3 class="h3">빠른 감정 선택</h3>
+        <div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap">
+          <span class="chip" style="background:rgba(255,196,107,.28);border-color:rgba(255,196,107,.55)"><i class="dot" style="background:var(--w-sunny)"></i>맑음</span>
+          <span class="chip" style="background:rgba(255,217,166,.28);border-color:rgba(255,217,166,.55)"><i class="dot" style="background:var(--w-partly)"></i>구름조금</span>
+          <span class="chip" style="background:rgba(201,186,195,.28);border-color:rgba(201,186,195,.55)"><i class="dot" style="background:var(--w-cloudy)"></i>흐림</span>
+          <span class="chip" style="background:rgba(169,188,232,.28);border-color:rgba(169,188,232,.55)"><i class="dot" style="background:var(--w-rain)"></i>비</span>
+        </div>
+      </div>
+
+      <div>
+        <h3 class="h3">최근 기록</h3>
+        <div class="recent" style="margin-top:12px">
+          <div><span class="thumb" style="background:linear-gradient(180deg,rgba(255,255,255,.9),var(--w-sunny))">☀️</span><b>8/23</b><small>햇살 가득</small></div>
+          <div><span class="thumb" style="background:linear-gradient(180deg,rgba(255,255,255,.9),var(--w-rain))">🌧️</span><b>8/22</b><small>비 오는 날</small></div>
+          <div><span class="thumb" style="background:linear-gradient(180deg,rgba(255,255,255,.9),var(--w-rainbow))">🌈</span><b>8/21</b><small>설레는 밤</small></div>
+        </div>
+      </div>
+    </div>
+    <div class="tabbar">
+      <div class="on"><i style="background:var(--t-home)"></i><span>홈</span></div>
+      <div><i style="background:var(--t-cal);opacity:.28"></i><span>캘린더</span></div>
+      <div><i style="background:var(--t-graph);opacity:.28"></i><span>그래프</span></div>
+      <div><i style="background:var(--t-comm);opacity:.28"></i><span>커뮤니티</span></div>
+      <div><i style="background:var(--t-my);opacity:.28"></i><span>MY</span></div>
+    </div>
+  </div>
+  <figcaption>
+    <span class="num">02</span> 홈 · 오늘 기록 전
+    <div class="links"><a href="02-home.md">문서</a> · <code>app/app/(tabs)/index.tsx</code></div>
+  </figcaption>
+</figure>
+
+<!-- ================= 03 생성 중 ================= -->
+<figure>
+  <div class="phone">
+    <div class="status"><span class="time">9:41</span><span class="icons"></span></div>
+    <div class="body">
+      <div class="row" style="align-items:flex-start;opacity:.5">
+        <div style="flex:1">
+          <p class="muted" style="font-weight:500">2026년 8월 24일 월요일</p>
+          <h2 style="margin:4px 0 0;font-size:24px;font-weight:700">안녕하세요, 승희님</h2>
+        </div>
+      </div>
+      <div class="card" style="opacity:.5">
+        <h3 class="h2">아직 오늘의 날씨가 없어요</h3>
+        <div class="canvas"><b>?</b><span class="subtle">AI 그림 영역</span></div>
+      </div>
+    </div>
+    <div class="overlay">
+      <div class="card" style="width:100%;max-width:334px;gap:24px;padding:32px 20px">
+        <p style="margin:0;font-size:15px;font-weight:500">“오늘 팀 회의가 잘 끝나서 마음이 가볍다”</p>
+        <div class="loader">
+          <i style="width:66px;height:66px;background:var(--accent-soft);opacity:.55"></i>
+          <i style="width:82px;height:82px;background:var(--primary);opacity:.9"></i>
+          <i style="width:56px;height:56px;background:var(--accent-soft);opacity:.45"></i>
+        </div>
+        <h3 class="h2">AI가 오늘을 그리는 중...</h3>
+        <div class="bar"><i style="width:35%;margin-left:32%"></i></div>
+        <p class="muted" style="margin-top:-12px">감정을 읽고 그림을 그리고 있어요</p>
+      </div>
+    </div>
+    <div class="tabbar">
+      <div class="on"><i style="background:var(--t-home)"></i><span>홈</span></div>
+      <div><i style="background:var(--t-cal);opacity:.28"></i><span>캘린더</span></div>
+      <div><i style="background:var(--t-graph);opacity:.28"></i><span>그래프</span></div>
+      <div><i style="background:var(--t-comm);opacity:.28"></i><span>커뮤니티</span></div>
+      <div><i style="background:var(--t-my);opacity:.28"></i><span>MY</span></div>
+    </div>
+  </div>
+  <figcaption>
+    <span class="num">03</span> AI 생성 중 <span class="subtle">(진행률 대신 불확정 막대)</span>
+    <div class="links"><a href="03-generating.md">문서</a> · <code>features/diary/ui/GeneratingOverlay.tsx</code></div>
+  </figcaption>
+</figure>
+
+<!-- ================= 04 결과 ================= -->
+<figure>
+  <div class="phone">
+    <div class="status"><span class="time">9:41</span><span class="icons"></span></div>
+    <div class="body" style="gap:20px">
+      <p class="muted" style="font-weight:500">← 2026.08.24</p>
+      <div class="art">
+        <i style="left:12%;top:18%;width:33%;aspect-ratio:1;background:var(--w-sunny)"></i>
+        <i style="left:45%;top:12%;width:26%;aspect-ratio:1;background:var(--accent-soft)"></i>
+        <i style="left:33%;top:51%;width:21%;aspect-ratio:1;background:var(--w-partly)"></i>
+        <i style="left:64%;top:45%;width:18%;aspect-ratio:1;background:var(--w-rainbow)"></i>
+        <i style="left:18%;top:64%;width:14%;aspect-ratio:1;background:var(--primary)"></i>
+        <span class="aitag">AI generated</span>
+      </div>
+      <span class="chip" style="padding:8px 16px 8px 14px;background:var(--surface);border:1.5px solid var(--border);font-size:14px;font-weight:700">
+        <i class="dot" style="width:14px;height:14px;background:var(--w-sunny)"></i>맑음 · 기분 +2
+      </span>
+      <p style="margin:0;font-size:17px;font-weight:500">“오늘 팀 회의가 잘 끝나서 마음이 가볍다”</p>
+      <p class="muted" style="margin-top:-8px">AI 코멘트 · 성취감이 느껴지는 하루였네요. 이런 날은 오래 기억돼요.</p>
+      <div class="row" style="gap:12px">
+        <span class="btn soft" style="flex:1">다시 그리기</span>
+        <span class="btn soft off" style="flex:1">저장하기</span>
+        <span class="btn soft">공유</span>
+      </div>
+      <div class="card lg" style="flex-direction:row;align-items:center;gap:12px;padding:16px 20px">
+        <span style="width:32px;height:32px;border-radius:50%;background:var(--accent-soft)"></span>
+        <b style="font-size:14px">14일 연속 달성! “젤리 14”</b>
+      </div>
+    </div>
+    <div class="tabbar">
+      <div class="on"><i style="background:var(--t-home)"></i><span>홈</span></div>
+      <div><i style="background:var(--t-cal);opacity:.28"></i><span>캘린더</span></div>
+      <div><i style="background:var(--t-graph);opacity:.28"></i><span>그래프</span></div>
+      <div><i style="background:var(--t-comm);opacity:.28"></i><span>커뮤니티</span></div>
+      <div><i style="background:var(--t-my);opacity:.28"></i><span>MY</span></div>
+    </div>
+  </div>
+  <figcaption>
+    <span class="num">04</span> 오늘의 결과 · AI 이미지
+    <div class="links"><a href="04-result.md">문서</a> · <code>features/diary/ui/DiaryResult.tsx</code></div>
+  </figcaption>
+</figure>
+
+<!-- ================= 05 캘린더 ================= -->
+<figure>
+  <div class="phone">
+    <div class="status"><span class="time">9:41</span><span class="icons"></span></div>
+    <div class="body g20">
+      <div>
+        <h2 class="h1">감정 캘린더</h2>
+        <p class="muted" style="margin-top:8px;font-weight:700;font-size:15px">‹&nbsp;&nbsp;2026년 8월&nbsp;&nbsp;›</p>
+      </div>
+      <div class="card">
+        <div class="grid7">
+          <b>일</b><b>월</b><b>화</b><b>수</b><b>목</b><b>금</b><b>토</b>
+        </div>
+        <div class="grid7" id="cal-05"></div>
+      </div>
+      <div class="card">
+        <h3 class="h2">이번 달 요약</h3>
+        <div class="sum">
+          <div><span class="top"><i style="background:var(--w-sunny)"></i>12일</span><small>맑음</small></div>
+          <div><span class="top"><i style="background:var(--w-cloudy)"></i>6일</span><small>흐림</small></div>
+          <div><span class="top"><i style="background:var(--w-rain)"></i>4일</span><small>비</small></div>
+          <div><span class="top"><i style="background:var(--w-rainbow)"></i>2일</span><small>무지개</small></div>
+        </div>
+      </div>
+    </div>
+    <div class="tabbar">
+      <div><i style="background:var(--t-home);opacity:.28"></i><span>홈</span></div>
+      <div class="on"><i style="background:var(--t-cal)"></i><span>캘린더</span></div>
+      <div><i style="background:var(--t-graph);opacity:.28"></i><span>그래프</span></div>
+      <div><i style="background:var(--t-comm);opacity:.28"></i><span>커뮤니티</span></div>
+      <div><i style="background:var(--t-my);opacity:.28"></i><span>MY</span></div>
+    </div>
+  </div>
+  <figcaption>
+    <span class="num">05</span> 감정 캘린더 <span class="subtle">(셀에 날씨 글리프 추가)</span>
+    <div class="links"><a href="05-calendar.md">문서</a> · <code>app/app/(tabs)/calendar.tsx</code></div>
+  </figcaption>
+</figure>
+
+<!-- ================= 06 그래프 ================= -->
+<figure>
+  <div class="phone">
+    <div class="status"><span class="time">9:41</span><span class="icons"></span></div>
+    <div class="body g20">
+      <div>
+        <h2 class="h1">감정 그래프</h2>
+        <div class="seg" style="margin-top:16px"><b>주</b><b class="on">월</b><b>년</b></div>
+      </div>
+      <div class="card">
+        <h3 class="h2">이번 달 기분 추이</h3>
+        <p class="muted" style="margin-top:-8px">평균 +1.2 · 기록 26일</p>
+        <svg viewBox="0 0 306 174" width="100%" height="174" role="img" aria-label="기분 추이 차트. 축은 -3에서 +3, 평균 +1.2">
+          <g stroke="var(--track)" stroke-width="1">
+            <line x1="0" y1="0" x2="280" y2="0"/><line x1="0" y1="40" x2="280" y2="40"/>
+            <line x1="0" y1="80" x2="280" y2="80"/><line x1="0" y1="120" x2="280" y2="120"/>
+            <line x1="0" y1="160" x2="280" y2="160"/>
+          </g>
+          <path d="M0,60 L28,33 L56,113 L84,87 L112,33 L140,7" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"/>
+          <path d="M196,60 L224,140 L252,87 L280,60" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"/>
+          <g fill="var(--primary)" stroke="var(--surface-solid)" stroke-width="2">
+            <circle cx="0" cy="60" r="4.5"/><circle cx="28" cy="33" r="4.5"/><circle cx="56" cy="113" r="4.5"/>
+            <circle cx="84" cy="87" r="4.5"/><circle cx="112" cy="33" r="4.5"/><circle cx="140" cy="7" r="4.5"/>
+            <circle cx="196" cy="60" r="4.5"/><circle cx="224" cy="140" r="4.5"/><circle cx="252" cy="87" r="4.5"/><circle cx="280" cy="60" r="4.5"/>
+          </g>
+          <g fill="var(--subtle)" font-size="12" text-anchor="end">
+            <text x="306" y="11">+3</text><text x="306" y="84">+1</text><text x="306" y="157">-1</text>
+          </g>
+        </svg>
+        <p class="subtle" style="margin-top:-4px">기록이 없는 날은 선을 끊는다. 0으로 채우지 않는다</p>
+      </div>
+      <div class="kpi">
+        <div class="card lg"><i style="background:var(--w-sunny)"></i><b>+1.2</b><small>평균 기분</small></div>
+        <div class="card lg"><i style="background:var(--w-rainbow)"></i><b>19</b><small>최고의 날</small></div>
+        <div class="card lg"><i style="background:var(--w-rain)"></i><b>14일</b><small>연속 기록</small></div>
+      </div>
+      <div class="card">
+        <h3 class="h2">자주 쓴 말</h3>
+        <div class="row" style="gap:8px;flex-wrap:wrap">
+          <span class="chip">회의</span><span class="chip">산책</span><span class="chip">피곤</span><span class="chip">맛있다</span>
+        </div>
+      </div>
+    </div>
+    <div class="tabbar">
+      <div><i style="background:var(--t-home);opacity:.28"></i><span>홈</span></div>
+      <div><i style="background:var(--t-cal);opacity:.28"></i><span>캘린더</span></div>
+      <div class="on"><i style="background:var(--t-graph)"></i><span>그래프</span></div>
+      <div><i style="background:var(--t-comm);opacity:.28"></i><span>커뮤니티</span></div>
+      <div><i style="background:var(--t-my);opacity:.28"></i><span>MY</span></div>
+    </div>
+  </div>
+  <figcaption>
+    <span class="num">06</span> 감정 그래프
+    <div class="links"><a href="06-graph.md">문서</a> · <code>app/app/(tabs)/graph.tsx</code></div>
+  </figcaption>
+</figure>
+
+<!-- ================= 07 뱃지 ================= -->
+<figure>
+  <div class="phone">
+    <div class="status"><span class="time">9:41</span><span class="icons"></span></div>
+    <div class="body">
+      <div>
+        <p class="muted" style="font-weight:500">←</p>
+        <h2 class="h1" style="margin-top:8px">뱃지 컬렉션</h2>
+        <p class="muted" style="margin-top:8px;font-size:14px">12 / 40개 수집 · 다음 뱃지 "무지개 30"까지 30일 연속</p>
+      </div>
+      <div class="bar" style="height:10px;border-radius:5px"><i style="width:30%"></i></div>
+      <div class="badges">
+        <div><span class="medal" style="background:linear-gradient(180deg,rgba(255,255,255,.9),var(--w-sunny))"></span><b>첫 기록</b><small>1일</small></div>
+        <div><span class="medal" style="background:linear-gradient(180deg,rgba(255,255,255,.9),var(--w-partly))"></span><b>젤리 7</b><small>7일 연속</small></div>
+        <div><span class="medal" style="background:linear-gradient(180deg,rgba(255,255,255,.9),var(--w-rainbow))"></span><b>젤리 14</b><small>14일 연속</small></div>
+        <div><span class="medal" style="background:linear-gradient(180deg,rgba(255,255,255,.9),var(--w-rain))"></span><b>맑음 수집가</b><small>맑음 10회</small></div>
+        <div><span class="medal" style="background:linear-gradient(180deg,rgba(255,255,255,.9),var(--w-cloudy))"></span><b>비 오는 날</b><small>비 5회</small></div>
+        <div><span class="medal lock">🔒</span><b>무지개 30</b><small>30일 연속</small></div>
+        <div><span class="medal lock">🔒</span><b>사계절</b><small>365일</small></div>
+        <div><span class="medal lock">🔒</span><b>감정 탐험가</b><small>6종 전부</small></div>
+        <div><span class="medal lock">🔒</span><b>새벽 기록</b><small>04시 기록</small></div>
+        <div><span class="medal lock">🔒</span><b>공유왕</b><small>10회 공유</small></div>
+        <div><span class="medal lock">🔒</span><b>첫 댓글</b><small>커뮤니티</small></div>
+        <div><span class="medal lock">🔒</span><b>프리미엄</b><small>구독 시작</small></div>
+      </div>
+    </div>
+  </div>
+  <figcaption>
+    <span class="num">07</span> 뱃지 컬렉션 <span class="subtle">(탭 아님 · MY 하위)</span>
+    <div class="links"><a href="07-badge.md">문서</a> · <code>app/app/badges.tsx</code></div>
+  </figcaption>
+</figure>
+
+<!-- ================= 08 커뮤니티 ================= -->
+<figure>
+  <div class="phone">
+    <div class="status"><span class="time">9:41</span><span class="icons"></span></div>
+    <div class="body g20">
+      <h2 class="h1">오늘의 날씨 피드</h2>
+      <div class="row" style="gap:8px;flex-wrap:wrap">
+        <span class="chip on">인기</span><span class="chip">최신</span>
+        <span class="chip"><i class="dot" style="background:var(--w-sunny)"></i>맑음</span>
+        <span class="chip"><i class="dot" style="background:var(--w-rain)"></i>비</span>
+      </div>
+      <div class="feed">
+        <div class="card lg">
+          <div class="row">
+            <span class="avatar" style="background:var(--w-rain)">복</span>
+            <span class="who" style="flex:1"><b>복숭아젤리</b><small>2시간 전</small></span>
+            <span class="chip" style="padding:5px 12px 5px 8px"><i class="dot" style="width:10px;height:10px;background:var(--w-rain)"></i>비</span>
+            <span class="muted" style="font-size:20px;line-height:1">···</span>
+          </div>
+          <div class="post">
+            <span class="thumb" style="background:linear-gradient(180deg,rgba(255,255,255,.9),var(--w-rain))">🌧️</span>
+            <span class="txt">
+              <span style="font-size:14px">비 오는 날 창가에서 커피 한 잔</span>
+              <span class="react"><span style="color:var(--primary)">♥ 128</span><span>💬 14</span><span>↗ 공유</span></span>
+            </span>
+          </div>
+        </div>
+        <div class="card lg">
+          <div class="row">
+            <span class="avatar" style="background:var(--w-sunny)">해</span>
+            <span class="who" style="flex:1"><b>해바라기</b><small>5시간 전</small></span>
+            <span class="chip" style="padding:5px 12px 5px 8px"><i class="dot" style="width:10px;height:10px;background:var(--w-sunny)"></i>맑음</span>
+            <span class="muted" style="font-size:20px;line-height:1">···</span>
+          </div>
+          <div class="post">
+            <span class="thumb" style="background:linear-gradient(180deg,rgba(255,255,255,.9),var(--w-sunny))">☀️</span>
+            <span class="txt">
+              <span style="font-size:14px">드디어 이직 합격! 오늘은 무조건 맑음</span>
+              <span class="react"><span>♥ 342</span><span>💬 56</span><span>↗ 공유</span></span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <span class="fab">+ 오늘 공유</span>
+    <div class="tabbar">
+      <div><i style="background:var(--t-home);opacity:.28"></i><span>홈</span></div>
+      <div><i style="background:var(--t-cal);opacity:.28"></i><span>캘린더</span></div>
+      <div><i style="background:var(--t-graph);opacity:.28"></i><span>그래프</span></div>
+      <div class="on"><i style="background:var(--t-comm)"></i><span>커뮤니티</span></div>
+      <div><i style="background:var(--t-my);opacity:.28"></i><span>MY</span></div>
+    </div>
+  </div>
+  <figcaption>
+    <span class="num">08</span> 커뮤니티 <span class="subtle">(··· = 신고·차단, 시안에 없던 것)</span>
+    <div class="links"><a href="08-community.md">문서</a> · <code>app/app/(tabs)/community.tsx</code></div>
+  </figcaption>
+</figure>
+
+<!-- ================= 09 꾸미기 ================= -->
+<figure>
+  <div class="phone">
+    <div class="status"><span class="time">9:41</span><span class="icons"></span></div>
+    <div class="body">
+      <div>
+        <p class="muted" style="font-weight:500">←</p>
+        <h2 class="h1" style="margin-top:8px">꾸미기</h2>
+      </div>
+      <div class="banner">
+        <span style="flex:1"><b>Jelly Plus</b><small>모든 테마 · 캐릭터 · 무제한 다시 그리기</small></span>
+        <span class="btn soft" style="height:40px;font-size:14px">구독</span>
+      </div>
+      <div class="row" style="gap:8px;flex-wrap:wrap">
+        <span class="chip on">테마</span><span class="chip">캐릭터</span><span class="chip">배경</span><span class="chip">폰트</span>
+      </div>
+      <div class="themes">
+        <div style="border-color:var(--primary)">
+          <span class="prev" style="background:linear-gradient(180deg,#faf4dc,#ece3c2)"></span>
+          <b>Paper</b><small>기본 · 사용 중</small>
+        </div>
+        <div>
+          <span class="prev" style="background:linear-gradient(180deg,#18242d,#2f4356)"><span class="plus">Plus</span></span>
+          <b>Night Jelly</b><small>밤의 젤리</small>
+        </div>
+        <div>
+          <span class="prev" style="background:linear-gradient(180deg,#f2fbf8,#8fbfae)"></span>
+          <b>Mint Soda</b><small>청량한 민트</small>
+        </div>
+        <div>
+          <span class="prev" style="background:linear-gradient(180deg,#f5f2fb,#a99ac7)"><span class="plus">Plus</span></span>
+          <b>Lavender</b><small>라벤더 드림</small>
+        </div>
+      </div>
+      <div>
+        <h3 class="h2">캐릭터</h3>
+        <div class="chars" style="margin-top:12px">
+          <div><i style="background:#c79ab4"></i><small>젤리곰</small></div>
+          <div><i class="lock">🔒</i><small>별사탕</small></div>
+          <div><i class="lock">🔒</i><small>구름이</small></div>
+          <div><i class="lock">🔒</i><small>새싹</small></div>
+        </div>
+      </div>
+      <p class="muted" style="font-weight:700;color:var(--primary)">구매 복원</p>
+    </div>
+  </div>
+  <figcaption>
+    <span class="num">09</span> 테마 · 캐릭터 상점 <span class="subtle">(구매 복원 = 시안에 없던 것)</span>
+    <div class="links"><a href="09-store.md">문서</a> · <code>app/app/store.tsx</code></div>
+  </figcaption>
+</figure>
+
+<!-- ================= 10 마이페이지 ================= -->
+<figure>
+  <div class="phone">
+    <div class="status"><span class="time">9:41</span><span class="icons"></span></div>
+    <div class="body g20">
+      <h2 class="h1">MY</h2>
+      <div class="card profile">
+        <div class="row" style="gap:16px">
+          <span class="av"></span>
+          <span style="flex:1;display:flex;flex-direction:column;align-items:flex-start;gap:4px">
+            <b>승희</b>
+            <small class="muted" style="font-size:12px">젤리곰 · 2026.03.02 가입</small>
+            <span class="chip" style="padding:4px 12px;font-weight:700;font-size:12px">Jelly Plus</span>
+          </span>
+        </div>
+        <div class="stats">
+          <div><b>142</b><small>총 기록</small></div>
+          <div><b>14일</b><small>연속</small></div>
+          <div><b>12</b><small>뱃지</small></div>
+        </div>
+      </div>
+      <div class="settings">
+        <div><span style="flex:none">🔔</span><span>리마인더 알림</span><em>매일 오후 9시 ›</em></div>
+        <div><span style="flex:none">🎨</span><span>테마 변경</span><em>Paper ›</em></div>
+        <div><span style="flex:none">🤖</span><span>AI 그림 스타일</span><em>수채화 ›</em></div>
+        <div><span style="flex:none">🔒</span><span>일기 잠금</span><em>ON ›</em></div>
+        <div><span style="flex:none">📤</span><span>데이터 내보내기</span><em>CSV / PDF ›</em></div>
+        <div><span style="flex:none">👤</span><span>계정 · 로그아웃</span><em>›</em></div>
+        <div class="danger"><span style="flex:none">🗑️</span><span>계정 삭제</span><em>›</em></div>
+      </div>
+      <p class="subtle" style="text-align:center">로컬 우선 저장 · 서버 동기화는 연결됐을 때</p>
+    </div>
+    <div class="tabbar">
+      <div><i style="background:var(--t-home);opacity:.28"></i><span>홈</span></div>
+      <div><i style="background:var(--t-cal);opacity:.28"></i><span>캘린더</span></div>
+      <div><i style="background:var(--t-graph);opacity:.28"></i><span>그래프</span></div>
+      <div><i style="background:var(--t-comm);opacity:.28"></i><span>커뮤니티</span></div>
+      <div class="on"><i style="background:var(--t-my)"></i><span>MY</span></div>
+    </div>
+  </div>
+  <figcaption>
+    <span class="num">10</span> 마이페이지 <span class="subtle">(계정 삭제 = 시안에 없던 것)</span>
+    <div class="links"><a href="10-mypage.md">문서</a> · <code>app/app/(tabs)/my.tsx</code></div>
+  </figcaption>
+</figure>
+
+</div>
+
+<script>
+// 05 캘린더 격자. 2026-08-01은 토요일이라 앞에 6칸이 빈다
+(function () {
+  const weather = ['sunny','partly','cloudy','rain','snow','rainbow'];
+  const glyph = { sunny:'☀️', partly:'⛅', cloudy:'☁️', rain:'🌧️', snow:'❄️', rainbow:'🌈' };
+  const grid = document.getElementById('cal-05');
+  if (!grid) return;
+  let html = '';
+  for (let i = 0; i < 6; i += 1) html += '<span></span>';
+  for (let day = 1; day <= 31; day += 1) {
+    const skip = (day + 8) % 4 === 0;                 // 무기록일
+    const w = weather[(day * 7 + 3) % weather.length];
+    const today = day === 24;
+    const future = day > 24;
+    const dot = skip
+      ? '<i class="empty' + (today ? ' today' : '') + '"></i>'
+      : '<i class="' + (today ? 'today' : '') + '" style="background:var(--w-' + w + ')">' + glyph[w] + '</i>';
+    html += '<span class="cell" style="opacity:' + (future ? .35 : 1) + '">' + dot +
+            '<span' + (today ? ' style="color:var(--primary);font-weight:700"' : '') + '>' + day + '</span></span>';
+  }
+  grid.innerHTML = html;
+})();
+
+// 라이트 / 다크 토글
+(function () {
+  const root = document.documentElement;
+  const light = document.getElementById('light');
+  const dark = document.getElementById('dark');
+  const set = (theme) => {
+    root.setAttribute('data-theme', theme);
+    light.setAttribute('aria-pressed', String(theme === 'light'));
+    dark.setAttribute('aria-pressed', String(theme === 'dark'));
+  };
+  light.addEventListener('click', () => set('light'));
+  dark.addEventListener('click', () => set('dark'));
+})();
+</script>
+
+</body>
+</html>

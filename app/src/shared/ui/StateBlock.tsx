@@ -53,7 +53,7 @@ export function Skeleton({ height, count = 1 }: { height: number; count?: number
 const styles = StyleSheet.create({
   center: { alignItems: 'center', paddingVertical: space[6] },
   block: { gap: space[3], alignItems: 'flex-start' },
-  message: { fontSize: font.sm },
+  message: { fontSize: font.sm , fontFamily: font.regular},
   skeletonWrap: { gap: space[2] },
   skeleton: { borderRadius: radius.md, opacity: 0.6 },
 });

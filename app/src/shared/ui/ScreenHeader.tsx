@@ -22,7 +22,7 @@ export function ScreenHeader({ title, subtitle, onBack }: Props) {
             hitSlop={space[2]}
             style={({ pressed }) => [styles.back, { opacity: pressed ? 0.5 : 1 }]}
           >
-            <Text style={{ color: colors.text, fontSize: font.lg }}>←</Text>
+            <Text style={{ color: colors.text, fontSize: font.lg , fontFamily: font.regular}}>←</Text>
           </Pressable>
         ) : null}
         <Text accessibilityRole="header" style={[styles.title, { color: colors.text }]}>
@@ -40,6 +40,6 @@ const styles = StyleSheet.create({
   wrap: { gap: space[1] },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: space[2] },
   back: { minWidth: MIN_TOUCH_TARGET, minHeight: MIN_TOUCH_TARGET, justifyContent: 'center' },
-  title: { fontSize: font.xl, fontWeight: font.weightBold },
-  subtitle: { fontSize: font.sm },
+  title: { fontSize: font.xl, fontFamily: font.bold },
+  subtitle: { fontSize: font.sm , fontFamily: font.regular},
 });

@@ -57,5 +57,5 @@ export function Button({
 
 const styles = StyleSheet.create({
   base: { alignItems: 'center', justifyContent: 'center', paddingHorizontal: space[6] },
-  label: { fontSize: font.base, fontWeight: font.weightBold },
+  label: { fontSize: font.base, fontFamily: font.bold },
 });

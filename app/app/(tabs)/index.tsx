@@ -106,7 +106,7 @@ function FailedBlock({ onRetry, pending }: { onRetry: () => void; pending: boole
   const colors = useColors();
   return (
     <View style={styles.block}>
-      <Text style={{ color: colors.textMuted, fontSize: font.sm }}>
+      <Text style={{ color: colors.textMuted, fontSize: font.sm , fontFamily: font.regular}}>
         오늘을 그리지 못했어요. 다시 시도해 볼까요?
       </Text>
       <Button label="다시 그리기" size="medium" loading={pending} onPress={onRetry} />
@@ -116,7 +116,7 @@ function FailedBlock({ onRetry, pending }: { onRetry: () => void; pending: boole
 
 const styles = StyleSheet.create({
   header: { gap: space[2] },
-  date: { fontSize: font.xs },
-  greeting: { fontSize: font.xl, fontWeight: font.weightBold },
+  date: { fontSize: font.xs , fontFamily: font.regular},
+  greeting: { fontSize: font.xl, fontFamily: font.bold },
   block: { gap: space[3], alignItems: 'flex-start' },
 });

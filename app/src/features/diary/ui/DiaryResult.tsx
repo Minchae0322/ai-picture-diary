@@ -108,7 +108,7 @@ export function DiaryResult({
         ) : null}
       </View>
 
-      {shareError ? <Text style={{ color: colors.danger, fontSize: font.sm }}>{shareError}</Text> : null}
+      {shareError ? <Text style={{ color: colors.danger, fontSize: font.sm , fontFamily: font.regular}}>{shareError}</Text> : null}
 
       {earnedBadges.length > 0 ? (
         <Card>
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   image: { width: '100%', height: '100%' },
-  imageFallback: { fontSize: font.sm },
+  imageFallback: { fontSize: font.sm , fontFamily: font.regular},
   tag: {
     position: 'absolute',
     right: space[2],
@@ -148,14 +148,14 @@ const styles = StyleSheet.create({
     borderRadius: radius.sm,
     borderWidth: StyleSheet.hairlineWidth,
   },
-  tagText: { fontSize: font.xs },
+  tagText: { fontSize: font.xs , fontFamily: font.regular},
   weatherRow: { flexDirection: 'row', alignItems: 'center', gap: space[2] },
-  weather: { fontSize: font.lg, fontWeight: font.weightBold },
-  content: { fontSize: font.base },
-  comment: { fontSize: font.sm },
+  weather: { fontSize: font.lg, fontFamily: font.bold },
+  content: { fontSize: font.base , fontFamily: font.regular},
+  comment: { fontSize: font.sm , fontFamily: font.regular},
   actions: { flexDirection: 'row', gap: space[2] },
   action: { flex: 1 },
   badgeHead: { flexDirection: 'row', alignItems: 'center', gap: space[2] },
-  badgeTitle: { fontSize: font.base, fontWeight: font.weightBold },
-  badgeLine: { fontSize: font.sm },
+  badgeTitle: { fontSize: font.base, fontFamily: font.bold },
+  badgeLine: { fontSize: font.sm , fontFamily: font.regular},
 });

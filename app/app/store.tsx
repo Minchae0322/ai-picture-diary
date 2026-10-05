@@ -84,8 +84,8 @@ export default function StoreScreen() {
 
 const styles = StyleSheet.create({
   bannerHead: { flexDirection: 'row', alignItems: 'center', gap: space[2] },
-  bannerTitle: { fontSize: font.base, fontWeight: font.weightBold },
-  bannerBody: { fontSize: font.sm },
+  bannerTitle: { fontSize: font.base, fontFamily: font.bold },
+  bannerBody: { fontSize: font.sm , fontFamily: font.regular},
   section: { gap: space[3] },
-  sectionTitle: { fontSize: font.base, fontWeight: font.weightBold },
+  sectionTitle: { fontSize: font.base, fontFamily: font.bold },
 });

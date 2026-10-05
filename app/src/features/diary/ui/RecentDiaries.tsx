@@ -47,7 +47,7 @@ export function RecentDiaries({
 
 const styles = StyleSheet.create({
   wrap: { gap: space[2] },
-  title: { fontSize: font.sm },
+  title: { fontSize: font.sm , fontFamily: font.regular},
   row: {
     minHeight: MIN_TOUCH_TARGET,
     flexDirection: 'row',
@@ -56,6 +56,6 @@ const styles = StyleSheet.create({
     paddingVertical: space[3],
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  date: { fontSize: font.xs, width: 40 },
-  content: { flex: 1, fontSize: font.sm },
+  date: { fontSize: font.xs, fontFamily: font.regular, width: 40 },
+  content: { flex: 1, fontSize: font.sm , fontFamily: font.regular},
 });

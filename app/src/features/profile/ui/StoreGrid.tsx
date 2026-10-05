@@ -70,6 +70,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  name: { fontSize: font.sm, fontWeight: font.weightBold },
-  caption: { fontSize: font.xs },
+  name: { fontSize: font.sm, fontFamily: font.bold },
+  caption: { fontSize: font.xs , fontFamily: font.regular},
 });

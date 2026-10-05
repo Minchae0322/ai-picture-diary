@@ -4,6 +4,30 @@
 
 ## [Unreleased]
 
+### Changed
+- 디자인 프리셋을 **soft-modern -> muted-sky** 로 교체 (채도 낮은 하늘색, 배경 바닐라 `#faf4dc`)
+  - `tokens.ts` 를 다시 씀. 의미 토큰에 `highlight`/`highlightText`/`rule`/`weatherInk`/`decor`/`scrim`/`skeleton`/`track` 추가
+  - 날씨 6색을 스킴에 따라 갈리지 않게 고정. 그 위 글자색은 `weatherInk` 로 못 박았다
+    (6색 전부 4.5:1 통과, 최악은 비 `#8fa9c8` 위 5.19:1)
+  - 타입 스케일·라운드·버튼 높이를 프리셋 값으로 교체 (본문 14, xlarge 버튼 63)
+- 서체를 **SUIT 하나로 통일** (`expo-font`, 굵기 4종)
+  - **`fontWeight` 를 쓰지 않는다.** RN 이 커스텀 폰트의 굵기를 합성하지 못해 패밀리로 고른다
+  - 24곳을 `fontWeight` -> `fontFamily` 로 바꾸고, 폰트가 상속되지 않아 `fontSize` 가 있는 54곳에 `fontFamily` 를 채웠다
+  - 토큰에서 `font.weightMedium`/`weightBold` 를 뺐다 - 남겨 두면 다시 쓰게 된다
+- 01 온보딩을 손그림 리디자인으로 교체
+  - 슬라이드 3장 -> **1장**. 시안에 없는 2·3번을 지어내지 않는다. `dots` 는 장식이라 스크린리더에서 숨긴다
+  - 히어로를 `jelly-bowl` 아이콘 -> 손그림 `onboarding.png`. 알파 경계 상자를 재서 그림만 레이아웃 박스로 삼는다
+  - 노트 괘선(`NotebookLines`)과 바닥 띠 `bottom.png` 추가
+  - 헤드라인 문구 교체 + "오늘의 기분"·"그림일기" 뒤 형광펜 띠(녹아웃 글자, 대비 5.93:1)
+
+### Added
+- 동작하는 HTML 프로토타입 `docs/screen/prototype.html` (10화면 전부, 규칙 기반 AI 대역 포함)
+  + 정적 한눈에 보기 `docs/screen/index.html`
+- `@assets/*` 경로 별칭과 `app/assets.d.ts`(png 선언). SVG 는 import 하지 않는다 - 아이콘은 `Icon.tsx` 가 코드로 그린다
+
+### Fixed
+- 장식 이모지 제거 (인사말 사탕, 커뮤니티 아바타, Plus 왕관). 아바타는 닉네임 첫 글자, Plus 는 글자 배지
+
 ### Added
 - 화면 05~10 구현 (시안 10화면 전부 동작)
   - 05 감정 캘린더 / 06 감정 그래프: 새 테이블 없이 `tb_diary` 기간 집계. `GET /api/v1/diaries/calendar|stats|overview`

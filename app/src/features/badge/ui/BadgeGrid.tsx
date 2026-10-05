@@ -66,6 +66,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  name: { fontSize: font.sm, fontWeight: font.weightBold },
-  condition: { fontSize: font.xs },
+  name: { fontSize: font.sm, fontFamily: font.bold },
+  condition: { fontSize: font.xs , fontFamily: font.regular},
 });

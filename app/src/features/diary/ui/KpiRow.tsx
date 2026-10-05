@@ -32,6 +32,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: StyleSheet.hairlineWidth,
   },
-  value: { fontSize: font.lg, fontWeight: font.weightBold },
-  label: { fontSize: font.xs },
+  value: { fontSize: font.lg, fontFamily: font.bold },
+  label: { fontSize: font.xs , fontFamily: font.regular},
 });

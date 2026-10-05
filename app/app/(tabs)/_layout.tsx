@@ -37,7 +37,7 @@ export default function TabsLayout() {
             paddingBottom: Math.max(insets.bottom, space[6]),
           },
         ],
-        tabBarLabelStyle: { fontSize: font.micro, lineHeight: 12, marginTop: 6 },
+        tabBarLabelStyle: { fontSize: font.micro, fontFamily: font.regular, lineHeight: 12, marginTop: 6 },
       }}
     >
       <Tabs.Screen name="index" options={{ title: '홈', tabBarIcon: tabIcon('index') }} />

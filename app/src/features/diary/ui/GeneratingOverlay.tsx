@@ -134,10 +134,10 @@ function IndeterminateBar() {
 const styles = StyleSheet.create({
   overlay: { alignItems: 'center', justifyContent: 'center', paddingHorizontal: space[7] },
   card: { width: '100%', maxWidth: 334, gap: space[6], paddingVertical: space[8] },
-  quote: { fontSize: font.md, lineHeight: leading(font.md), fontWeight: font.weightMedium },
+  quote: { fontSize: font.md, lineHeight: leading(font.md), fontFamily: font.medium },
   loader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space[3], height: 150 },
-  title: { fontSize: font.lg, lineHeight: leading(font.lg), fontWeight: font.weightBold },
+  title: { fontSize: font.lg, lineHeight: leading(font.lg), fontFamily: font.bold },
   track: { height: 8, borderRadius: 4, overflow: 'hidden' },
   fill: { position: 'absolute', top: 0, bottom: 0, width: '35%', borderRadius: 4 },
-  caption: { fontSize: font.xs, lineHeight: leading(font.xs), marginTop: -space[3] },
+  caption: { fontSize: font.xs, fontFamily: font.regular, lineHeight: leading(font.xs), marginTop: -space[3] },
 });

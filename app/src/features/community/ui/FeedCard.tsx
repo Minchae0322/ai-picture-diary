@@ -11,20 +11,27 @@ type Props = { post: FeedPost; onToggleLike: (id: string) => void };
 /** 시안 08 `card`. 반응 버튼만 따로 눌리고 나머지는 한 덩어리로 읽힌다 */
 export function FeedCard({ post, onToggleLike }: Props) {
   const colors = useColors();
+  // 아바타는 닉네임 첫 글자다. 전개 연산자로 잘라야 서러게이트 쌍(이모지 닉네임 등)이 반 토막 나지 않는다
+  const initial = [...post.author][0] ?? '?';
 
   return (
     <Card size="lg" flat style={styles.card}>
       <View style={styles.head}>
         <View style={[styles.avatar, { backgroundColor: weatherColor[post.weather] }]}>
-          <Text style={styles.avatarGlyph} accessibilityElementsHidden importantForAccessibility="no">
-            {post.authorEmoji}
+          {/* 날씨 색은 테마를 따라 바뀌지 않으므로 글자색도 고정한다(weatherInk).
+              colors.text 를 쓰면 다크에서 밝은 글자가 밝은 날씨 색 위에 올라간다.
+              바로 옆에 닉네임이 그대로 있으니 읽어줄 필요는 없다 */}
+          <Text
+            style={[styles.avatarGlyph, { color: colors.weatherInk }]}
+            accessibilityElementsHidden
+            importantForAccessibility="no"
+          >
+            {initial}
           </Text>
         </View>
 
         <View style={styles.headText}>
-          <Text style={[styles.author, { color: colors.text }]}>
-            {post.authorEmoji} {post.author}
-          </Text>
+          <Text style={[styles.author, { color: colors.text }]}>{post.author}</Text>
           <Text style={[styles.time, { color: colors.textMuted }]}>{post.relativeTime}</Text>
         </View>
 
@@ -66,7 +73,7 @@ export function FeedCard({ post, onToggleLike }: Props) {
               hitSlop={space[2]}
               style={({ pressed }) => [styles.reaction, { opacity: pressed ? 0.5 : 1 }]}
             >
-              <Text style={{ color: post.liked ? colors.primary : colors.textMuted, fontSize: font.base }}>
+              <Text style={{ color: post.liked ? colors.primary : colors.textMuted, fontSize: font.base , fontFamily: font.regular}}>
                 ♥ {post.likes}
               </Text>
             </Pressable>
@@ -93,10 +100,10 @@ const styles = StyleSheet.create({
   card: { gap: space[4] },
   head: { flexDirection: 'row', alignItems: 'center', gap: space[3] },
   avatar: { width: 36, height: 36, borderRadius: radius.full, alignItems: 'center', justifyContent: 'center' },
-  avatarGlyph: { fontSize: 18, lineHeight: 22 },
+  avatarGlyph: { fontSize: 18, fontFamily: font.bold, lineHeight: 22 },
   headText: { flex: 1, gap: 2 },
-  author: { fontSize: font.base, lineHeight: leading(font.base, 1.1), fontWeight: font.weightBold },
-  time: { fontSize: font.xs, lineHeight: leading(font.xs, 1.1) },
+  author: { fontSize: font.base, lineHeight: leading(font.base, 1.1), fontFamily: font.bold },
+  time: { fontSize: font.xs, fontFamily: font.regular, lineHeight: leading(font.xs, 1.1) },
   weather: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -108,15 +115,15 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
   },
   weatherDot: { width: 10, height: 10, borderRadius: radius.full },
-  weatherLabel: { fontSize: font.xs, fontWeight: font.weightMedium },
+  weatherLabel: { fontSize: font.xs, fontFamily: font.medium },
   more: { minWidth: 24, minHeight: 28, alignItems: 'center', justifyContent: 'center' },
-  moreGlyph: { fontSize: font.xl, lineHeight: 20 },
+  moreGlyph: { fontSize: font.xl, fontFamily: font.regular, lineHeight: 20 },
   body: { flexDirection: 'row', gap: space[3] },
   thumb: { width: 76, height: 76, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
-  thumbGlyph: { fontSize: 26, lineHeight: 32 },
+  thumbGlyph: { fontSize: 26, fontFamily: font.regular, lineHeight: 32 },
   bodyText: { flex: 1, justifyContent: 'space-between', gap: space[3] },
-  content: { fontSize: font.base, lineHeight: leading(font.base) },
+  content: { fontSize: font.base, fontFamily: font.regular, lineHeight: leading(font.base) },
   reactions: { flexDirection: 'row', alignItems: 'center', gap: space[4] },
   reaction: { minHeight: MIN_TOUCH_TARGET - 20, justifyContent: 'center' },
-  reactionText: { fontSize: font.base },
+  reactionText: { fontSize: font.base , fontFamily: font.regular},
 });

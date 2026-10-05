@@ -52,7 +52,7 @@ export default function HomeScreen() {
           <View style={styles.headerText}>
             <Text style={[styles.date, { color: colors.textMuted }]}>{formatLongDate(new Date())}</Text>
             <Text accessibilityRole="header" style={[styles.greeting, { color: colors.text }]}>
-              안녕하세요, {MOCK_VIEWER.nickname}님 🍬
+              안녕하세요, {MOCK_VIEWER.nickname}님
             </Text>
           </View>
           <StreakChip days={MOCK_STATS.streakDays} />
@@ -111,9 +111,9 @@ function FailedCard({ onRetry, pending }: { onRetry: () => void; pending: boolea
 const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'flex-start', gap: space[3] },
   headerText: { flex: 1, gap: space[1] },
-  date: { fontSize: font.sm, lineHeight: leading(font.sm), fontWeight: font.weightMedium },
-  greeting: { fontSize: font.xxl, lineHeight: leading(font.xxl, 1.35), fontWeight: font.weightBold },
+  date: { fontSize: font.sm, lineHeight: leading(font.sm), fontFamily: font.medium },
+  greeting: { fontSize: font.xxl, lineHeight: leading(font.xxl, 1.35), fontFamily: font.bold },
   skeleton: { gap: space[6] },
-  failedTitle: { fontSize: font.lg, lineHeight: leading(font.lg), fontWeight: font.weightBold },
-  failedBody: { fontSize: font.sm, lineHeight: leading(font.sm) },
+  failedTitle: { fontSize: font.lg, lineHeight: leading(font.lg), fontFamily: font.bold },
+  failedBody: { fontSize: font.sm, fontFamily: font.regular, lineHeight: leading(font.sm) },
 });

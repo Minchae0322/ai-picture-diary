@@ -30,7 +30,7 @@ export function ThemeGrid({ themes, onSelect }: Props) {
           <LinearGradient colors={theme.preview} style={styles.preview}>
             {theme.plusOnly ? (
               <View style={[styles.lock, { backgroundColor: colors.surfaceSolid }]}>
-                <Text style={[styles.lockLabel, { color: colors.text }]}>👑 Plus</Text>
+                <Text style={[styles.lockLabel, { color: colors.text }]}>Plus</Text>
               </View>
             ) : null}
           </LinearGradient>
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
   },
   preview: { height: 84, borderRadius: radius.md, padding: space[2], alignItems: 'flex-end' },
   lock: { paddingHorizontal: space[2], paddingVertical: 4, borderRadius: radius.full },
-  lockLabel: { fontSize: font.micro, lineHeight: 13, fontWeight: font.weightBold },
-  name: { fontSize: font.base, lineHeight: leading(font.base, 1.15), fontWeight: font.weightBold },
-  description: { fontSize: font.xs, lineHeight: leading(font.xs, 1.1) },
+  lockLabel: { fontSize: font.micro, lineHeight: 13, fontFamily: font.bold },
+  name: { fontSize: font.base, lineHeight: leading(font.base, 1.15), fontFamily: font.bold },
+  description: { fontSize: font.xs, fontFamily: font.regular, lineHeight: leading(font.xs, 1.1) },
 });

@@ -15,7 +15,7 @@
 | 1 | 타이틀 | - | "꾸미기" |
 | 2 | 구독 배너 | `premium-banner` | "Jelly Plus · 모든 테마 · 캐릭터 · 무제한 …" + "구독" |
 | 3 | 카테고리 탭 | `store-tabs` | 테마 / 캐릭터 / 배경 / 폰트 |
-| 4 | 테마 그리드 | `theme-grid` | Jelly(기본·사용 중), Night Jelly 👑, Mint Soda, Lavender 👑 |
+| 4 | 테마 그리드 | `theme-grid` | Jelly(기본·사용 중), Night Jelly(Plus), Mint Soda, Lavender(Plus) |
 | 5 | 캐릭터 | `characters` | 젤리곰(보유), 별사탕/구름이/새싹 🔒 |
 | 6 | 탭바 | `TabBar` | - |
 

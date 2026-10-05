@@ -24,5 +24,5 @@ export function BackLink({ label }: { label?: string }) {
 
 const styles = StyleSheet.create({
   link: { minHeight: MIN_TOUCH_TARGET, justifyContent: 'center', alignSelf: 'flex-start' },
-  label: { fontSize: font.base, fontWeight: font.weightMedium },
+  label: { fontSize: font.base, fontFamily: font.medium },
 });

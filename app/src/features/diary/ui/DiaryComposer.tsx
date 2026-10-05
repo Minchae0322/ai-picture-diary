@@ -101,8 +101,8 @@ export function DiaryComposer({ submitting, errorMessage, onSubmit }: Props) {
 
 const styles = StyleSheet.create({
   wrap: { gap: space[6] },
-  title: { fontSize: font.lg, lineHeight: leading(font.lg), fontWeight: font.weightBold },
-  sub: { fontSize: font.sm, lineHeight: leading(font.sm), marginTop: -space[2] },
+  title: { fontSize: font.lg, lineHeight: leading(font.lg), fontFamily: font.bold },
+  sub: { fontSize: font.sm, fontFamily: font.regular, lineHeight: leading(font.sm), marginTop: -space[2] },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -118,12 +118,12 @@ const styles = StyleSheet.create({
     flex: 1,
     maxHeight: 96,
     paddingVertical: space[2],
-    fontSize: font.base,
+    fontSize: font.base, fontFamily: font.regular,
     lineHeight: leading(font.base),
   },
-  counter: { alignSelf: 'flex-end', fontSize: font.xs },
-  error: { fontSize: font.sm, lineHeight: leading(font.sm) },
+  counter: { alignSelf: 'flex-end', fontSize: font.xs , fontFamily: font.regular},
+  error: { fontSize: font.sm, fontFamily: font.regular, lineHeight: leading(font.sm) },
   section: { gap: space[3] },
-  sectionTitle: { fontSize: font.base, fontWeight: font.weightBold },
+  sectionTitle: { fontSize: font.base, fontFamily: font.bold },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space[2] },
 });

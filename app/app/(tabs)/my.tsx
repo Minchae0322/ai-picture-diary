@@ -65,5 +65,5 @@ function confirmDelete() {
 }
 
 const styles = StyleSheet.create({
-  note: { fontSize: font.xs, lineHeight: leading(font.xs), textAlign: 'center' },
+  note: { fontSize: font.xs, fontFamily: font.regular, lineHeight: leading(font.xs), textAlign: 'center' },
 });

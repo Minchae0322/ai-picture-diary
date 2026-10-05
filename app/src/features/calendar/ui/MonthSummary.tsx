@@ -33,6 +33,6 @@ const styles = StyleSheet.create({
   item: { flex: 1, alignItems: 'center', gap: space[1] },
   head: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   dot: { width: 10, height: 10, borderRadius: radius.full },
-  days: { fontSize: font.base, lineHeight: leading(font.base, 1.15), fontWeight: font.weightBold },
-  label: { fontSize: font.xs, lineHeight: leading(font.xs, 1.1) },
+  days: { fontSize: font.base, lineHeight: leading(font.base, 1.15), fontFamily: font.bold },
+  label: { fontSize: font.xs, fontFamily: font.regular, lineHeight: leading(font.xs, 1.1) },
 });

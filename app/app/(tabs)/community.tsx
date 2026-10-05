@@ -134,5 +134,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: radius.full,
   },
-  fabLabel: { fontSize: font.md, lineHeight: leading(font.md), fontWeight: font.weightBold },
+  fabLabel: { fontSize: font.md, lineHeight: leading(font.md), fontFamily: font.bold },
 });

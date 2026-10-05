@@ -1,9 +1,17 @@
 <meta charset="utf-8">
 <title>젤리 다이어리</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
 <style>
+/* SUIT (수트) - 가변 폰트 한 벌로 100~900을 모두 낸다.
+   Google Fonts에 없는 서체라 파일을 저장소에 두고 직접 얹는다.
+   출처: https://github.com/sunn-us/SUIT (SIL Open Font License 1.1) */
+@font-face {
+  font-family: "SUIT";
+  src: url("fonts/SUIT-Variable.woff2") format("woff2-variations"),
+       url("fonts/SUIT-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
 /*
   AI 감정 날씨일기 - 동작하는 HTML 프로토타입
   ---------------------------------------------------------------
@@ -17,20 +25,23 @@
 
 :root {
   /* ---- 앱 토큰 (라이트) ---- */
-    --sky-50:#f4f8fb; --sky-100:#e8f0f6; --sky-200:#d8e4ee;
-  --glow: rgba(205,228,245,.9);
+    --sky-50:#faf4dc; --sky-100:#faf4dc; --sky-200:#faf4dc;
+  --glow: rgba(255,251,236,.85);
   --text:#253544; --muted:#4e6375; --subtle:#5b6e7f; --decor:#a8bccd;
   --primary:#3f6d8e; --primary-pressed:#325a77; --primary-fg:#ffffff; --accent-soft:#5b9bc4;
   --primary-shadow: rgba(63,109,142,.32);
   --surface: rgba(255,255,255,.92);
   --surface-solid:#ffffff;
-  --raised-a: rgba(255,255,255,.85);
-  --raised-b: rgba(226,238,247,.85);
-  --border: rgba(255,255,255,.9);
-  --border-strong:#d9e5ee;
+  --raised-a: rgba(255,255,255,.92);
+  --raised-b: rgba(255,253,247,.95);
+  --border: rgba(37,53,68,.12);
+  --border-strong:#ece3c2;
+  --rule: rgba(63,63,63,.22);
   --track: rgba(37,53,68,.10);
   --scrim: rgba(37,53,68,.32);
   --danger:#b0434e;
+  --highlight:#7c5445;
+  --hl-text:#faf4dc;   /* 배경 바닐라와 같은 값. 다크에서도 그대로 쓴다 */
 
   --w-SUNNY:#e5b877; --w-PARTLY_CLOUDY:#dcc9a6; --w-CLOUDY:#b6bfc8;
   --w-RAIN:#8fa9c8; --w-SNOW:#cfe0ee; --w-RAINBOW:#c79ab4;
@@ -41,8 +52,8 @@
   --shadow-md: 0 10px 12px rgba(37,53,68,.12);
   --shadow-up: 0 -6px 20px rgba(37,53,68,.10);
 
-  --page-bg:#e3eaf0; --page-fg:#233241; --page-dim:#65788a;
-  --page-card:#fbfdfe; --page-line: rgba(37,53,68,.15);
+  --page-bg:#ffffff; --page-fg:#2f2f28; --page-dim:#6d6d62;
+  --page-card:#f4f3ee; --page-line: rgba(47,47,40,.16);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -55,6 +66,7 @@
     --raised-a:#26343f; --raised-b:#1c2831;
     --border: rgba(255,255,255,.10);
     --border-strong: rgba(255,255,255,.18);
+    --rule: rgba(255,255,255,.12);
     --track: rgba(255,255,255,.12);
     --scrim: rgba(0,0,0,.55);
     --danger:#ef8b95;
@@ -72,6 +84,7 @@
     --raised-a:#26343f; --raised-b:#1c2831;
     --border: rgba(255,255,255,.10);
     --border-strong: rgba(255,255,255,.18);
+    --rule: rgba(255,255,255,.12);
     --track: rgba(255,255,255,.12);
     --scrim: rgba(0,0,0,.55);
     --danger:#ef8b95;
@@ -85,7 +98,7 @@ body {
   margin: 0;
   background: var(--page-bg);
   color: var(--page-fg);
-  font-family: "Noto Sans KR", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, sans-serif;
+  font-family: "SUIT", "Noto Sans KR", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, sans-serif;
   font-size: 14px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -146,7 +159,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .status b { font-size: 14px; font-weight: 700; }
 .status i { width: 58px; height: 12px; border-radius: 4px; background: color-mix(in srgb, var(--text) 35%, transparent); }
 
-.view { position: relative; flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.view { position: relative; flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; }
 .view::-webkit-scrollbar { width: 0; }
 .pad { display: flex; flex-direction: column; gap: 24px; padding: 20px 28px 32px; }
 .pad.g20 { padding-left: 20px; padding-right: 20px; }
@@ -159,6 +172,30 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .tabbar [aria-selected="true"] span { color: var(--text); font-weight: 700; }
 
 /* ================= 공통 조각 ================= */
+
+/* 형광펜처럼 글자 뒤를 지나가는 바닐라 띠. 위아래를 조금 비워 블록이 아니라 획으로 읽히게 한다.
+   채도를 낮추고 알파 0.8을 줘서 배경이 살짝 비친다. 색상 차이(ΔE 11.7)로 보인다 */
+.hl {
+  /* 글자색이 배경 바닐라와 같아서, 띠 밖으로 나간 획은 배경에 묻혀 사라진다.
+     그래서 **띠가 글자 획을 빠짐없이 덮는 것이 조건**이다. 줄일 수 있는 바닥은 잉크 높이다.
+
+     세로 padding 으로는 더 줄일 수 없다. padding 은 더하기만 되고, 배경이 깔리는
+     인라인 박스는 이미 폰트의 ascent+descent = (988+260)/1000 = 1.248em 이기 때문이다.
+     그래서 배경을 그라디언트로 그려 높이를 em 으로 직접 준다.
+
+     SUIT-Heavy 의 이 한글들(오늘의 기분/그림일기) 잉크는 CFF charstring 측정값으로
+     baseline 기준 -0.093em ~ 0.821em, 높이 0.914em 이다.
+     띠는 -0.130em ~ 0.870em(1em)으로 잡아 위 1.7px / 아래 1.3px 여유를 남긴다(34px 기준).
+     background-position 의 0.118em 은 인라인 박스 위끝(+0.988em)에서 띠 위끝(+0.870em)까지다.
+
+     결과: 띠 45.2px -> 34px, 위아래 줄 사이 틈 4.2px -> 15.3px */
+  background-image: linear-gradient(var(--highlight), var(--highlight));
+  background-repeat: no-repeat;
+  background-size: 100% 1em;
+  background-position: 0 0.118em;
+  padding: 0 .12em;
+  color: var(--hl-text);
+}
 .h1 { margin: 0; font-size: 34px; line-height: 1.04; font-weight: 900; letter-spacing: -.025em; }
 .h2 { margin: 0; font-size: 17px; line-height: 1.45; font-weight: 700; }
 .h3 { margin: 0; font-size: 14px; font-weight: 700; }
@@ -212,35 +249,73 @@ button.chip:hover { border-color: var(--primary); }
 .link:hover { color: var(--primary); }
 
 /* ---- 01 ---- */
-.onb { display: flex; flex-direction: column; justify-content: space-between; height: 100%; padding: 32px 45px 24px; gap: 24px; }
-/* 01 히어로 - 둥둥 뜨는 구름.
-   구름 한 장은 둥근 바 하나 + 원 네 개를 같은 색으로 겹친 SVG다(겹치면 합집합으로 보인다).
-   세 장의 진폭·주기·시작 시점을 전부 다르게 줘서 서로 맞물려 움직이지 않게 한다 */
-.clouds { position: relative; width: 290px; height: 220px; margin: auto; }
-.cloud {
-  position: absolute; pointer-events: none; will-change: transform;
-  animation: drift var(--dur) ease-in-out infinite;
-  animation-delay: var(--delay, 0s);
+/* 남는 공간은 auto 마진 두 개가 반씩 나눠 먹는다: 그림 위와 글 아래.
+   그림과 글 사이에는 gap(24)만 남아 글이 그림 바로 밑에 붙는다 */
+.onb { display: flex; flex-direction: column; justify-content: flex-start; height: 100%; padding: 32px 45px 24px; gap: 24px; }
+/* 화면 제목(.h1)은 한 줄 기준의 1.04다. 01의 헤드라인은 두 줄이라 줄 사이를 넓힌다 */
+.onb .h1 { line-height: 1.45; }
+.onb .copy-sub { margin-top: 22px; font-size: 15px; line-height: 1.6; }
+/* 01 히어로 - 손그림 로고. 투명 배경 PNG라 하늘 그라디언트 위에 그대로 얹힌다.
+   -------------------------------------------------------------------------
+   원본 2048x2048 안에서 실제 그림은 x 384~1736, y 322~1586 (알파 경계 상자를 재서 나온 값).
+   가로의 34%가 투명 여백이고 중심도 정중앙에서 오른쪽 36px 치우쳐 있어서,
+   PNG를 그냥 가운데 두면 그림은 가운데로 오지 않는다.
+
+   그래서 **그림 영역을 레이아웃 박스로 삼고** 그 안에 원본을 밀어 넣는다.
+   박스 밖(투명 여백)은 잘리지만 보이는 것은 하나도 잘리지 않고, 중앙 정렬이 정확해진다.
+   크기를 바꾸려면 --art-w 하나만 고친다. 원본을 바꾸면 경계 상자 네 값을 다시 잰다 */
+/* 히어로가 놓이는 자리. 좌우 -45로 `.onb` 의 여백을 상쇄해 폰 폭(390)을 다 쓴다.
+   이게 없으면 그림이 300px 칼럼보다 넓어질 때 flex의 auto 마진이 0으로 풀려
+   왼쪽에 붙고 오른쪽만 잘린다 */
+.hero-slot {
+  /* flex 를 주지 않는다. 주면 남는 공간을 그림이 다 먹어 글이 바닥에 붙는다.
+     margin-top:auto 가 남는 공간의 절반을 그림 위에 둬서 그림이 제자리에 온다 */
+  position: relative;
+  flex: 0 0 auto; display: flex; align-items: center; justify-content: center;
+  margin: auto -45px 0;
+  padding-top: 32px;   /* 아래 .foot 의 margin-bottom 과 짝. 그림 위치를 고정한다 */
 }
-.cloud svg { display: block; width: 100%; height: auto; }
-.cloud-back  { --dur: 13s; --dx: -8px; --dy: -10px; left: -10px; top: 104px; width: 152px; color: rgba(255,255,255,.5); }
-.cloud-small { --dur: 9s;  --dx: 10px; --dy: -16px; --delay: -3s; right: -6px; top: 132px; width: 116px; color: rgba(255,255,255,.72); }
-.cloud-front { --dur: 11s; --dx: 6px;  --dy: -14px; --delay: -1.5s; left: 44px; top: 24px; width: 208px; color: rgba(255,255,255,.95);
-  filter: drop-shadow(0 12px 20px rgba(37,53,68,.12)); }
-@keyframes drift {
-  0%, 100% { transform: translate3d(0, 0, 0); }
-  50%      { transform: translate3d(var(--dx), var(--dy), 0); }
+/* 노트 괘선. 32px 간격의 1px 선, 좌우 28px 여백.
+   -------------------------------------------------------------------------
+   그림과 같은 크기로 깔면 빽빽한 줄은 그림에 가려 양옆 조각만 남아 "선이 빠진" 것처럼 보인다.
+   그래서 종이를 그림보다 위아래로 넓게 빼서 깨끗한 줄이 먼저 눈에 들어오게 한다.
+   레이아웃에 영향을 주지 않도록 absolute 로 띄운다 */
+/* 노트 괘선.
+   -------------------------------------------------------------------------
+   repeating-linear-gradient 로 1px 선을 그리면 브라우저가 그라디언트를 리샘플링하며
+   일부 선을 통째로 날린다(요소 높이가 386.3px 처럼 소수일 때 특히). 그래서 선을 실제 요소로 둔다.
+   RN 의 NotebookLines.tsx 와 같은 방식·같은 좌표다.
+
+   종이를 그림보다 위아래로 넓게 빼는 이유: 그림이 줄을 거의 다 가려서
+   가려지지 않은 줄이 몇 개는 있어야 "줄 쳐진 종이"로 읽힌다. */
+.rule-sheet {
+  position: absolute; left: 28px; right: 28px; top: -72px; bottom: -20px;
+  pointer-events: none; overflow: hidden;
 }
-/* 밤하늘에서는 구름이 흰 판으로 튄다. 알파를 내리고 앞 구름만 살짝 푸르게 */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .cloud-back  { color: rgba(255,255,255,.10); }
-  :root:not([data-theme="light"]) .cloud-small { color: rgba(255,255,255,.16); }
-  :root:not([data-theme="light"]) .cloud-front { color: rgba(203,224,240,.24); filter: none; }
+.rule-sheet i { position: absolute; left: 0; right: 0; height: 1px; background: var(--rule); }
+.hero-art {
+  --art-w: 280px;                    /* 그림의 표시 가로. 이 값만 바꾸면 나머지가 따라온다 */
+  --src: 2048;                       /* 원본 한 변 */
+  --bx: 381; --by: 317;              /* 그림 경계 상자의 좌상단 (alpha > 0 기준) */
+  --bw: 1359; --bh: 1273;            /* 그림 경계 상자의 크기 */
+
+  position: relative;
+  width: var(--art-w);
+  height: calc(var(--art-w) * var(--bh) / var(--bw));
+  flex: none;
+  overflow: hidden;
 }
-:root[data-theme="dark"] .cloud-back  { color: rgba(255,255,255,.10); }
-:root[data-theme="dark"] .cloud-small { color: rgba(255,255,255,.16); }
-:root[data-theme="dark"] .cloud-front { color: rgba(203,224,240,.24); filter: none; }
-.onb .foot { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.hero-art img {
+  position: absolute;
+  width: calc(var(--art-w) * var(--src) / var(--bw));
+  height: auto;
+  left: calc(var(--art-w) * var(--bx) / var(--bw) * -1);
+  top: calc(var(--art-w) * var(--by) / var(--bw) * -1);
+}
+
+/* 푸터를 32 올린다. 그냥 올리면 auto 마진이 다시 나뉘며 그림도 16 따라 올라가므로,
+   히어로에 같은 32를 padding-top 으로 얹어 그 이동을 상쇄한다(계산: X = M 일 때 그림 위치 불변) */
+.onb .foot { display: flex; flex-direction: column; align-items: center; gap: 16px; margin-top: auto; margin-bottom: 32px; }
 .dots { display: flex; gap: 8px; }
 .dots i { width: 8px; height: 8px; border-radius: 999px; background: var(--accent-soft); opacity: .25; }
 .dots i.on { width: 22px; opacity: 1; }
@@ -328,7 +403,10 @@ button.chip:hover { border-color: var(--primary); }
 .badges small { font-size: 12px; color: var(--muted); }
 
 /* ---- 08 ---- */
-.avatar { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font-size: 18px; flex: none; }
+/* 닉네임 첫 글자가 들어간다. 배경인 날씨 색이 테마를 따라 바뀌지 않으니 글자색도 고정이다.
+   측정: 날씨 6색 전부 4.5:1 통과, 최악은 비 #8fa9c8 위 5.19:1 */
+.avatar { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center;
+  font-size: 18px; font-weight: 700; color: #253544; flex: none; }
 .post { display: flex; gap: 12px; }
 .post .thumb { width: 76px; height: 76px; flex: none; border-radius: var(--r-md); display: grid; place-items: center; font-size: 26px; }
 .post .txt { flex: 1; display: flex; flex-direction: column; justify-content: space-between; gap: 12px; min-width: 0; }
@@ -380,40 +458,52 @@ button.chip:hover { border-color: var(--primary); }
    .cta-stage 래퍼, 배경 구름 두 장, 라벨을 감싼 <span>까지 같이 지운다(스킬 "레이어가 글자를 가릴 때").
 
    값을 고른 근거:
-   - 뒤 배경이 부드러운 그라디언트 + 폭 120~132px 구름이라 blur는 형체 크기의 1/10 수준
+   - 뒤 배경이 손그림 줄무늬다. 선을 또렷하게 통과시키려고 blur를 3px까지 낮췄다.
+     blur를 낮추면 채도가 빠지므로 saturate를 140%로 올려 보정한다(스킬 4번)
      (스킬 2번 표의 "또렷하게 비침" 구간). blur(10px)
    - blur를 낮추면 채도가 빠져 saturate(125%)로 보정(스킬 4번)
    - 밝은 배경 위라 흰 글자를 쓰지 않는다. 라벨은 var(--text)(#253544)다(스킬 6번)
-   - 흰 오버레이 0.16 = 밝은 배경 위 단독 요소 권장 구간 0.15~0.20(스킬 3번)
+   - 흰 오버레이 0.10 = 뒤 패턴을 비추는 권장 구간 0.06~0.10(스킬 3번).
+     그만큼 갈색 줄이 비쳐 라벨 대비가 떨어지므로 라벨에만 흰 헤일로를 준다
    ========================================================================= */
 .cta-stage { position: relative; display: flex; width: 100%; }
 
-/* 유리가 무엇을 흐리는지 보이게 하는 배경 도형. 히어로와 같은 구름 모양이다.
-   흰 구름이 아니라 노을빛으로 물들인 이유: 밝은 배경에 흰 구름을 두면 대비가 없어
-   유리가 흐릴 대상이 사라진다(스킬 1·3번). 서로 반대 모서리에서 버튼을 가로지른다.
-   움직임은 히어로보다 훨씬 느리고 작다 - backdrop-filter 뒤에서 움직이는 것은
-   매 프레임 배경을 다시 그리게 한다(스킬 "브라우저 지원"의 성능 주의) */
-.cloud-cta-a { --dur: 19s; --dx: -5px; --dy: -6px;
-  left: -18px; top: -30px; width: 132px; color: var(--w-SUNNY); opacity: .6; }
-.cloud-cta-b { --dur: 23s; --dx: 5px; --dy: 6px; --delay: -7s;
-  right: -6px; bottom: -30px; width: 120px; color: var(--w-RAINBOW); opacity: .55; }
+/* 유리가 흐릴 대상. 손그림 대각선 띠가 화면 바닥을 가로지른다.
+   -------------------------------------------------------------------------
+   원본은 정사각이라 그대로 두면 폭만큼 높이를 차지해 화면 절반을 먹는다.
+   높이를 230 으로 자르고(버튼 윗변이 바닥에서 203px), 그 안에서 그림을 바닥에 붙인다.
+   left/right 를 0 으로 두는 이유: 절대 위치는 padding box 기준이라 -45 를 주면 폰보다 넓어진다 */
+.bottom-art {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  height: 230px; overflow: hidden; pointer-events: none;
+}
+/* absolute 요소는 정적 형제보다 위에 그려진다. 그냥 두면 이 띠가 링크와 점을 덮는다.
+   나머지를 positioned 로 만들면 DOM 순서상 뒤에 와서 위에 그려진다.
+   **z-index 는 주지 않는다** - 스태킹 컨텍스트가 생기면 유리 버튼의 backdrop 이 끊길 수 있다 */
+.onb > *:not(.bottom-art), .onb .foot > * { position: relative; }
+.bottom-art img { position: absolute; left: 0; bottom: 0; width: 100%; height: auto; display: block; }
 
 .btn.glass {
   position: relative; z-index: 1;          /* 도형 위에 얹힌다 */
   color: var(--text);
-  background: rgba(255,255,255,0.16);
-  backdrop-filter: blur(10px) saturate(125%);
-  -webkit-backdrop-filter: blur(10px) saturate(125%);
+  background: rgba(255,255,255,0.10);
+  backdrop-filter: blur(3px) saturate(140%);
+  -webkit-backdrop-filter: blur(3px) saturate(140%);
   border: 1px solid rgba(255,255,255,0.35);
   box-shadow:
     0 8px 32px rgba(37,53,68,0.18),
     inset 0 1px 1px rgba(255,255,255,0.9),
     inset 0 -1px 1px rgba(255,255,255,0.4),
-    inset 0 0 22px rgba(255,255,255,0.22);
+    inset 0 0 22px rgba(255,255,255,0.12);
 }
-.btn.glass:hover { background: rgba(255,255,255,0.26); }  /* 기본값의 1.6배. 2~3배를 넘기지 않는다 */
+.btn.glass:hover { background: rgba(255,255,255,0.18); }  /* 기본의 1.8배. 2~3배를 넘기지 않는다 */
 .btn.glass:active { transform: scale(.985); }
-.btn.glass > span { position: relative; z-index: 1; }     /* ::after 레이어가 라벨을 덮지 않게 */
+.btn.glass > span {
+  position: relative; z-index: 1;                       /* ::after 레이어가 라벨을 덮지 않게 */
+  /* 유리를 투명하게 할수록 뒤 갈색 줄이 비쳐 라벨 대비가 3:1 아래로 떨어진다.
+     오버레이를 다시 올리는 대신 글자 둘레만 흰빛으로 띄운다 */
+  text-shadow: 0 1px 2px rgba(255,255,255,.95), 0 0 7px rgba(255,255,255,.8);
+}
 
 /* 11시·5시 모서리 빛 반사선. padding + 이중 마스크 + exclude */
 .btn.glass::before {
@@ -437,8 +527,8 @@ button.chip:hover { border-color: var(--primary); }
 .btn.glass::after {
   content: ""; position: absolute; inset: 0;
   border-radius: inherit;
-  backdrop-filter: blur(6px) brightness(1.12) saturate(115%);
-  -webkit-backdrop-filter: blur(6px) brightness(1.12) saturate(115%);
+  backdrop-filter: blur(2.5px) brightness(1.1) saturate(125%);
+  -webkit-backdrop-filter: blur(2.5px) brightness(1.1) saturate(125%);
   -webkit-mask:
     linear-gradient(to right,  #000, transparent 18px),
     linear-gradient(to left,   #000, transparent 18px),
@@ -467,8 +557,10 @@ button.chip:hover { border-color: var(--primary); }
       inset 0 0 22px rgba(255,255,255,0.08);
   }
   :root:not([data-theme="light"]) .btn.glass:hover { background: rgba(255,255,255,0.18); }
-  :root:not([data-theme="light"]) .cloud-cta-a { opacity: .34; }
-  :root:not([data-theme="light"]) .cloud-cta-b { opacity: .3; }
+  /* 다크에서는 라벨이 밝다. 흰 헤일로는 번짐이 되므로 어둡게 뒤집는다 */
+  :root:not([data-theme="light"]) .btn.glass > span {
+    text-shadow: 0 1px 2px rgba(0,0,0,.6), 0 0 7px rgba(0,0,0,.45);
+  }
 }
 :root[data-theme="dark"] .btn.glass {
   background: rgba(255,255,255,0.10);
@@ -480,8 +572,9 @@ button.chip:hover { border-color: var(--primary); }
     inset 0 0 22px rgba(255,255,255,0.08);
 }
 :root[data-theme="dark"] .btn.glass:hover { background: rgba(255,255,255,0.18); }
-:root[data-theme="dark"] .cloud-cta-a { opacity: .34; }
-:root[data-theme="dark"] .cloud-cta-b { opacity: .3; }
+:root[data-theme="dark"] .btn.glass > span {
+  text-shadow: 0 1px 2px rgba(0,0,0,.6), 0 0 7px rgba(0,0,0,.45);
+}
 
 /* backdrop-filter가 없는 브라우저에서는 유리가 성립하지 않는다. 불투명 면으로 내린다 */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
@@ -591,13 +684,13 @@ const BADGES = [
 const BADGE_TINT = ['SUNNY','PARTLY_CLOUDY','RAINBOW','RAIN','CLOUDY','SNOW'];
 
 const FEED_SEED = [
-  { id:'p1', who:'복숭아젤리', em:'🍑', t:'2시간 전', w:'RAIN', c:'비 오는 날 창가에서 커피 한 잔', likes:128, cm:14, liked:false },
-  { id:'p2', who:'해바라기', em:'🌻', t:'5시간 전', w:'SUNNY', c:'드디어 이직 합격! 오늘은 무조건 맑음', likes:342, cm:56, liked:true },
-  { id:'p3', who:'밤하늘', em:'🌙', t:'어제', w:'CLOUDY', c:'아무것도 안 한 날. 그래도 괜찮아', likes:87, cm:9, liked:false },
+  { id:'p1', who:'복숭아젤리', t:'2시간 전', w:'RAIN', c:'비 오는 날 창가에서 커피 한 잔', likes:128, cm:14, liked:false },
+  { id:'p2', who:'해바라기', t:'5시간 전', w:'SUNNY', c:'드디어 이직 합격! 오늘은 무조건 맑음', likes:342, cm:56, liked:true },
+  { id:'p3', who:'밤하늘', t:'어제', w:'CLOUDY', c:'아무것도 안 한 날. 그래도 괜찮아', likes:87, cm:9, liked:false },
 ];
 
 const THEMES = [
-  { id:'sky', n:'Sky', d:'기본', g:'#f4f8fb,#d8e4ee', plus:false },
+  { id:'paper', n:'Paper', d:'기본', g:'#faf4dc,#ece3c2', plus:false },
   { id:'night', n:'Night Jelly', d:'밤의 젤리', g:'#18242d,#2f4356', plus:true },
   { id:'mint', n:'Mint Soda', d:'청량한 민트', g:'#f2fbf8,#8fbfae', plus:false },
   { id:'lav', n:'Lavender', d:'라벤더 드림', g:'#f5f2fb,#a99ac7', plus:true },
@@ -652,7 +745,7 @@ const S = {
   sort: 'popular',
   filters: [],
   storeCat: 'theme',
-  theme: 'sky',
+  theme: 'paper',
   toast: null,
   sheet: null,
 };
@@ -696,32 +789,17 @@ function artwork(weather, seedBase) {
 }
 
 /* ---------------- 01 온보딩 ---------------- */
-/** 구름 한 장. 같은 색 도형을 겹쳐 합집합으로 만든다. currentColor라 색은 CSS가 정한다 */
-const cloud = (cls) => `<div class="cloud ${cls}">
-  <svg viewBox="0 0 120 64" aria-hidden="true" focusable="false">
-    <g fill="currentColor">
-      <rect x="6" y="34" width="108" height="28" rx="14"/>
-      <circle cx="20" cy="42" r="14"/>
-      <circle cx="38" cy="34" r="22"/>
-      <circle cx="72" cy="28" r="26"/>
-      <circle cx="98" cy="38" r="18"/>
-    </g>
-  </svg>
-</div>`;
-
 function viewOnboarding() {
   return `${status()}
   <div class="view"><div class="onb">
-    <div class="clouds" role="img" aria-label="하늘에 구름이 떠 있는 그림">
-      ${cloud('cloud-back')}${cloud('cloud-small')}${cloud('cloud-front')}
-    </div>
+    <div class="bottom-art" aria-hidden="true"><img src="images/bottom.png" alt="" width="2048" height="2048"></div>
+    <div class="hero-slot"><span class="rule-sheet" aria-hidden="true"><i style="top:63px"></i><i style="top:95px"></i><i style="top:127px"></i><i style="top:159px"></i><i style="top:191px"></i><i style="top:223px"></i><i style="top:255px"></i><i style="top:287px"></i><i style="top:319px"></i><i style="top:351px"></i></span><div class="hero-art"><img src="images/onboarding.png" alt="AI Diary" width="2048" height="2048"></div></div>
     <div>
-      <h2 class="h1">오늘의 기분을<br>날씨로 그려드릴게요</h2>
-      <p class="mut" style="margin-top:16px;font-size:15px">한 줄만 적으면 AI가 감정을 읽고<br>그날의 날씨와 그림을 만들어 줍니다.</p>
+      <h2 class="h1"><span class="hl">오늘의 기분</span>을<br>나만의 <span class="hl">그림일기</span>로</h2>
+      <p class="mut copy-sub">한 줄만 적으면 AI가 기분을 읽고<br>그날의 그림일기를 만들어 줍니다.</p>
     </div>
     <div class="foot">
       <div class="cta-stage">
-        ${cloud('cloud-cta-a')}${cloud('cloud-cta-b')}
         <button class="btn xl glass" data-act="start"><span>무료로 시작하기</span></button>
       </div>
       <button class="link" data-act="start" style="text-align:center">이미 계정이 있어요</button>
@@ -740,7 +818,7 @@ function viewHome() {
     <div class="row" style="align-items:flex-start">
       <div style="flex:1">
         <p class="mut" style="font-weight:500">${today.getFullYear()}년 ${today.getMonth()+1}월 ${today.getDate()}일 ${week}요일</p>
-        <h2 style="margin:4px 0 0;font-size:24px;font-weight:700">안녕하세요, ${VIEWER.nickname}님 🍬</h2>
+        <h2 style="margin:4px 0 0;font-size:24px;font-weight:700">안녕하세요, ${VIEWER.nickname}님</h2>
       </div>
       ${STATS.streakDays > 0 ? chip(`${STATS.streakDays}일 연속`, { dot: wc('SUNNY') }) : ''}
     </div>
@@ -983,9 +1061,9 @@ function viewCommunity() {
       : list.map((p) => `
       <div class="card flat" style="gap:16px">
         <div class="row">
-          <span class="avatar" style="background:${wc(p.w)}">${p.em}</span>
+          <span class="avatar" style="background:${wc(p.w)}">${esc([...p.who][0])}</span>
           <span style="flex:1;min-width:0">
-            <b style="display:block;font-size:14px;font-weight:700">${p.em} ${esc(p.who)}</b>
+            <b style="display:block;font-size:14px;font-weight:700">${esc(p.who)}</b>
             <small style="display:block;font-size:12px;color:var(--muted)">${p.t}</small>
           </span>
           <span class="chip" style="padding:5px 12px 5px 8px"><i style="width:10px;height:10px;background:${wc(p.w)}"></i>${LABEL[p.w]}</span>
@@ -1013,7 +1091,7 @@ function viewStore() {
   const body = S.storeCat === 'theme'
     ? `<div class="themes">${THEMES.map((t) => `
         <button data-act="theme" data-v="${t.id}" aria-pressed="${S.theme === t.id}">
-          <span class="prev" style="background:linear-gradient(180deg,${t.g})">${t.plus ? '<span class="plus">👑 Plus</span>' : ''}</span>
+          <span class="prev" style="background:linear-gradient(180deg,${t.g})">${t.plus ? '<span class="plus">Plus</span>' : ''}</span>
           <b>${t.n}</b><small>${S.theme === t.id ? '기본 · 사용 중' : t.d}</small>
         </button>`).join('')}</div>
       <div class="stack"><h3 class="h2">캐릭터</h3>${charRow()}</div>`
@@ -1063,7 +1141,7 @@ function viewMy() {
         <span style="flex:1;display:flex;flex-direction:column;align-items:flex-start;gap:4px">
           <b style="font-size:20px;font-weight:700">${VIEWER.nickname}</b>
           <small style="font-size:12px;color:var(--muted)">${VIEWER.character} · ${VIEWER.joinedAt} 가입</small>
-          ${VIEWER.plus ? `<span class="chip" style="padding:4px 12px;font-size:12px;font-weight:700">👑 Jelly Plus</span>` : ''}
+          ${VIEWER.plus ? `<span class="chip" style="padding:4px 12px;font-size:12px;font-weight:700">Jelly Plus</span>` : ''}
         </span>
       </div>
       <div class="stats">

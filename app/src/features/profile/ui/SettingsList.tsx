@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
     minHeight: Math.max(56, MIN_TOUCH_TARGET),
     paddingHorizontal: space[5],
   },
-  glyph: { fontSize: 16, lineHeight: 20 },
-  label: { flex: 1, fontSize: font.md, lineHeight: leading(font.md), fontWeight: font.weightMedium },
-  value: { maxWidth: 140, fontSize: font.base, lineHeight: leading(font.base) },
+  glyph: { fontSize: 16, fontFamily: font.regular, lineHeight: 20 },
+  label: { flex: 1, fontSize: font.md, lineHeight: leading(font.md), fontFamily: font.medium },
+  value: { maxWidth: 140, fontSize: font.base, fontFamily: font.regular, lineHeight: leading(font.base) },
 });

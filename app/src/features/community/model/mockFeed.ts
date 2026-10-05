@@ -10,7 +10,6 @@ import type { Weather } from '@/shared/weather';
 export type FeedPost = {
   id: string;
   author: string;
-  authorEmoji: string;
   relativeTime: string;
   weather: Weather;
   content: string;
@@ -33,7 +32,6 @@ export const MOCK_FEED: FeedPost[] = [
   {
     id: 'p1',
     author: '복숭아젤리',
-    authorEmoji: '🍑',
     relativeTime: '2시간 전',
     weather: 'RAIN',
     content: '비 오는 날 창가에서 커피 한 잔',
@@ -44,7 +42,6 @@ export const MOCK_FEED: FeedPost[] = [
   {
     id: 'p2',
     author: '해바라기',
-    authorEmoji: '🌻',
     relativeTime: '5시간 전',
     weather: 'SUNNY',
     content: '드디어 이직 합격! 오늘은 무조건 맑음',
@@ -55,7 +52,6 @@ export const MOCK_FEED: FeedPost[] = [
   {
     id: 'p3',
     author: '밤하늘',
-    authorEmoji: '🌙',
     relativeTime: '어제',
     weather: 'CLOUDY',
     content: '아무것도 안 한 날. 그래도 괜찮아',

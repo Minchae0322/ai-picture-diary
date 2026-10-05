@@ -146,6 +146,6 @@ function describe(stats: TrendStats): string {
 const styles = StyleSheet.create({
   wrap: { position: 'relative' },
   axis: { position: 'absolute', right: 0, top: 0, height: HEIGHT },
-  tick: { position: 'absolute', right: 0, fontSize: font.xs, lineHeight: leading(font.xs, 1) },
-  empty: { fontSize: font.base, lineHeight: leading(font.base), paddingVertical: space[6] },
+  tick: { position: 'absolute', right: 0, fontSize: font.xs, fontFamily: font.regular, lineHeight: leading(font.xs, 1) },
+  empty: { fontSize: font.base, fontFamily: font.regular, lineHeight: leading(font.base), paddingVertical: space[6] },
 });

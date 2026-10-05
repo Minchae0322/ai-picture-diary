@@ -28,5 +28,5 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
   },
   dot: { width: 14, height: 14, borderRadius: radius.full },
-  label: { fontSize: font.base, fontWeight: font.weightBold },
+  label: { fontSize: font.base, fontFamily: font.bold },
 });

@@ -28,10 +28,10 @@ export type ThemeItem = {
 
 export const MOCK_THEMES: ThemeItem[] = [
   {
-    id: 'sky',
-    name: 'Sky',
+    id: 'paper',
+    name: 'Paper',
     description: '기본 · 사용 중',
-    preview: ['#f4f8fb', '#d8e4ee'],
+    preview: ['#faf4dc', '#ece3c2'],
     plusOnly: false,
     applied: true,
   },

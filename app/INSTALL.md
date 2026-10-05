@@ -7,7 +7,7 @@ cd app
 npm install
 npx expo install expo-router react-native-safe-area-context react-native-screens \
   expo-linking expo-constants expo-status-bar @tanstack/react-query \
-  expo-linear-gradient react-native-svg @react-native-async-storage/async-storage
+  expo-linear-gradient react-native-svg @react-native-async-storage/async-storage expo-font
 
 # 시안 SVG를 컴포넌트로 import하기 위한 변환기. Expo 관리 패키지가 아니라 npm으로 받는다
 npm install --save-dev react-native-svg-transformer
@@ -31,6 +31,20 @@ npm run start
 
 ## 폰트
 
-시안은 Noto Sans KR이다. 지금은 **시스템 폰트로 대체**했다(Android는 Noto Sans CJK KR, iOS는 Apple SD Gothic Neo).
-글자 모양이 거의 같고 폰트 파일을 번들에 넣지 않아도 되어서다. 정확히 맞춰야 하면
-`expo-font` + `@expo-google-fonts/noto-sans-kr`을 추가하고 `app/_layout.tsx`에서 로드한다.
+서체는 **SUIT(수트)** 하나로 통일한다. 파일은 `app/assets/fonts/` 에 저장소가 들고 있다
+(SIL Open Font License 1.1, https://github.com/sunn-us/SUIT).
+
+**굵기마다 파일이 따로 등록된다.** RN은 커스텀 폰트에서 `fontWeight` 로 굵기를 합성하지 못하므로
+(특히 안드로이드) 굵기는 패밀리 이름으로 고른다. 토큰에 네 가지가 있다:
+
+| 토큰 | 패밀리 |
+|---|---|
+| `font.regular` | `SUIT-Regular` |
+| `font.medium` | `SUIT-Medium` |
+| `font.bold` | `SUIT-Bold` |
+| `font.black` | `SUIT-Heavy` |
+
+- 등록은 `app/app/_layout.tsx` 의 `useFonts(FONT_ASSETS)` 한 곳이다.
+- **글자가 있는 스타일에는 빠짐없이 `fontFamily` 를 넣는다.** RN은 폰트가 상속되지 않아
+  빠뜨리면 그 텍스트만 시스템 폰트로 나온다.
+- `fontWeight` 는 쓰지 않는다.

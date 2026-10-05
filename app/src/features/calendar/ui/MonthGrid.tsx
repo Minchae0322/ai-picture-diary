@@ -82,7 +82,7 @@ export function MonthGrid({ cells, weatherByDate, todayIso, onSelect }: Props) {
                 style={[
                   styles.day,
                   { color: isToday ? colors.primary : colors.textMuted },
-                  isToday && { fontWeight: font.weightBold },
+                  isToday && { fontFamily: font.bold },
                 ]}
               >
                 {cell.day}
@@ -103,11 +103,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: font.xs,
     lineHeight: leading(font.xs, 1.3),
-    fontWeight: font.weightMedium,
+    fontFamily: font.medium,
   },
   days: { flexDirection: 'row', flexWrap: 'wrap', rowGap: space[2] },
   cell: { width: `${100 / 7}%`, alignItems: 'center', gap: 6, paddingVertical: space[1] },
   dot: { width: 32, height: 32, borderRadius: radius.full, alignItems: 'center', justifyContent: 'center' },
-  glyph: { fontSize: 15, lineHeight: 18 },
-  day: { fontSize: font.sm, lineHeight: leading(font.sm, 1.1) },
+  glyph: { fontSize: 15, fontFamily: font.regular, lineHeight: 18 },
+  day: { fontSize: font.sm, fontFamily: font.regular, lineHeight: leading(font.sm, 1.1) },
 });

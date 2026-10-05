@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
   item: { width: `${100 / 3}%`, alignItems: 'center', gap: 6, paddingHorizontal: space[1] },
   medal: { width: 46, height: 46, borderRadius: radius.full, alignItems: 'center', justifyContent: 'center' },
   locked: { borderWidth: 1.5, borderStyle: 'dashed' },
-  lockGlyph: { fontSize: 16, lineHeight: 20 },
-  name: { fontSize: font.base, lineHeight: leading(font.base, 1.1), fontWeight: font.weightBold },
-  condition: { fontSize: font.xs, lineHeight: leading(font.xs, 1.1) },
+  lockGlyph: { fontSize: 16, fontFamily: font.regular, lineHeight: 20 },
+  name: { fontSize: font.base, lineHeight: leading(font.base, 1.1), fontFamily: font.bold },
+  condition: { fontSize: font.xs, fontFamily: font.regular, lineHeight: leading(font.xs, 1.1) },
 });

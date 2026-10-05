@@ -36,7 +36,7 @@ export function ProfileCard({ nickname, character, joinedAt, plus, stats }: Prop
           </Text>
           {plus ? (
             <View style={[styles.plus, { backgroundColor: colors.surfaceSolid, borderColor: colors.borderStrong }]}>
-              <Text style={[styles.plusLabel, { color: colors.text }]}>👑 Jelly Plus</Text>
+              <Text style={[styles.plusLabel, { color: colors.text }]}>Jelly Plus</Text>
             </View>
           ) : null}
         </View>
@@ -78,17 +78,17 @@ const styles = StyleSheet.create({
   head: { flexDirection: 'row', alignItems: 'center', gap: space[4] },
   avatar: { width: 64, height: 64, borderRadius: radius.full },
   headText: { flex: 1, gap: space[1], alignItems: 'flex-start' },
-  nickname: { fontSize: font.xl, lineHeight: leading(font.xl, 1.1), fontWeight: font.weightBold },
-  meta: { fontSize: font.xs, lineHeight: leading(font.xs, 1.1) },
+  nickname: { fontSize: font.xl, lineHeight: leading(font.xl, 1.1), fontFamily: font.bold },
+  meta: { fontSize: font.xs, fontFamily: font.regular, lineHeight: leading(font.xs, 1.1) },
   plus: {
     paddingHorizontal: space[3],
     paddingVertical: 4,
     borderWidth: 1,
     borderRadius: radius.full,
   },
-  plusLabel: { fontSize: font.xs, lineHeight: 15, fontWeight: font.weightBold },
+  plusLabel: { fontSize: font.xs, lineHeight: 15, fontFamily: font.bold },
   stats: { flexDirection: 'row' },
   stat: { flex: 1, flexDirection: 'row', alignItems: 'baseline', gap: 6 },
-  statValue: { fontSize: font.base, lineHeight: leading(font.base, 1.2), fontWeight: font.weightBold },
-  statLabel: { fontSize: font.xs, lineHeight: leading(font.xs, 1.1) },
+  statValue: { fontSize: font.base, lineHeight: leading(font.base, 1.2), fontFamily: font.bold },
+  statLabel: { fontSize: font.xs, fontFamily: font.regular, lineHeight: leading(font.xs, 1.1) },
 });

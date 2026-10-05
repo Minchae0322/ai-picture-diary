@@ -46,5 +46,5 @@ export function ErrorState({ error, onRetry }: { error: unknown; onRetry: () => 
 
 const styles = StyleSheet.create({
   block: { alignItems: 'flex-start', gap: space[3], paddingVertical: space[2] },
-  message: { fontSize: font.base, lineHeight: leading(font.base) },
+  message: { fontSize: font.base, fontFamily: font.regular, lineHeight: leading(font.base) },
 });

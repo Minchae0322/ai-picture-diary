@@ -55,7 +55,7 @@ export function RecentDiaries({ items }: { items: DiarySummary[] }) {
 
 const styles = StyleSheet.create({
   wrap: { gap: space[3] },
-  title: { fontSize: font.base, fontWeight: font.weightBold },
+  title: { fontSize: font.base, fontFamily: font.bold },
   row: { flexDirection: 'row', gap: space[3] },
   card: {
     flex: 1,
@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     paddingBottom: 6,
   },
-  glyph: { fontSize: 18, lineHeight: 22 },
-  date: { fontSize: font.xs, lineHeight: leading(font.xs, 1.2), fontWeight: font.weightBold },
-  excerpt: { fontSize: font.micro, lineHeight: leading(font.micro, 1.2) },
+  glyph: { fontSize: 18, fontFamily: font.regular, lineHeight: 22 },
+  date: { fontSize: font.xs, lineHeight: leading(font.xs, 1.2), fontFamily: font.bold },
+  excerpt: { fontSize: font.micro, fontFamily: font.regular, lineHeight: leading(font.micro, 1.2) },
 });

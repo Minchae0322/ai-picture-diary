@@ -25,6 +25,6 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', gap: space[3] },
   card: { flex: 1, alignItems: 'center', gap: space[2], paddingVertical: space[4] },
   dot: { width: 10, height: 10, borderRadius: radius.full },
-  value: { fontSize: font.xl, lineHeight: leading(font.xl, 1.1), fontWeight: font.weightBold },
-  label: { fontSize: font.xs, lineHeight: leading(font.xs, 1.1) },
+  value: { fontSize: font.xl, lineHeight: leading(font.xl, 1.1), fontFamily: font.bold },
+  label: { fontSize: font.xs, fontFamily: font.regular, lineHeight: leading(font.xs, 1.1) },
 });

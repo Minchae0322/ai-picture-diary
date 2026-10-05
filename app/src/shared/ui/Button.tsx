@@ -74,7 +74,7 @@ export function Button({
       {loading ? (
         <ActivityIndicator color={fg} />
       ) : (
-        <Text numberOfLines={1} style={[styles.label, { color: fg, fontSize: LABEL_SIZE[size] }]}>
+        <Text numberOfLines={1} style={[styles.label, { color: fg, fontSize: LABEL_SIZE[size] , fontFamily: font.regular}]}>
           {label}
         </Text>
       )}
@@ -88,5 +88,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: radius.full,
   },
-  label: { fontWeight: font.weightBold },
+  label: { fontFamily: font.bold },
 });

@@ -84,5 +84,5 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
   },
   dot: { width: 12, height: 12, borderRadius: radius.full },
-  label: { fontSize: font.xs, fontWeight: font.weightMedium },
+  label: { fontSize: font.xs, fontFamily: font.medium },
 });

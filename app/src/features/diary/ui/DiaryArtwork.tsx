@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   fallback: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space[3], padding: space[6] },
-  fallbackText: { fontSize: font.base, lineHeight: leading(font.base) },
+  fallbackText: { fontSize: font.base, fontFamily: font.regular, lineHeight: leading(font.base) },
   tag: {
     position: 'absolute',
     left: space[4],
@@ -102,5 +102,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: radius.full,
   },
-  tagText: { fontSize: font.xs, fontWeight: font.weightMedium },
+  tagText: { fontSize: font.xs, fontFamily: font.medium },
 });

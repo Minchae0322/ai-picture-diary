@@ -82,11 +82,11 @@ export function DiaryResult({ diary, regenerating, onRegenerate, onShare, earned
 
 const styles = StyleSheet.create({
   wrap: { gap: space[5] },
-  content: { fontSize: font.lg, lineHeight: leading(font.lg), fontWeight: font.weightMedium },
-  comment: { fontSize: font.sm, lineHeight: leading(font.sm), marginTop: -space[2] },
+  content: { fontSize: font.lg, lineHeight: leading(font.lg), fontFamily: font.medium },
+  comment: { fontSize: font.sm, fontFamily: font.regular, lineHeight: leading(font.sm), marginTop: -space[2] },
   actions: { flexDirection: 'row', gap: space[3] },
   action: { flex: 1 },
   badgeCard: { flexDirection: 'row', alignItems: 'center', gap: space[3], paddingVertical: space[4] },
   badgeDot: { width: 32, height: 32, borderRadius: radius.full },
-  badgeText: { fontSize: font.base, fontWeight: font.weightBold, flex: 1 },
+  badgeText: { fontSize: font.base, fontFamily: font.bold, flex: 1 },
 });

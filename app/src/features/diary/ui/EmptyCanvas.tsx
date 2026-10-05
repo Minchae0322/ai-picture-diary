@@ -37,6 +37,6 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
     borderRadius: radius.lg,
   },
-  glyph: { fontSize: 44, lineHeight: 48, fontWeight: font.weightBlack },
-  caption: { fontSize: font.xs, fontWeight: font.weightMedium },
+  glyph: { fontSize: 44, lineHeight: 48, fontFamily: font.black },
+  caption: { fontSize: font.xs, fontFamily: font.medium },
 });

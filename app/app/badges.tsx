@@ -45,6 +45,6 @@ export default function BadgesScreen() {
 
 const styles = StyleSheet.create({
   header: { gap: space[2] },
-  progressText: { fontSize: font.base, lineHeight: leading(font.base) },
-  note: { fontSize: font.xs, lineHeight: leading(font.xs) },
+  progressText: { fontSize: font.base, fontFamily: font.regular, lineHeight: leading(font.base) },
+  note: { fontSize: font.xs, fontFamily: font.regular, lineHeight: leading(font.xs) },
 });

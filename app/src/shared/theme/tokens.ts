@@ -9,11 +9,10 @@
  */
 
 const primitive = {
-  sky50: '#f4f8fb',
-  sky100: '#e8f0f6',
-  sky150: '#e2eef7',
-  sky200: '#d8e4ee',
-  mist: '#eef4f9',
+  /** 배경. 하늘색 그라디언트에서 바닐라 단색으로 바뀌었다 */
+  paper: '#faf4dc',
+  paperRaised: 'rgba(255,253,247,0.95)',
+  paperLine: '#ece3c2',
 
   slate900: '#253544',
   slate600: '#4e6375',
@@ -35,6 +34,9 @@ const primitive = {
   mauve300: '#c79ab4',
   violet300: '#a99ac7',
   sage300: '#8fbfae',
+
+  /** 형광펜 띠. 글자는 배경과 같은 바닐라(primitive.paper)라 글자가 파인 것처럼 보인다 */
+  cocoa600: '#7c5445',
 
   red600: '#b0434e',
   amber700: '#8a6a1f',
@@ -76,25 +78,35 @@ export type Colors = {
   scrim: string;
   skeleton: string;
   track: string;
+  /** 01 헤드라인의 형광펜 띠 */
+  highlight: string;
+  /** 그 띠 위에 얹히는 글자색 */
+  highlightText: string;
+  /** 01 히어로 뒤 노트 괘선 */
+  rule: string;
+  /** 날씨 색 위에 얹히는 글자색. 날씨 색이 테마를 따라 바뀌지 않으므로 이것도 고정이다 */
+  weatherInk: string;
 };
 
 const light: Colors = {
-  /** 배경은 단색이 아니라 그라디언트다. Screen이 bgGradient를 쓴다 */
-  bg: primitive.sky50,
-  bgGradient: [primitive.sky50, primitive.sky100, primitive.sky200],
-  bgGradientStops: [0, 0.55, 1],
-  /** 상단 우측 글로우. 배경이 하늘색이라 빛도 차갑다(muted-sky 4장) */
-  glow: 'rgba(205,228,245,0.9)',
+  /** 배경. Screen 이 bgGradient 를 쓴다 */
+  bg: primitive.paper,
+  /** 단색이다. 그라디언트 구조는 남겨 두되 두 스톱이 같아 평평하게 깔린다 */
+  bgGradient: [primitive.paper, primitive.paper],
+  bgGradientStops: [0, 1],
+  /** 상단 우측 글로우. 배경이 따뜻해져 빛도 따뜻하게 바꿨다 - 차가운 글로우는 얼룩으로 보인다 */
+  glow: 'rgba(255,251,236,0.85)',
 
   surface: 'rgba(255,255,255,0.92)',
   surfaceSolid: '#ffffff',
-  surfaceRaised: ['rgba(255,255,255,0.85)', 'rgba(226,238,247,0.85)'],
-  border: 'rgba(255,255,255,0.9)',
-  borderStrong: '#d9e5ee',
+  surfaceRaised: ['rgba(255,255,255,0.92)', primitive.paperRaised],
+  /** 배경이 흰색에 가까워 흰 카드가 묻힌다. 테두리가 경계를 대신 잡는다(배경과 ΔE 4.7) */
+  border: 'rgba(37,53,68,0.12)',
+  borderStrong: primitive.paperLine,
 
   text: primitive.slate900,
   textMuted: primitive.slate600,
-  /** 표면 위에서만 쓴다. 배경 그라디언트 위는 textMuted (muted-sky 2장) */
+  /** 표면 위에서만 쓴다. 배경 위는 textMuted (muted-sky 2장) */
   textSubtle: primitive.slate500,
   /** 장식 전용 - 점선 테두리, 인디케이터, 뜻 없는 큰 글리프 */
   decor: primitive.slate300,
@@ -117,8 +129,15 @@ const light: Colors = {
   skeleton: 'rgba(37,53,68,0.07)',
   /** 진행 막대의 빈 부분 */
   track: 'rgba(37,53,68,0.10)',
-  cloud: '#ffffff',
-  cloudOpacity: 1,
+  highlight: primitive.cocoa600,
+  highlightText: primitive.paper,
+  rule: 'rgba(63,63,63,0.22)',
+  /**
+   * 08 아바타의 닉네임 첫 글자처럼, weatherColor 위에 바로 얹히는 글자.
+   * weatherColor 6색은 라이트/다크가 같은 값이라 글자색도 뒤집지 않는다.
+   * 측정: 6색 전부 4.5:1 통과, 최악은 비 #8fa9c8 위 5.19:1.
+   */
+  weatherInk: primitive.slate900,
 };
 
 const dark: Colors = {
@@ -152,9 +171,13 @@ const dark: Colors = {
   scrim: 'rgba(0,0,0,0.55)',
   skeleton: 'rgba(255,255,255,0.07)',
   track: 'rgba(255,255,255,0.12)',
-  /** 밤하늘에서는 구름이 흰 판으로 튄다. 살짝 푸른 흰색에 알파를 크게 내린다 */
-  cloud: '#cbe0f0',
-  cloudOpacity: 0.24,
+  /** 띠가 어둡고 글자가 밝은 조합이라 다크에서도 그대로 통한다(4.30:1). 따로 잡지 않는다 */
+  highlight: primitive.cocoa600,
+  highlightText: primitive.paper,
+  /** 어두운 배경에서 #3f3f3f 괘선은 보이지 않는다 */
+  rule: 'rgba(255,255,255,0.12)',
+  /** weatherColor 가 다크에서도 같은 값이라 라이트와 같다 */
+  weatherInk: primitive.slate900,
 };
 
 export const colorsFor = (scheme: 'light' | 'dark' | null | undefined): Colors =>
@@ -186,9 +209,28 @@ export const space = {
 
 export const radius = { sm: 10, md: 16, lg: 24, xl: 34, full: 9999 } as const;
 
+/**
+ * 크기 스케일과 서체.
+ *
+ * 서체는 SUIT(수트)다. **굵기마다 파일이 따로 등록되므로 fontWeight가 아니라 패밀리 이름으로 고른다.**
+ * RN은 커스텀 폰트에서 fontWeight로 굵기를 합성하지 못한다(특히 안드로이드).
+ * 파일은 `app/assets/fonts/`, 등록은 `app/app/_layout.tsx`.
+ */
 export const font = {
   micro: 10, xs: 12, sm: 13, base: 14, md: 15, lg: 17, xl: 20, xxl: 24, display: 34,
-  weightMedium: '500', weightBold: '700', weightBlack: '900',
+
+  regular: 'SUIT-Regular',
+  medium: 'SUIT-Medium',
+  bold: 'SUIT-Bold',
+  black: 'SUIT-Heavy',
+} as const;
+
+/** expo-font에 넘길 등록표. 키가 곧 fontFamily 이름이다 */
+export const FONT_ASSETS = {
+  'SUIT-Regular': require('@assets/fonts/SUIT-Regular.otf'),
+  'SUIT-Medium': require('@assets/fonts/SUIT-Medium.otf'),
+  'SUIT-Bold': require('@assets/fonts/SUIT-Bold.otf'),
+  'SUIT-Heavy': require('@assets/fonts/SUIT-Heavy.otf'),
 } as const;
 
 /** 줄간격은 px로 계산해 넘긴다. RN의 lineHeight는 배수를 받지 않는다 */

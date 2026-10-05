@@ -63,5 +63,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: space[4],
     borderRadius: radius.full,
   },
-  label: { fontSize: font.md, fontWeight: font.weightBold },
+  label: { fontSize: font.md, fontFamily: font.bold },
 });

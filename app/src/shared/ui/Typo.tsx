@@ -33,7 +33,7 @@ export function Muted({ children, style, ...rest }: TextProps) {
 }
 
 const styles = StyleSheet.create({
-  screen: { fontSize: font.display, lineHeight: leading(font.display, 1.02), fontWeight: font.weightBlack },
-  section: { fontSize: font.lg, lineHeight: leading(font.lg), fontWeight: font.weightBold },
-  muted: { fontSize: font.sm, lineHeight: leading(font.sm) },
+  screen: { fontSize: font.display, lineHeight: leading(font.display, 1.02), fontFamily: font.black },
+  section: { fontSize: font.lg, lineHeight: leading(font.lg), fontFamily: font.bold },
+  muted: { fontSize: font.sm, fontFamily: font.regular, lineHeight: leading(font.sm) },
 });

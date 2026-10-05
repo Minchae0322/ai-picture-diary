@@ -5,13 +5,24 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AI 감정 날씨일기 - 화면 10종 미리보기</title>
 <style>
+/* SUIT (수트) - 가변 폰트 한 벌로 100~900을 모두 낸다.
+   Google Fonts에 없는 서체라 파일을 저장소에 두고 직접 얹는다.
+   출처: https://github.com/sunn-us/SUIT (SIL Open Font License 1.1) */
+@font-face {
+  font-family: "SUIT";
+  src: url("fonts/SUIT-Variable.woff2") format("woff2-variations"),
+       url("fonts/SUIT-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
 /*
   이 파일은 `app/src/shared/theme/tokens.ts`와 같은 값을 CSS로 옮긴 정적 미리보기다.
   토큰을 고치면 여기도 같이 고친다. 값의 출처는 .claude/skills/design-system/presets/muted-sky.md
 */
 :root {
-  --sky-50:#f4f8fb; --sky-100:#e8f0f6; --sky-200:#d8e4ee; --mist:#eef4f9;
-  --glow: rgba(205,228,245,.9);
+  --sky-50:#faf4dc; --sky-100:#faf4dc; --sky-200:#faf4dc; --mist:#f6f6ef;
+  --glow: rgba(255,251,236,.85);
 
   --text:#253544; --muted:#4e6375; --subtle:#5b6e7f; --decor:#a8bccd;
   --primary:#3f6d8e; --primary-pressed:#325a77; --primary-fg:#ffffff; --accent-soft:#5b9bc4;
@@ -19,12 +30,15 @@
 
   --surface: rgba(255,255,255,.92);
   --surface-solid:#ffffff;
-  --raised-a: rgba(255,255,255,.85);
+  --raised-a: rgba(255,255,255,.92);
   --raised-b: rgba(255,231,214,.85);
-  --border: rgba(255,255,255,.9);
-  --border-strong:#d9e5ee;
+  --border: rgba(37,53,68,.12);
+  --border-strong:#ece3c2;
+  --rule: rgba(63,63,63,.22);
   --track: rgba(37,53,68,.10);
   --scrim: rgba(37,53,68,.32);
+  --highlight:#7c5445;
+  --hl-text:#faf4dc;   /* 배경 바닐라와 같은 값. 다크에서도 그대로 쓴다 */
 
   --w-sunny:#e5b877; --w-partly:#dcc9a6; --w-cloudy:#b6bfc8;
   --w-rain:#8fa9c8; --w-snow:#cfe0ee; --w-rainbow:#c79ab4;
@@ -35,7 +49,7 @@
   --shadow-md: 0 10px 12px rgba(37,53,68,.12);
   --shadow-up: 0 -6px 20px rgba(37,53,68,.10);
 
-  --page-bg:#e3eaf0; --page-fg:#233241; --page-card:#fbfdfe; --page-line: rgba(37,53,68,.15);
+  --page-bg:#ffffff; --page-fg:#2f2f28; --page-card:#f4f3ee; --page-line: rgba(47,47,40,.16);
 }
 [data-theme="dark"] {
   --sky-50:#111a21; --sky-100:#18242d; --sky-200:#18242d; --mist:#1c2831;
@@ -49,6 +63,7 @@
   --raised-a:#26343f; --raised-b:#1c2831;
   --border: rgba(255,255,255,.10);
   --border-strong: rgba(255,255,255,.18);
+    --rule: rgba(255,255,255,.12);
   --track: rgba(255,255,255,.12);
   --scrim: rgba(0,0,0,.55);
 
@@ -59,7 +74,7 @@
 body {
   margin:0; padding:0 0 64px;
   background: var(--page-bg); color: var(--page-fg);
-  font: 14px/1.5 "Noto Sans KR", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, sans-serif;
+  font: 14px/1.5 "SUIT", "Noto Sans KR", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, sans-serif;
 }
 header {
   position: sticky; top:0; z-index:10;
@@ -114,6 +129,30 @@ figcaption a { color: inherit; }
 .body.g20 { padding-left:20px; padding-right:20px; }
 
 /* ---------- 조각 ---------- */
+
+/* 형광펜처럼 글자 뒤를 지나가는 바닐라 띠. 위아래를 조금 비워 블록이 아니라 획으로 읽히게 한다.
+   채도를 낮추고 알파 0.8을 줘서 배경이 살짝 비친다. 색상 차이(ΔE 11.7)로 보인다 */
+.hl {
+  /* 글자색이 배경 바닐라와 같아서, 띠 밖으로 나간 획은 배경에 묻혀 사라진다.
+     그래서 **띠가 글자 획을 빠짐없이 덮는 것이 조건**이다. 줄일 수 있는 바닥은 잉크 높이다.
+
+     세로 padding 으로는 더 줄일 수 없다. padding 은 더하기만 되고, 배경이 깔리는
+     인라인 박스는 이미 폰트의 ascent+descent = (988+260)/1000 = 1.248em 이기 때문이다.
+     그래서 배경을 그라디언트로 그려 높이를 em 으로 직접 준다.
+
+     SUIT-Heavy 의 이 한글들(오늘의 기분/그림일기) 잉크는 CFF charstring 측정값으로
+     baseline 기준 -0.093em ~ 0.821em, 높이 0.914em 이다.
+     띠는 -0.130em ~ 0.870em(1em)으로 잡아 위 1.7px / 아래 1.3px 여유를 남긴다(34px 기준).
+     background-position 의 0.118em 은 인라인 박스 위끝(+0.988em)에서 띠 위끝(+0.870em)까지다.
+
+     결과: 띠 45.2px -> 34px, 위아래 줄 사이 틈 4.2px -> 15.3px */
+  background-image: linear-gradient(var(--highlight), var(--highlight));
+  background-repeat: no-repeat;
+  background-size: 100% 1em;
+  background-position: 0 0.118em;
+  padding: 0 .12em;
+  color: var(--hl-text);
+}
 .h1 { font-size:34px; line-height:1.02; font-weight:900; margin:0; letter-spacing:-.02em; }
 .h2 { font-size:17px; line-height:1.45; font-weight:700; margin:0; }
 .h3 { font-size:14px; font-weight:700; margin:0; }
@@ -160,25 +199,28 @@ figcaption a { color: inherit; }
 /* ---- 글래스 CTA (01 온보딩) - skill: glass-button ----
    prototype.html 의 같은 블록과 값이 같다. 통째로 지우면 solid 버튼으로 돌아간다 */
 .cta-stage { position:relative; display:flex; width:100%; }
-/* 배경 도형도 구름. 흰 구름이면 밝은 배경에 묻혀 유리가 흐릴 대상이 사라진다(스킬 1·3번) */
-.cloud-cta-a { --dur:19s; --dx:-5px; --dy:-6px; left:-18px; top:-30px; width:132px; color: var(--w-sunny); opacity:.6; }
-.cloud-cta-b { --dur:23s; --dx:5px; --dy:6px; --delay:-7s; right:-6px; bottom:-30px; width:120px; color: var(--w-rainbow); opacity:.55; }
-[data-theme="dark"] .cloud-cta-a { opacity:.34; }
-[data-theme="dark"] .cloud-cta-b { opacity:.3; }
+/* 손그림 대각선 띠. 버튼 윗변까지만 보이게 높이를 자른다. prototype.html 과 같은 값 */
+.bottom-art { position:absolute; left:0; right:0; bottom:0; height:230px; overflow:hidden; pointer-events:none; }
+/* absolute 라 정적 형제 위에 그려진다. 나머지를 positioned 로 만들어 뒤로 보낸다.
+   z-index 는 주지 않는다 - 유리 버튼의 backdrop 이 끊길 수 있다 */
+.body > *:not(.bottom-art), .onb-foot > * { position:relative; }
+.bottom-art img { position:absolute; left:0; bottom:0; width:100%; height:auto; display:block; }
 .btn.glass {
   position:relative; z-index:1;
   color: var(--text);
-  background: rgba(255,255,255,0.16);
-  backdrop-filter: blur(10px) saturate(125%);
-  -webkit-backdrop-filter: blur(10px) saturate(125%);
+  background: rgba(255,255,255,0.10);
+  backdrop-filter: blur(3px) saturate(140%);
+  -webkit-backdrop-filter: blur(3px) saturate(140%);
   border: 1px solid rgba(255,255,255,0.35);
   box-shadow:
     0 8px 32px rgba(37,53,68,0.18),
     inset 0 1px 1px rgba(255,255,255,0.9),
     inset 0 -1px 1px rgba(255,255,255,0.4),
-    inset 0 0 22px rgba(255,255,255,0.22);
+    inset 0 0 22px rgba(255,255,255,0.12);
 }
-.btn.glass > span { position:relative; z-index:1; }
+.btn.glass > span { position:relative; z-index:1;
+  /* 투명해질수록 뒤 갈색 줄에 라벨이 묻힌다. 글자 둘레만 흰빛으로 띄운다 */
+  text-shadow: 0 1px 2px rgba(255,255,255,.95), 0 0 7px rgba(255,255,255,.8); }
 .btn.glass::before {
   content:""; position:absolute; inset:-1px; border-radius:inherit; padding:1px;
   background: linear-gradient(135deg,
@@ -193,8 +235,8 @@ figcaption a { color: inherit; }
 }
 .btn.glass::after {
   content:""; position:absolute; inset:0; border-radius:inherit;
-  backdrop-filter: blur(6px) brightness(1.12) saturate(115%);
-  -webkit-backdrop-filter: blur(6px) brightness(1.12) saturate(115%);
+  backdrop-filter: blur(2.5px) brightness(1.1) saturate(125%);
+  -webkit-backdrop-filter: blur(2.5px) brightness(1.1) saturate(125%);
   -webkit-mask:
     linear-gradient(to right,#000,transparent 18px), linear-gradient(to left,#000,transparent 18px),
     linear-gradient(to bottom,#000,transparent 14px), linear-gradient(to top,#000,transparent 14px);
@@ -214,26 +256,33 @@ figcaption a { color: inherit; }
     inset 0 -1px 1px rgba(255,255,255,0.14),
     inset 0 0 22px rgba(255,255,255,0.08);
 }
+/* 다크에서는 라벨이 밝다. 흰 헤일로를 어둡게 뒤집는다 */
+[data-theme="dark"] .btn.glass > span { text-shadow: 0 1px 2px rgba(0,0,0,.6), 0 0 7px rgba(0,0,0,.45); }
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .btn.glass { background: rgba(255,255,255,0.72); }
   .btn.glass::after { display:none; }
 }
 
 /* ---------- 화면별 ---------- */
-.hero { flex:1; display:grid; place-items:center; }
-/* 01 히어로 - 둥둥 뜨는 구름. prototype.html 과 같은 모양·같은 타이밍 */
-.clouds { position:relative; width:290px; height:220px; margin:auto; }
-.cloud { position:absolute; pointer-events:none; animation: drift var(--dur) ease-in-out infinite; animation-delay: var(--delay, 0s); }
-.cloud svg { display:block; width:100%; height:auto; }
-.cloud-back  { --dur:13s; --dx:-8px; --dy:-10px; left:-10px; top:104px; width:152px; color: rgba(255,255,255,.5); }
-.cloud-small { --dur:9s;  --dx:10px; --dy:-16px; --delay:-3s; right:-6px; top:132px; width:116px; color: rgba(255,255,255,.72); }
-.cloud-front { --dur:11s; --dx:6px;  --dy:-14px; --delay:-1.5s; left:44px; top:24px; width:208px; color: rgba(255,255,255,.95);
-  filter: drop-shadow(0 12px 20px rgba(37,53,68,.12)); }
-@keyframes drift { 0%,100% { transform: translate3d(0,0,0) } 50% { transform: translate3d(var(--dx), var(--dy), 0) } }
-[data-theme="dark"] .cloud-back  { color: rgba(255,255,255,.10); }
-[data-theme="dark"] .cloud-small { color: rgba(255,255,255,.16); }
-[data-theme="dark"] .cloud-front { color: rgba(203,224,240,.24); filter:none; }
-@media (prefers-reduced-motion: reduce) { .cloud { animation: none; } }
+/* 남는 공간은 auto 마진 둘이 반씩: 그림 위와 글 아래. prototype.html 과 같은 구조 */
+.hero { flex:0 0 auto; display:flex; align-items:center; justify-content:center; margin:auto -45px 0; padding-top:32px;
+  position:relative; }
+/* 괘선 종이. 그림보다 위아래로 넓게 빼야 줄이 그림에 가려도 패턴이 읽힌다 */
+/* 노트 괘선. 1px 선을 그라디언트로 그리면 브라우저가 일부를 날린다 - 실제 요소로 둔다 */
+.rule-sheet { position:absolute; left:28px; right:28px; top:-72px; bottom:-20px; pointer-events:none; overflow:hidden; }
+.rule-sheet i { position:absolute; left:0; right:0; height:1px; background: var(--rule); }
+/* 01 헤드라인은 두 줄이라 줄 사이를 넓힌다. prototype.html 과 같은 값 */
+.onb-copy .h1 { line-height:1.45; }
+.onb-copy .copy-sub { margin-top:22px; font-size:15px; line-height:1.6; }
+.onb-foot { margin-top:auto; margin-bottom:32px; }
+/* 01 히어로 - 손그림 로고. prototype.html 과 같은 그림·같은 타이밍 */
+/* 그림 영역(알파 경계 상자 x 384~1736, y 322~1586)을 레이아웃 박스로 삼는다.
+   prototype.html 의 같은 블록과 값이 같다 */
+.hero-art { --art-w:280px; --src:2048; --bx:381; --by:317; --bw:1359; --bh:1273;
+  position:relative; width:var(--art-w); height:calc(var(--art-w) * var(--bh) / var(--bw));
+  flex:none; overflow:hidden; }
+.hero-art img { position:absolute; width:calc(var(--art-w) * var(--src) / var(--bw)); height:auto;
+  left:calc(var(--art-w) * var(--bx) / var(--bw) * -1); top:calc(var(--art-w) * var(--by) / var(--bw) * -1); }
 .dots { display:flex; gap:8px; justify-content:center; }
 .dots i { width:8px; height:8px; border-radius:var(--r-full); background: var(--accent-soft); opacity:.25; }
 .dots i:first-child { width:22px; opacity:1; }
@@ -308,7 +357,9 @@ figcaption a { color: inherit; }
 
 .feed { display:flex; flex-direction:column; gap:16px; }
 .feed .card { gap:16px; }
-.avatar { width:36px; height:36px; border-radius:50%; display:grid; place-items:center; font-size:18px; }
+/* 닉네임 첫 글자. 배경인 날씨 색이 테마 불변이라 글자색도 고정이다(날씨 6색 최악 5.19:1) */
+.avatar { width:36px; height:36px; border-radius:50%; display:grid; place-items:center;
+  font-size:18px; font-weight:700; color:#253544; }
 .feed .who b { display:block; font-size:14px; font-weight:700; }
 .feed .who small { display:block; font-size:12px; color: var(--muted); }
 .feed .post { display:flex; gap:12px; }
@@ -387,21 +438,17 @@ figcaption a { color: inherit; }
   <div class="phone">
     <div class="status"><span class="time">9:41</span><span class="icons"></span></div>
     <div class="body" style="padding:20px 45px 0;">
+      <div class="bottom-art" aria-hidden="true"><img src="images/bottom.png" alt="" width="2048" height="2048"></div>
       <div class="hero">
-        <div class="clouds" role="img" aria-label="하늘에 구름이 떠 있는 그림">
-        <div class="cloud cloud-back"><svg viewBox="0 0 120 64" aria-hidden="true"><g fill="currentColor"><rect x="6" y="34" width="108" height="28" rx="14"/><circle cx="20" cy="42" r="14"/><circle cx="38" cy="34" r="22"/><circle cx="72" cy="28" r="26"/><circle cx="98" cy="38" r="18"/></g></svg></div>
-        <div class="cloud cloud-small"><svg viewBox="0 0 120 64" aria-hidden="true"><g fill="currentColor"><rect x="6" y="34" width="108" height="28" rx="14"/><circle cx="20" cy="42" r="14"/><circle cx="38" cy="34" r="22"/><circle cx="72" cy="28" r="26"/><circle cx="98" cy="38" r="18"/></g></svg></div>
-        <div class="cloud cloud-front"><svg viewBox="0 0 120 64" aria-hidden="true"><g fill="currentColor"><rect x="6" y="34" width="108" height="28" rx="14"/><circle cx="20" cy="42" r="14"/><circle cx="38" cy="34" r="22"/><circle cx="72" cy="28" r="26"/><circle cx="98" cy="38" r="18"/></g></svg></div>
+        <span class="rule-sheet" aria-hidden="true"><i style="top:63px"></i><i style="top:95px"></i><i style="top:127px"></i><i style="top:159px"></i><i style="top:191px"></i><i style="top:223px"></i><i style="top:255px"></i><i style="top:287px"></i><i style="top:319px"></i><i style="top:351px"></i></span>
+        <div class="hero-art"><img src="images/onboarding.png" alt="AI Diary" width="2048" height="2048"></div>
       </div>
+      <div class="onb-copy">
+        <h2 class="h1"><span class="hl">오늘의 기분</span>을<br>나만의 <span class="hl">그림일기</span>로</h2>
+        <p class="muted copy-sub">한 줄만 적으면 AI가 기분을 읽고<br>그날의 그림일기를 만들어 줍니다.</p>
       </div>
-      <div>
-        <h2 class="h1">오늘의 기분을<br>날씨로 그려드릴게요</h2>
-        <p class="muted" style="margin-top:16px;font-size:15px">한 줄만 적으면 AI가 감정을 읽고<br>그날의 날씨와 그림을 만들어 줍니다.</p>
-      </div>
-      <div style="display:flex;flex-direction:column;align-items:center;gap:16px;padding-bottom:24px">
+      <div class="onb-foot" style="display:flex;flex-direction:column;align-items:center;gap:16px;padding-bottom:24px">
         <div class="cta-stage">
-          <div class="cloud cloud-cta-a"><svg viewBox="0 0 120 64" aria-hidden="true"><g fill="currentColor"><rect x="6" y="34" width="108" height="28" rx="14"/><circle cx="20" cy="42" r="14"/><circle cx="38" cy="34" r="22"/><circle cx="72" cy="28" r="26"/><circle cx="98" cy="38" r="18"/></g></svg></div>
-          <div class="cloud cloud-cta-b"><svg viewBox="0 0 120 64" aria-hidden="true"><g fill="currentColor"><rect x="6" y="34" width="108" height="28" rx="14"/><circle cx="20" cy="42" r="14"/><circle cx="38" cy="34" r="22"/><circle cx="72" cy="28" r="26"/><circle cx="98" cy="38" r="18"/></g></svg></div>
           <span class="btn xl glass"><span>무료로 시작하기</span></span>
         </div>
         <span class="muted" style="font-weight:500;font-size:14px">이미 계정이 있어요</span>
@@ -423,7 +470,7 @@ figcaption a { color: inherit; }
       <div class="row" style="align-items:flex-start">
         <div style="flex:1">
           <p class="muted" style="font-weight:500">2026년 8월 24일 월요일</p>
-          <h2 style="margin:4px 0 0;font-size:24px;font-weight:700">안녕하세요, 승희님 🍬</h2>
+          <h2 style="margin:4px 0 0;font-size:24px;font-weight:700">안녕하세요, 승희님</h2>
         </div>
         <span class="chip" style="background:rgba(255,196,107,.28);border-color:rgba(255,196,107,.55);font-weight:700">
           <i class="dot" style="background:var(--w-sunny)"></i>14일 연속
@@ -478,7 +525,7 @@ figcaption a { color: inherit; }
       <div class="row" style="align-items:flex-start;opacity:.5">
         <div style="flex:1">
           <p class="muted" style="font-weight:500">2026년 8월 24일 월요일</p>
-          <h2 style="margin:4px 0 0;font-size:24px;font-weight:700">안녕하세요, 승희님 🍬</h2>
+          <h2 style="margin:4px 0 0;font-size:24px;font-weight:700">안녕하세요, 승희님</h2>
         </div>
       </div>
       <div class="card" style="opacity:.5">
@@ -699,8 +746,8 @@ figcaption a { color: inherit; }
       <div class="feed">
         <div class="card lg">
           <div class="row">
-            <span class="avatar" style="background:var(--w-rain)">🍑</span>
-            <span class="who" style="flex:1"><b>🍑 복숭아젤리</b><small>2시간 전</small></span>
+            <span class="avatar" style="background:var(--w-rain)">복</span>
+            <span class="who" style="flex:1"><b>복숭아젤리</b><small>2시간 전</small></span>
             <span class="chip" style="padding:5px 12px 5px 8px"><i class="dot" style="width:10px;height:10px;background:var(--w-rain)"></i>비</span>
             <span class="muted" style="font-size:20px;line-height:1">···</span>
           </div>
@@ -714,8 +761,8 @@ figcaption a { color: inherit; }
         </div>
         <div class="card lg">
           <div class="row">
-            <span class="avatar" style="background:var(--w-sunny)">🌻</span>
-            <span class="who" style="flex:1"><b>🌻 해바라기</b><small>5시간 전</small></span>
+            <span class="avatar" style="background:var(--w-sunny)">해</span>
+            <span class="who" style="flex:1"><b>해바라기</b><small>5시간 전</small></span>
             <span class="chip" style="padding:5px 12px 5px 8px"><i class="dot" style="width:10px;height:10px;background:var(--w-sunny)"></i>맑음</span>
             <span class="muted" style="font-size:20px;line-height:1">···</span>
           </div>
@@ -762,11 +809,11 @@ figcaption a { color: inherit; }
       </div>
       <div class="themes">
         <div style="border-color:var(--primary)">
-          <span class="prev" style="background:linear-gradient(180deg,#f4f8fb,#d8e4ee)"></span>
-          <b>Sky</b><small>기본 · 사용 중</small>
+          <span class="prev" style="background:linear-gradient(180deg,#faf4dc,#ece3c2)"></span>
+          <b>Paper</b><small>기본 · 사용 중</small>
         </div>
         <div>
-          <span class="prev" style="background:linear-gradient(180deg,#18242d,#2f4356)"><span class="plus">👑 Plus</span></span>
+          <span class="prev" style="background:linear-gradient(180deg,#18242d,#2f4356)"><span class="plus">Plus</span></span>
           <b>Night Jelly</b><small>밤의 젤리</small>
         </div>
         <div>
@@ -774,7 +821,7 @@ figcaption a { color: inherit; }
           <b>Mint Soda</b><small>청량한 민트</small>
         </div>
         <div>
-          <span class="prev" style="background:linear-gradient(180deg,#f5f2fb,#a99ac7)"><span class="plus">👑 Plus</span></span>
+          <span class="prev" style="background:linear-gradient(180deg,#f5f2fb,#a99ac7)"><span class="plus">Plus</span></span>
           <b>Lavender</b><small>라벤더 드림</small>
         </div>
       </div>
@@ -808,7 +855,7 @@ figcaption a { color: inherit; }
           <span style="flex:1;display:flex;flex-direction:column;align-items:flex-start;gap:4px">
             <b>승희</b>
             <small class="muted" style="font-size:12px">젤리곰 · 2026.03.02 가입</small>
-            <span class="chip" style="padding:4px 12px;font-weight:700;font-size:12px">👑 Jelly Plus</span>
+            <span class="chip" style="padding:4px 12px;font-weight:700;font-size:12px">Jelly Plus</span>
           </span>
         </div>
         <div class="stats">
@@ -819,7 +866,7 @@ figcaption a { color: inherit; }
       </div>
       <div class="settings">
         <div><span style="flex:none">🔔</span><span>리마인더 알림</span><em>매일 오후 9시 ›</em></div>
-        <div><span style="flex:none">🎨</span><span>테마 변경</span><em>Sky ›</em></div>
+        <div><span style="flex:none">🎨</span><span>테마 변경</span><em>Paper ›</em></div>
         <div><span style="flex:none">🤖</span><span>AI 그림 스타일</span><em>수채화 ›</em></div>
         <div><span style="flex:none">🔒</span><span>일기 잠금</span><em>ON ›</em></div>
         <div><span style="flex:none">📤</span><span>데이터 내보내기</span><em>CSV / PDF ›</em></div>

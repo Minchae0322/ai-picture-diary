@@ -36,12 +36,12 @@ function Arrow({ label, glyph, onPress }: { label: string; glyph: string; onPres
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: space[2] },
-  label: { fontSize: font.md, fontWeight: font.weightBold },
+  label: { fontSize: font.md, fontFamily: font.bold },
   arrow: {
     minWidth: MIN_TOUCH_TARGET,
     minHeight: MIN_TOUCH_TARGET,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  arrowGlyph: { fontSize: font.xl, fontWeight: font.weightBold },
+  arrowGlyph: { fontSize: font.xl, fontFamily: font.bold },
 });

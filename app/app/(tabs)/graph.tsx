@@ -82,6 +82,6 @@ export default function GraphScreen() {
 
 const styles = StyleSheet.create({
   header: { gap: space[4] },
-  subtitle: { fontSize: font.sm, lineHeight: leading(font.sm), marginTop: -space[2] },
+  subtitle: { fontSize: font.sm, fontFamily: font.regular, lineHeight: leading(font.sm), marginTop: -space[2] },
   words: { flexDirection: 'row', flexWrap: 'wrap', gap: space[2] },
 });

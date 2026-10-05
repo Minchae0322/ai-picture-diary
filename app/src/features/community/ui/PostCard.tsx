@@ -1,10 +1,11 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { EmotionFace } from '@/shared/ui/EmotionFace';
 import { Card } from '@/shared/ui/Card';
 import { formatRelative } from '@/shared/format';
 import { font, MIN_TOUCH_TARGET, radius, space } from '@/shared/theme/tokens';
-import { useColors, useWeatherColors } from '@/shared/theme/useColors';
+import { useColors, useEmotionColors } from '@/shared/theme/useColors';
 import { Icon } from '@/shared/ui/Icon';
-import { WEATHER_ICON, WEATHER_LABEL, toWeather } from '@/shared/weather';
+import { EMOTION_IMAGE, EMOTION_LABEL, toEmotion } from '@/shared/emotion';
 import type { CommunityPost } from '../api/communityApi';
 
 type Props = {
@@ -19,8 +20,8 @@ type Props = {
  */
 export function PostCard({ post, onToggleLike, onReport }: Props) {
   const colors = useColors();
-  const weatherColors = useWeatherColors();
-  const weather = toWeather(post.weather);
+  const emotionColors = useEmotionColors();
+  const emotion = toEmotion(post.emotion);
 
   return (
     <Card>
@@ -29,10 +30,10 @@ export function PostCard({ post, onToggleLike, onReport }: Props) {
         <Text style={[styles.time, { color: colors.textSubtle }]}>{formatRelative(post.createdAt)}</Text>
       </View>
 
-      {weather ? (
-        <View style={[styles.weather, { backgroundColor: `${weatherColors[weather]}22` }]}>
-          <Icon name={WEATHER_ICON[weather]} size={14} color={weatherColors[weather]} />
-          <Text style={[styles.weatherText, { color: colors.text }]}>{WEATHER_LABEL[weather]}</Text>
+      {emotion ? (
+        <View style={[styles.emotion, { backgroundColor: `${emotionColors[emotion]}22` }]}>
+          <EmotionFace emotion={emotion} size={18} />
+          <Text style={[styles.emotionText, { color: colors.text }]}>{EMOTION_LABEL[emotion]}</Text>
         </View>
       ) : null}
 
@@ -78,7 +79,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   author: { fontSize: font.sm, fontFamily: font.bold },
   time: { fontSize: font.xs , fontFamily: font.regular},
-  weather: {
+  emotion: {
     alignSelf: 'flex-start',
     flexDirection: 'row',
     alignItems: 'center',
@@ -87,7 +88,7 @@ const styles = StyleSheet.create({
     paddingVertical: space[1],
     borderRadius: radius.full,
   },
-  weatherText: { fontSize: font.xs , fontFamily: font.regular},
+  emotionText: { fontSize: font.xs , fontFamily: font.regular},
   content: { fontSize: font.base , fontFamily: font.regular},
   reactions: { flexDirection: 'row', alignItems: 'center', gap: space[4] },
   reaction: { minHeight: MIN_TOUCH_TARGET, flexDirection: 'row', alignItems: 'center', gap: space[1] },

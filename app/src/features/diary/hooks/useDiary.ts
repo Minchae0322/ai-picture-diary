@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { diaryApi } from '../api/diaryApi';
-import type { StatsPeriod, Weather } from '../api/diaryTypes';
+import type { StatsPeriod, Emotion } from '../api/diaryTypes';
 
 /** 키 팩토리. 넓은 것 -> 좁은 것(frontend-state 2장) */
 export const diaryKeys = {
@@ -73,7 +73,7 @@ export function useOverview() {
 export function useWriteDiary() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ content, userHint }: { content: string; userHint: Weather | null }) =>
+    mutationFn: ({ content, userHint }: { content: string; userHint: Emotion | null }) =>
       diaryApi.write(content, userHint),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: diaryKeys.all });

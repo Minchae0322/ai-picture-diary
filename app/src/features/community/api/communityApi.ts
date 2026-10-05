@@ -1,5 +1,5 @@
 import { request, requestPage } from '@/shared/api/httpClient';
-import type { Weather } from '@/shared/weather';
+import type { Emotion } from '@/shared/emotion';
 
 /** 추천은 오늘 기록이 있어야 동작한다. 없으면 서버가 조용히 최신순으로 떨어뜨린다. */
 export type PostSort = 'RECOMMENDED' | 'POPULAR' | 'LATEST';
@@ -9,7 +9,7 @@ export type ReportReason = 'ABUSE' | 'SPAM' | 'SEXUAL' | 'PRIVACY' | 'OTHER';
 export type CommunityPost = {
   id: string;
   authorName: string;
-  weather: string;
+  emotion: string;
   content: string;
   likeCount: number;
   commentCount: number;
@@ -18,13 +18,13 @@ export type CommunityPost = {
   createdAt: string;
 };
 
-export type FeedQuery = { sort: PostSort; weathers: Weather[]; cursor?: string; size?: number };
+export type FeedQuery = { sort: PostSort; emotions: Emotion[]; cursor?: string; size?: number };
 
-/** URL과 메서드는 이 파일에만. 날씨 다중 필터는 같은 키를 반복한다(weather=SUNNY&weather=RAIN). */
+/** URL과 메서드는 이 파일에만. 감정 다중 필터는 같은 키를 반복한다(emotion=HAPPY&emotion=SAD). */
 export const communityApi = {
-  feed: ({ sort, weathers, cursor, size = 20 }: FeedQuery, signal?: AbortSignal) => {
+  feed: ({ sort, emotions, cursor, size = 20 }: FeedQuery, signal?: AbortSignal) => {
     const params = new URLSearchParams({ sort, size: String(size) });
-    weathers.forEach((weather) => params.append('weather', weather));
+    emotions.forEach((emotion) => params.append('emotion', emotion));
     if (cursor) {
       params.set('cursor', cursor);
     }

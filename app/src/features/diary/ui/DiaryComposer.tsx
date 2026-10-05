@@ -1,31 +1,31 @@
 import { useState } from 'react';
+import { EmotionFace } from '@/shared/ui/EmotionFace';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Button } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
 import { font, MIN_TOUCH_TARGET, radius, space } from '@/shared/theme/tokens';
 import { useColors } from '@/shared/theme/useColors';
-import { Icon } from '@/shared/ui/Icon';
-import { QUICK_WEATHERS, WEATHER_ICON, WEATHER_LABEL, type Weather } from '../api/diaryTypes';
+import { QUICK_EMOTIONS, EMOTION_IMAGE, EMOTION_LABEL, type Emotion } from '../api/diaryTypes';
 
 const MAX_LENGTH = 500;
 
 type Props = {
   submitting: boolean;
   errorMessage?: string;
-  onSubmit: (content: string, userHint: Weather | null) => void;
+  onSubmit: (content: string, userHint: Emotion | null) => void;
 };
 
 /** 02 홈 · 오늘 기록 전. 입력값은 화면이 들고 있는 로컬 상태다(frontend-state 0장). */
 export function DiaryComposer({ submitting, errorMessage, onSubmit }: Props) {
   const colors = useColors();
   const [content, setContent] = useState('');
-  const [hint, setHint] = useState<Weather | null>(null);
+  const [hint, setHint] = useState<Emotion | null>(null);
   const canSubmit = content.trim().length > 0 && !submitting;
 
   return (
     <View style={styles.wrap}>
       <Card>
-        <Text style={[styles.emptyTitle, { color: colors.text }]}>아직 오늘의 날씨가 없어요</Text>
+        <Text style={[styles.emptyTitle, { color: colors.text }]}>아직 오늘의 기분이 없어요</Text>
         <Text style={[styles.emptyBody, { color: colors.textMuted }]}>
           한 줄 기록하면 AI가 오늘을 그려드려요
         </Text>
@@ -57,15 +57,15 @@ export function DiaryComposer({ submitting, errorMessage, onSubmit }: Props) {
       <View>
         <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>빠른 감정 선택</Text>
         <View style={styles.chips}>
-          {QUICK_WEATHERS.map((weather) => {
-            const selected = hint === weather;
+          {QUICK_EMOTIONS.map((emotion) => {
+            const selected = hint === emotion;
             return (
               <Pressable
-                key={weather}
-                onPress={() => setHint(selected ? null : weather)}
+                key={emotion}
+                onPress={() => setHint(selected ? null : emotion)}
                 accessibilityRole="button"
                 accessibilityState={{ selected }}
-                accessibilityLabel={WEATHER_LABEL[weather]}
+                accessibilityLabel={EMOTION_LABEL[emotion]}
                 style={({ pressed }) => [
                   styles.chip,
                   {
@@ -76,13 +76,9 @@ export function DiaryComposer({ submitting, errorMessage, onSubmit }: Props) {
                 ]}
               >
                 <View style={styles.chipInner}>
-                  <Icon
-                    name={WEATHER_ICON[weather]}
-                    size={16}
-                    color={selected ? colors.primaryFg : colors.text}
-                  />
+                  <EmotionFace emotion={emotion} size={20} />
                   <Text style={{ color: selected ? colors.primaryFg : colors.text, fontSize: font.sm , fontFamily: font.regular}}>
-                    {WEATHER_LABEL[weather]}
+                    {EMOTION_LABEL[emotion]}
                   </Text>
                 </View>
               </Pressable>

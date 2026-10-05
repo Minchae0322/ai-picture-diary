@@ -1,7 +1,7 @@
 import { ScrollView, StyleSheet } from 'react-native';
 import { Chip } from '@/shared/ui/Chip';
 import { space } from '@/shared/theme/tokens';
-import { WEATHER_LABEL, type Weather } from '@/shared/weather';
+import { EMOTION_LABEL, type Emotion } from '@/shared/emotion';
 import type { PostSort } from '../api/communityApi';
 
 const SORTS: { value: PostSort; label: string }[] = [
@@ -10,17 +10,17 @@ const SORTS: { value: PostSort; label: string }[] = [
   { value: 'POPULAR', label: '인기' },
 ];
 
-/** 시안의 필터 칩. 축이 둘이라 정렬 1개 + 날씨 다중으로 나눠 받는다(08 화면 문서 4장). */
-const FILTERABLE: Weather[] = ['SUNNY', 'RAIN'];
+/** 시안의 필터 칩. 축이 둘이라 정렬 1개 + 감정 다중으로 나눠 받는다(08 화면 문서 4장). */
+const FILTERABLE: Emotion[] = ['HAPPY', 'SAD'];
 
 type Props = {
   sort: PostSort;
-  weathers: Weather[];
+  emotions: Emotion[];
   onChangeSort: (sort: PostSort) => void;
-  onToggleWeather: (weather: Weather) => void;
+  onToggleEmotion: (emotion: Emotion) => void;
 };
 
-export function FeedFilters({ sort, weathers, onChangeSort, onToggleWeather }: Props) {
+export function FeedFilters({ sort, emotions, onChangeSort, onToggleEmotion }: Props) {
   return (
     <ScrollView
       horizontal
@@ -36,13 +36,13 @@ export function FeedFilters({ sort, weathers, onChangeSort, onToggleWeather }: P
           accessibilityLabel={option.value === 'RECOMMENDED' ? '추천순으로 보기' : `${option.label}순으로 보기`}
         />
       ))}
-      {FILTERABLE.map((weather) => (
+      {FILTERABLE.map((emotion) => (
         <Chip
-          key={weather}
-          label={WEATHER_LABEL[weather]}
-          selected={weathers.includes(weather)}
-          onPress={() => onToggleWeather(weather)}
-          accessibilityLabel={`${WEATHER_LABEL[weather]} 날씨만 보기`}
+          key={emotion}
+          label={EMOTION_LABEL[emotion]}
+          selected={emotions.includes(emotion)}
+          onPress={() => onToggleEmotion(emotion)}
+          accessibilityLabel={`${EMOTION_LABEL[emotion]} 기록만 보기`}
         />
       ))}
     </ScrollView>

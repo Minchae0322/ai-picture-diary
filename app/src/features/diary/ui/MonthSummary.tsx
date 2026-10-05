@@ -1,17 +1,17 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { font, space } from '@/shared/theme/tokens';
 import { useColors } from '@/shared/theme/useColors';
-import { WEATHER_LABEL, type Weather } from '@/shared/weather';
+import { EMOTION_LABEL, type Emotion } from '@/shared/emotion';
 
 /** 05 이번 달 요약. 수치는 서버가 계산한 값 그대로 쓴다 - 클라이언트가 다시 세지 않는다. */
-export function MonthSummary({ summary }: { summary: { weather: Weather; days: number }[] }) {
+export function MonthSummary({ summary }: { summary: { emotion: Emotion; days: number }[] }) {
   const colors = useColors();
   return (
     <View style={styles.row}>
       {summary.map((item) => (
-        <View key={item.weather} accessible style={styles.item}>
+        <View key={item.emotion} accessible style={styles.item}>
           <Text style={[styles.days, { color: colors.text }]}>{item.days}일</Text>
-          <Text style={[styles.label, { color: colors.textMuted }]}>{WEATHER_LABEL[item.weather]}</Text>
+          <Text style={[styles.label, { color: colors.textMuted }]}>{EMOTION_LABEL[item.emotion]}</Text>
         </View>
       ))}
     </View>

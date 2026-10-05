@@ -6,7 +6,7 @@ import { ScreenHeader } from '@/shared/ui/ScreenHeader';
 import { Empty, ErrorRetry, Skeleton } from '@/shared/ui/StateBlock';
 import { font, radius, shadow, space } from '@/shared/theme/tokens';
 import { useColors } from '@/shared/theme/useColors';
-import type { Weather } from '@/shared/weather';
+import type { Emotion } from '@/shared/emotion';
 import type { PostSort, ReportReason } from '@/features/community/api/communityApi';
 import { useFeed, useReportPost, useToggleLike } from '@/features/community/hooks/useCommunity';
 import { useToday } from '@/features/diary/hooks/useDiary';
@@ -24,20 +24,20 @@ export default function CommunityScreen() {
   const router = useRouter();
 
   const [sort, setSort] = useState<PostSort>('RECOMMENDED');
-  const [weathers, setWeathers] = useState<Weather[]>([]);
+  const [emotions, setEmotions] = useState<Emotion[]>([]);
   const [reportTarget, setReportTarget] = useState<string | null>(null);
 
-  const feed = useFeed(sort, weathers);
+  const feed = useFeed(sort, emotions);
   const today = useToday();
   // 추천은 오늘 기록을 재료로 쓴다. 없으면 서버가 최신순으로 떨어뜨리므로 그 사실만 알려 준다
   const recommendUnavailable = sort === 'RECOMMENDED' && today.isSuccess && today.data === null;
-  const toggleLike = useToggleLike(sort, weathers);
+  const toggleLike = useToggleLike(sort, emotions);
   const report = useReportPost();
   const posts = feed.data?.pages.flatMap((page) => page.items) ?? [];
 
-  const toggleWeather = (weather: Weather) =>
-    setWeathers((current) =>
-      current.includes(weather) ? current.filter((w) => w !== weather) : [...current, weather],
+  const toggleEmotion = (emotion: Emotion) =>
+    setEmotions((current) =>
+      current.includes(emotion) ? current.filter((w) => w !== emotion) : [...current, emotion],
     );
 
   const submitReport = (reason: ReportReason) => {
@@ -58,12 +58,12 @@ export default function CommunityScreen() {
         ]}
         ListHeaderComponent={
           <View style={styles.header}>
-            <ScreenHeader title="오늘의 날씨 피드" />
+            <ScreenHeader title="오늘의 기분 피드" />
             <FeedFilters
               sort={sort}
-              weathers={weathers}
+              emotions={emotions}
               onChangeSort={setSort}
-              onToggleWeather={toggleWeather}
+              onToggleEmotion={toggleEmotion}
             />
             {recommendUnavailable ? (
               <Text style={[styles.hint, { color: colors.textMuted }]}>
@@ -80,11 +80,11 @@ export default function CommunityScreen() {
           ) : (
             <Empty
               message={
-                weathers.length > 0 ? '이 날씨의 기록이 아직 없어요' : '아직 공유된 기록이 없어요'
+                emotions.length > 0 ? '이 기분의 기록이 아직 없어요' : '아직 공유된 기록이 없어요'
               }
               action={
-                weathers.length > 0
-                  ? { label: '필터 해제', onPress: () => setWeathers([]) }
+                emotions.length > 0
+                  ? { label: '필터 해제', onPress: () => setEmotions([]) }
                   : undefined
               }
             />

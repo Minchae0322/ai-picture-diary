@@ -7,7 +7,7 @@ import type {
   DiaryStats,
   DiarySummary,
   StatsPeriod,
-  Weather,
+  Emotion,
 } from './diaryTypes';
 
 /** URL과 메서드는 이 파일에만 나온다(frontend-api-client 1장). */
@@ -20,7 +20,7 @@ export const diaryApi = {
   recent: (size: number, signal?: AbortSignal) =>
     requestPage<DiarySummary>(`/api/v1/diaries?size=${size}`, signal),
 
-  write: (content: string, userHint: Weather | null) =>
+  write: (content: string, userHint: Emotion | null) =>
     request<DiaryCreated>('/api/v1/diaries', { method: 'POST', body: { content, userHint } }),
 
   regenerate: (id: string) =>

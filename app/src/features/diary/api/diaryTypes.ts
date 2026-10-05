@@ -1,14 +1,14 @@
 /** 서버 명세(docs/api/)에서 한 번만 정의한다. */
 export {
-  WEATHERS,
-  WEATHER_ICON,
-  WEATHER_LABEL,
-  toWeather,
-  weatherLabel,
-  type Weather,
-} from '@/shared/weather';
+  EMOTIONS,
+  EMOTION_IMAGE,
+  EMOTION_LABEL,
+  toEmotion,
+  emotionLabel,
+  type Emotion,
+} from '@/shared/emotion';
 
-import type { Weather } from '@/shared/weather';
+import type { Emotion } from '@/shared/emotion';
 
 export type DiaryStatus = 'GENERATING' | 'DONE' | 'FAILED';
 
@@ -17,7 +17,7 @@ export type DiaryDetail = {
   entryDate: string;      // ISO date. 표시 직전에 변환한다
   content: string;
   status: DiaryStatus;
-  weather: Weather | null;
+  emotion: Emotion | null;
   moodScore: number | null;
   aiComment: string | null;
   imageUrl: string | null;
@@ -27,7 +27,7 @@ export type DiaryDetail = {
 export type DiarySummary = {
   id: string;
   entryDate: string;
-  weather: Weather | null;
+  emotion: Emotion | null;
   content: string;
 };
 
@@ -36,8 +36,8 @@ export type DiaryCreated = { id: string; status: DiaryStatus };
 /** 05 감정 캘린더. days 에는 기록이 있는 날만 들어온다. */
 export type DiaryCalendar = {
   month: string;          // "2026-08"
-  days: { date: string; diaryId: string; weather: Weather; moodScore: number | null }[];
-  summary: { weather: Weather; days: number }[];
+  days: { date: string; diaryId: string; emotion: Emotion; moodScore: number | null }[];
+  summary: { emotion: Emotion; days: number }[];
   recordedDays: number;
 };
 
@@ -66,4 +66,4 @@ export const MOOD_MIN = -3;
 export const MOOD_MAX = 3;
 
 /** 02 빠른 감정 칩 (시안 기준 4종) */
-export const QUICK_WEATHERS: Weather[] = ['SUNNY', 'PARTLY_CLOUDY', 'CLOUDY', 'RAIN'];
+export const QUICK_EMOTIONS: Emotion[] = ['HAPPY', 'SOSO', 'TIRED', 'SAD'];

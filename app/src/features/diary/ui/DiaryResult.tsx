@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { EmotionFace } from '@/shared/ui/EmotionFace';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { Button } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
@@ -6,7 +7,7 @@ import { Icon } from '@/shared/ui/Icon';
 import { formatScore } from '@/shared/format';
 import { font, radius, space } from '@/shared/theme/tokens';
 import { useColors } from '@/shared/theme/useColors';
-import { WEATHER_ICON, WEATHER_LABEL } from '@/shared/weather';
+import { EMOTION_IMAGE, EMOTION_LABEL } from '@/shared/emotion';
 import type { DiaryDetail } from '../api/diaryTypes';
 
 type Props = {
@@ -58,11 +59,11 @@ export function DiaryResult({
           </View>
         </View>
 
-        {diary.weather ? (
-          <View style={styles.weatherRow}>
-            <Icon name={WEATHER_ICON[diary.weather]} size={24} color={colors.text} />
-            <Text style={[styles.weather, { color: colors.text }]}>
-              {WEATHER_LABEL[diary.weather]}
+        {diary.emotion ? (
+          <View style={styles.emotionRow}>
+            <EmotionFace emotion={diary.emotion} size={30} />
+            <Text style={[styles.emotion, { color: colors.text }]}>
+              {EMOTION_LABEL[diary.emotion]}
               {diary.moodScore !== null ? ` · 기분 ${formatScore(diary.moodScore)}` : ''}
             </Text>
           </View>
@@ -149,8 +150,8 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
   },
   tagText: { fontSize: font.xs , fontFamily: font.regular},
-  weatherRow: { flexDirection: 'row', alignItems: 'center', gap: space[2] },
-  weather: { fontSize: font.lg, fontFamily: font.bold },
+  emotionRow: { flexDirection: 'row', alignItems: 'center', gap: space[2] },
+  emotion: { fontSize: font.lg, fontFamily: font.bold },
   content: { fontSize: font.base , fontFamily: font.regular},
   comment: { fontSize: font.sm , fontFamily: font.regular},
   actions: { flexDirection: 'row', gap: space[2] },

@@ -2,9 +2,12 @@ import { useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Backdrop } from '@/shared/ui/Screen';
 import { ScreenHeader } from '@/shared/ui/ScreenHeader';
+import { Note } from '@/shared/ui/Type';
 import { Empty, ErrorRetry, Skeleton } from '@/shared/ui/StateBlock';
-import { font, radius, shadow, space } from '@/shared/theme/tokens';
+import { useToast } from '@/shared/ui/Toast';
+import { font, gutter, radius, space } from '@/shared/theme/tokens';
 import { useColors } from '@/shared/theme/useColors';
 import type { Weather } from '@/shared/weather';
 import type { PostSort, ReportReason } from '@/features/community/api/communityApi';
@@ -17,11 +20,13 @@ import { ReportSheet } from '@/features/community/ui/ReportSheet';
 /**
  * 08 커뮤니티. 무한 스크롤이라 Screen(ScrollView) 대신 FlatList 가 스크롤을 갖는다 -
  * ScrollView 안에 목록을 넣으면 가상화가 죽는다(expo-app-conventions 5장).
+ * 배경·글로우만 `Backdrop` 으로 따로 깐다.
  */
 export default function CommunityScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const toast = useToast();
 
   const [sort, setSort] = useState<PostSort>('RECOMMENDED');
   const [weathers, setWeathers] = useState<Weather[]>([]);
@@ -43,18 +48,21 @@ export default function CommunityScreen() {
   const submitReport = (reason: ReportReason) => {
     if (reportTarget) {
       report.mutate({ postId: reportTarget, reason });
+      toast('신고했어요. 검토 후 숨겨집니다');
     }
     setReportTarget(null);
   };
 
   return (
-    <View style={[styles.wrap, { backgroundColor: colors.bg }]}>
+    <View style={[styles.wrap, { backgroundColor: colors.bgTop }]}>
+      <Backdrop />
+
       <FlatList
         data={posts}
         keyExtractor={(post) => post.id}
         contentContainerStyle={[
           styles.content,
-          { paddingTop: insets.top + space[4], paddingBottom: insets.bottom + 96 },
+          { paddingTop: insets.top + space[5], paddingBottom: insets.bottom + 96 },
         ]}
         ListHeaderComponent={
           <View style={styles.header}>
@@ -66,9 +74,9 @@ export default function CommunityScreen() {
               onToggleWeather={toggleWeather}
             />
             {recommendUnavailable ? (
-              <Text style={[styles.hint, { color: colors.textMuted }]}>
+              <Note>
                 오늘 한 줄을 남기면 비슷한 기분의 글을 먼저 보여드려요. 지금은 최신순이에요.
-              </Text>
+              </Note>
             ) : null}
           </View>
         }
@@ -95,6 +103,7 @@ export default function CommunityScreen() {
             post={item}
             onToggleLike={() => toggleLike.mutate({ postId: item.id, liked: item.likedByMe })}
             onReport={() => setReportTarget(item.id)}
+            onNotReady={(name) => toast(`${name} 화면은 다음 라운드에 붙습니다`)}
           />
         )}
         onEndReachedThreshold={0.4}
@@ -108,17 +117,17 @@ export default function CommunityScreen() {
         onRefresh={() => feed.refetch()}
       />
 
+      {/* prototype `.fab`. 공유 작성 화면이 아직 없어 오늘의 기록(02/04)으로 보낸다 */}
       <Pressable
         onPress={() => router.push('/')}
         accessibilityRole="button"
         accessibilityLabel="오늘의 기록 공유하기"
         style={({ pressed }) => [
           styles.fab,
-          shadow.md,
           {
             bottom: insets.bottom + space[6],
-            backgroundColor: colors.primary,
-            opacity: pressed ? 0.8 : 1,
+            backgroundColor: pressed ? colors.primaryPressed : colors.primary,
+            shadowColor: colors.primaryShadow,
           },
         ]}
       >
@@ -136,18 +145,21 @@ export default function CommunityScreen() {
 
 const styles = StyleSheet.create({
   wrap: { flex: 1 },
-  content: { paddingHorizontal: space[4], gap: space[3] },
-  header: { gap: space[3], marginBottom: space[1] },
-  hint: { fontSize: font.xs, fontFamily: font.regular, lineHeight: 18 },
+  content: { paddingHorizontal: gutter.narrow, gap: space[6] },
+  header: { gap: space[6] },
   footer: { paddingVertical: space[4] },
   fab: {
     position: 'absolute',
-    right: space[4],
+    right: gutter.narrow,
     paddingHorizontal: space[6],
     height: 52,
     borderRadius: radius.full,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowOpacity: 1,
+    shadowRadius: 11,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 6,
   },
-  fabLabel: { fontSize: font.base, fontFamily: font.bold },
+  fabLabel: { fontSize: font.md, fontFamily: font.bold },
 });

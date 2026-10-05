@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ApiError } from '@/shared/api/ApiError';
 import { FONT_ASSETS } from '@/shared/theme/tokens';
+import { ToastProvider } from '@/shared/ui/Toast';
 
 /** 제공자는 이 파일 한 곳. 순서가 의존 방향이다(expo-app-conventions 6장). */
 export default function RootLayout() {
@@ -35,8 +36,10 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
-        <StatusBar style="auto" />
-        <Stack screenOptions={{ headerShown: false }} />
+        <ToastProvider>
+          <StatusBar style="auto" />
+          <Stack screenOptions={{ headerShown: false }} />
+        </ToastProvider>
       </QueryClientProvider>
     </SafeAreaProvider>
   );

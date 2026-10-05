@@ -17,7 +17,12 @@ type Props = {
 };
 
 /**
- * 05 날짜 그리드. 주 시작은 일요일 고정(시안 기준).
+ * 05 날짜 그리드(prototype `.grid7` / `.cell`). 주 시작은 일요일 고정(시안 기준).
+ *
+ * 기록이 있는 날은 **날씨 색을 꽉 채운 동그라미** 안에 날씨 아이콘을 둔다. 색이 옅으면
+ * 한 달을 멀리서 봤을 때 날씨의 흐름이 보이지 않는다. 글자색은 `weatherInk` 고정이고
+ * 날씨 6색 모두 4.5:1 을 넘는다(가장 낮은 비 #8fa9c8 에서 5.19:1).
+ *
  * 기록 없는 날·미래 날은 시안에 정의가 없어 여기서 정했다: 기록 없음은 테두리만, 미래는 흐리게.
  */
 export function CalendarMonth({ month, days, today, onSelect }: Props) {
@@ -29,9 +34,9 @@ export function CalendarMonth({ month, days, today, onSelect }: Props) {
 
   return (
     <View>
-      <View style={styles.week}>
+      <View style={styles.grid}>
         {WEEKDAYS.map((label) => (
-          <Text key={label} style={[styles.weekday, { color: colors.textMuted }]}>
+          <Text key={label} style={[styles.weekday, { color: colors.textSubtle }]}>
             {label}
           </Text>
         ))}
@@ -45,7 +50,7 @@ export function CalendarMonth({ month, days, today, onSelect }: Props) {
         {cells.map((cell) => {
           const isToday = cell.date === today;
           const isFuture = cell.date > today;
-          const recorded = cell.weather !== null;
+          const weather = cell.weather;
 
           return (
             <Pressable
@@ -53,24 +58,31 @@ export function CalendarMonth({ month, days, today, onSelect }: Props) {
               disabled={!cell.diaryId}
               onPress={() => cell.diaryId && onSelect(cell.diaryId)}
               accessibilityRole={cell.diaryId ? 'button' : undefined}
-              accessibilityLabel={`${cell.day}일 ${weatherLabel(cell.weather)}`}
+              accessibilityLabel={`${cell.day}일, ${weatherLabel(weather)}`}
               style={({ pressed }) => [styles.cell, { opacity: isFuture ? 0.35 : pressed ? 0.6 : 1 }]}
             >
               <View
                 style={[
                   styles.mark,
+                  weather
+                    ? { backgroundColor: weatherColors[weather] }
+                    : { borderWidth: 1.5, borderColor: colors.borderStrong },
+                  isToday && { borderWidth: 2, borderColor: colors.primary },
+                ]}
+              >
+                {weather ? (
+                  <Icon name={WEATHER_ICON[weather]} size={17} color={colors.weatherInk} />
+                ) : null}
+              </View>
+              <Text
+                style={[
+                  styles.day,
                   {
-                    backgroundColor: recorded ? `${weatherColors[cell.weather!]}33` : 'transparent',
-                    borderColor: isToday ? colors.primary : recorded ? 'transparent' : colors.border,
-                    borderWidth: isToday ? 2 : 1,
+                    color: isToday ? colors.primary : colors.textMuted,
+                    fontFamily: isToday ? font.bold : font.regular,
                   },
                 ]}
               >
-                {recorded ? (
-                  <Icon name={WEATHER_ICON[cell.weather!]} size={17} color={weatherColors[cell.weather!]} />
-                ) : null}
-              </View>
-              <Text style={[styles.day, { color: isToday ? colors.primary : colors.textMuted }]}>
                 {cell.day}
               </Text>
             </Pressable>
@@ -97,10 +109,14 @@ function buildCells(
 }
 
 const styles = StyleSheet.create({
-  week: { flexDirection: 'row' },
-  weekday: { flexBasis: `${100 / 7}%`, textAlign: 'center', fontSize: font.xs , fontFamily: font.regular},
-  grid: { flexDirection: 'row', flexWrap: 'wrap' },
-  cell: { flexBasis: `${100 / 7}%`, alignItems: 'center', paddingVertical: space[1], gap: 2 },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', rowGap: space[2] },
+  weekday: {
+    flexBasis: `${100 / 7}%`,
+    textAlign: 'center',
+    fontSize: font.xs,
+    fontFamily: font.regular,
+  },
+  cell: { flexBasis: `${100 / 7}%`, alignItems: 'center', paddingVertical: space[1], gap: 6 },
   mark: {
     width: 32,
     height: 32,
@@ -108,5 +124,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  day: { fontSize: font.xs , fontFamily: font.regular},
+  day: { fontSize: font.sm },
 });

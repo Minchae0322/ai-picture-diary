@@ -226,6 +226,23 @@ const ICONS = {
       strokeLinejoin="round"
     />
   ),
+  share: (s: string) => (
+    <Path
+      d="M6 18L18 6M11 6h7v7"
+      stroke={s}
+      strokeWidth={1.8}
+      fill="none"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  ),
+  more: (s: string) => (
+    <>
+      <Circle cx={5.5} cy={12} r={1.5} fill={s} />
+      <Circle cx={12} cy={12} r={1.5} fill={s} />
+      <Circle cx={18.5} cy={12} r={1.5} fill={s} />
+    </>
+  ),
   bear: (s: string) => (
     <>
       <Circle cx={7.4} cy={7.6} r={2.6} stroke={s} strokeWidth={1.8} />

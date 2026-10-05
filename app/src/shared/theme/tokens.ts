@@ -53,8 +53,17 @@ const primitive = {
 /** 의미 토큰의 모양. primitive 가 as const 라 추론에 맡기면 리터럴 타입이 되어 다크 팔레트가 안 맞는다. */
 export type Colors = {
   bg: string;
+  /** 배경 세로 그라디언트. prototype.html `.phone` 의 sky-50 -> sky-100 -> sky-200 */
+  bgTop: string;
+  bgBottom: string;
   surface: string;
   surfaceRaised: string;
+  /** 반투명이 아닌 면. 입력 필드·soft 버튼·시트·차트 점 테두리가 쓴다(prototype `--surface-solid`) */
+  surfaceSolid: string;
+  /** 솟은 카드의 위/아래 색(prototype `--raised-a`/`--raised-b`).
+   *  Svg 그라디언트의 stop 이라 알파를 페이지 바닥색에 미리 섞어 불투명 값으로 둔다 */
+  raisedA: string;
+  raisedB: string;
   border: string;
   borderStrong: string;
   text: string;
@@ -64,6 +73,8 @@ export type Colors = {
   /** 장식 전용 - 점선 테두리, 인디케이터, 뜻 없는 큰 글리프 */
   decor: string;
   primary: string;
+  /** 장식 악센트. 점선 캔버스·로더·dots·배너 그라디언트 끝(prototype `--accent-soft`) */
+  accentSoft: string;
   primaryPressed: string;
   primaryFg: string;
   /** 주 버튼 그림자에 섞는 브랜드색 */
@@ -76,6 +87,10 @@ export type Colors = {
   skeleton: string;
   /** 진행 막대의 빈 부분 */
   track: string;
+  /** 화면 우상단 햇살 글로우. 라이트는 따뜻한 흰빛, 다크는 옅은 하늘빛.
+   *  Svg 그라디언트의 stop 이라 색과 투명도를 쪼개 둔다 */
+  glow: string;
+  glowOpacity: number;
   /** 01 헤드라인의 형광펜 띠 */
   highlight: string;
   /** 그 띠 위에 얹히는 글자색 */
@@ -88,8 +103,13 @@ export type Colors = {
 
 const light: Colors = {
   bg: primitive.paper,
+  bgTop: primitive.paper,
+  bgBottom: primitive.paper,
   surface: 'rgba(255,255,255,0.92)',
   surfaceRaised: primitive.paperRaised,
+  surfaceSolid: '#ffffff',
+  raisedA: '#fffefc',
+  raisedB: '#fffdf6',
   /** 배경이 밝아 흰 카드가 묻힌다. 테두리가 경계를 대신 잡는다(배경과 ΔE 4.7) */
   border: 'rgba(37,53,68,0.12)',
   borderStrong: primitive.paperLine,
@@ -100,6 +120,7 @@ const light: Colors = {
   decor: primitive.slate300,
 
   primary: primitive.blue600,
+  accentSoft: primitive.blue400,
   primaryPressed: primitive.blue700,
   primaryFg: '#ffffff',
   primaryShadow: 'rgba(63,109,142,0.32)',
@@ -112,6 +133,8 @@ const light: Colors = {
   skeleton: 'rgba(37,53,68,0.07)',
   track: 'rgba(37,53,68,0.10)',
 
+  glow: '#fffbec',
+  glowOpacity: 0.85,
   highlight: primitive.cocoa600,
   highlightText: primitive.paper,
   rule: 'rgba(63,63,63,0.22)',
@@ -120,8 +143,13 @@ const light: Colors = {
 
 const dark: Colors = {
   bg: primitive.night900,
+  bgTop: primitive.night900,
+  bgBottom: primitive.night800,
   surface: primitive.night700,
   surfaceRaised: primitive.night600,
+  surfaceSolid: primitive.night700,
+  raisedA: primitive.night600,
+  raisedB: primitive.night700,
   border: 'rgba(255,255,255,0.10)',
   borderStrong: 'rgba(255,255,255,0.18)',
 
@@ -131,6 +159,7 @@ const dark: Colors = {
   decor: '#5d6d7b',
 
   primary: primitive.blue300,
+  accentSoft: primitive.blue300,
   primaryPressed: '#b3d4ec',
   primaryFg: '#0e1a23',
   primaryShadow: 'rgba(0,0,0,0.5)',
@@ -143,6 +172,8 @@ const dark: Colors = {
   skeleton: 'rgba(255,255,255,0.07)',
   track: 'rgba(255,255,255,0.12)',
 
+  glow: primitive.blue300,
+  glowOpacity: 0.16,
   /** 띠가 어둡고 글자가 밝은 조합이라 다크에서도 그대로 통한다(4.30:1). 따로 잡지 않는다 */
   highlight: primitive.cocoa600,
   highlightText: primitive.paper,
@@ -196,6 +227,20 @@ export const leading = (size: number, ratio = 1.45) => Math.round(size * ratio);
 /** 버튼 높이 4단계(design-system 5.5장). 44 미만이면 히트 영역을 따로 넓힌다. */
 export const buttonHeight = { small: 33, medium: 40, large: 48, xlarge: 63 } as const;
 
+/** 버튼 크기별 글자 크기. prototype `.btn` / `.btn.sm` / `.btn.md` / `.btn.xl` */
+export const buttonFontSize = {
+  small: font.sm,
+  medium: font.base,
+  large: font.md,
+  xlarge: font.lg,
+} as const;
+
+/**
+ * 화면 좌우 여백. prototype 의 `.pad`(28) 와 `.pad.g20`(20) 두 벌이다.
+ * 카드가 화면 폭을 꽉 쓰는 화면(캘린더·그래프·피드·MY)이 narrow 를 쓴다.
+ */
+export const gutter = { wide: 28, narrow: 20 } as const;
+
 /** 터치 타깃 최소값(expo-app-conventions 2장) */
 export const MIN_TOUCH_TARGET = 44;
 
@@ -217,6 +262,14 @@ export const shadow = {
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 4 },
     elevation: 3,
+  },
+  /** 탭바처럼 **위로** 뜨는 면. prototype `--shadow-up` */
+  up: {
+    shadowColor: primitive.slate900,
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: -3 },
+    elevation: 8,
   },
 } as const;
 

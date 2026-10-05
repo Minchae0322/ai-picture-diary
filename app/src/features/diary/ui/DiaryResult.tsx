@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { Button } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
+import { Chip } from '@/shared/ui/Chip';
 import { Icon } from '@/shared/ui/Icon';
+import { Muted, Note } from '@/shared/ui/Type';
 import { formatScore } from '@/shared/format';
-import { font, radius, space } from '@/shared/theme/tokens';
-import { useColors } from '@/shared/theme/useColors';
-import { WEATHER_ICON, WEATHER_LABEL } from '@/shared/weather';
-import type { DiaryDetail } from '../api/diaryTypes';
+import { font, leading, radius, space } from '@/shared/theme/tokens';
+import { useColors, useWeatherColors } from '@/shared/theme/useColors';
+import { WEATHER_LABEL } from '@/shared/weather';
+import { DAILY_REGENERATE_LIMIT, type DiaryDetail } from '../api/diaryTypes';
 
 type Props = {
   diary: DiaryDetail;
@@ -22,7 +24,12 @@ type Props = {
   earnedBadges?: { code: string; name: string; condition: string }[];
 };
 
-/** 04 오늘의 결과. "AI generated" 표기는 제거하지 않는다(생성물 고지). */
+/**
+ * 04 오늘의 결과. "AI generated" 표기는 제거하지 않는다(생성물 고지).
+ *
+ * prototype 은 그림과 글을 **카드에 담지 않는다** - 그림 자체가 카드만큼 크고 라운드도 같아서
+ * 카드에 넣으면 테두리가 두 겹으로 겹친다.
+ */
 export function DiaryResult({
   diary,
   regenerating,
@@ -34,71 +41,67 @@ export function DiaryResult({
   earnedBadges = [],
 }: Props) {
   const colors = useColors();
+  const weatherColors = useWeatherColors();
   const [imageFailed, setImageFailed] = useState(false);
   const showImage = !!diary.imageUrl && !imageFailed;
 
   return (
-    <View style={styles.wrap}>
-      <Card>
-        <View style={[styles.artwork, { backgroundColor: colors.bg, borderColor: colors.border }]}>
-          {showImage ? (
-            <Image
-              source={{ uri: diary.imageUrl! }}
-              style={styles.image}
-              onError={() => setImageFailed(true)}
-              accessibilityLabel="오늘의 AI 그림"
-            />
-          ) : (
-            <Text style={[styles.imageFallback, { color: colors.textMuted }]}>
-              그림을 만들지 못했어요
-            </Text>
-          )}
-          <View style={[styles.tag, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Text style={[styles.tagText, { color: colors.textMuted }]}>AI generated</Text>
-          </View>
+    <>
+      <View style={[styles.art, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        {showImage ? (
+          <Image
+            source={{ uri: diary.imageUrl! }}
+            style={styles.image}
+            onError={() => setImageFailed(true)}
+            accessibilityLabel="오늘의 AI 그림"
+          />
+        ) : (
+          <Muted>그림을 만들지 못했어요</Muted>
+        )}
+        <View style={[styles.tag, { backgroundColor: colors.surfaceSolid, borderColor: colors.border }]}>
+          <Text style={[styles.tagText, { color: colors.textMuted }]}>AI generated</Text>
         </View>
+      </View>
 
-        {diary.weather ? (
-          <View style={styles.weatherRow}>
-            <Icon name={WEATHER_ICON[diary.weather]} size={24} color={colors.text} />
-            <Text style={[styles.weather, { color: colors.text }]}>
-              {WEATHER_LABEL[diary.weather]}
-              {diary.moodScore !== null ? ` · 기분 ${formatScore(diary.moodScore)}` : ''}
-            </Text>
-          </View>
-        ) : null}
+      {diary.weather ? (
+        <View style={styles.verdict}>
+          <Chip
+            label={`${WEATHER_LABEL[diary.weather]}${
+              diary.moodScore === null ? '' : ` · 기분 ${formatScore(diary.moodScore)}`
+            }`}
+            dot={weatherColors[diary.weather]}
+          />
+        </View>
+      ) : null}
 
-        <Text style={[styles.content, { color: colors.text }]}>“{diary.content}”</Text>
-        {diary.aiComment ? (
-          <Text style={[styles.comment, { color: colors.textMuted }]}>{diary.aiComment}</Text>
-        ) : null}
-      </Card>
+      <Text style={[styles.content, { color: colors.text }]}>“{diary.content}”</Text>
+      {diary.aiComment ? <Muted>AI 코멘트 · {diary.aiComment}</Muted> : null}
 
       <View style={styles.actions}>
-        <View style={styles.action}>
-          <Button
-            label="다시 그리기"
-            variant="ghost"
-            loading={regenerating}
-            disabled={!diary.canRegenerate}
-            accessibilityHint={diary.canRegenerate ? undefined : '오늘은 더 다시 그릴 수 없어요'}
-            onPress={onRegenerate}
-          />
-        </View>
-        <View style={styles.action}>
-          {/* 시안의 "저장하기". 생성 직후 자동 저장이라 누를 것이 없다(04 화면 문서 7장) */}
-          <Button
-            label="저장됨"
-            variant="ghost"
-            disabled
-            accessibilityHint="기록은 자동으로 저장돼요"
-            onPress={() => {}}
-          />
-        </View>
+        <Button
+          label="다시 그리기"
+          variant="soft"
+          fill
+          loading={regenerating}
+          disabled={!diary.canRegenerate}
+          accessibilityHint={diary.canRegenerate ? undefined : '오늘은 더 다시 그릴 수 없어요'}
+          onPress={onRegenerate}
+        />
+        {/* 시안의 "저장하기". 생성 직후 자동 저장이라 누를 것이 없다(04 화면 문서 7장) */}
+        <Button
+          label="저장됨"
+          variant="soft"
+          fill
+          disabled
+          accessibilityHint="기록은 자동으로 저장돼요"
+          onPress={() => {}}
+        />
         {onShare ? (
-          <View style={styles.action}>
+          <View style={styles.shareSlot}>
             <Button
               label={shared ? '공유함' : '공유'}
+              variant="soft"
+              fill
               loading={sharing}
               disabled={shared}
               accessibilityHint={shared ? '이미 커뮤니티에 공유했어요' : '커뮤니티 피드에 올려요'}
@@ -108,54 +111,55 @@ export function DiaryResult({
         ) : null}
       </View>
 
-      {shareError ? <Text style={{ color: colors.danger, fontSize: font.sm , fontFamily: font.regular}}>{shareError}</Text> : null}
+      <Note>
+        {diary.canRegenerate
+          ? `다시 그리기는 하루 ${DAILY_REGENERATE_LIMIT}번까지예요.`
+          : '오늘의 다시 그리기를 다 썼어요.'}
+      </Note>
 
-      {earnedBadges.length > 0 ? (
-        <Card>
-          <View style={styles.badgeHead}>
-            <Icon name="medal" size={18} color={colors.primary} />
-            <Text style={[styles.badgeTitle, { color: colors.text }]}>새 뱃지를 받았어요</Text>
+      {shareError ? <Muted style={{ color: colors.danger }}>{shareError}</Muted> : null}
+
+      {earnedBadges.map((badge) => (
+        <Card key={badge.code} variant="flat" contentStyle={styles.badgeCard}>
+          <View style={[styles.medal, { backgroundColor: colors.accentSoft }]}>
+            <Icon name="medal" size={18} color={colors.primaryFg} />
           </View>
-          {earnedBadges.map((badge) => (
-            <Text key={badge.code} style={[styles.badgeLine, { color: colors.textMuted }]}>
-              {badge.name} · {badge.condition}
-            </Text>
-          ))}
+          <Text style={[styles.badgeLine, { color: colors.text }]}>
+            새 뱃지 “{badge.name}” · {badge.condition}
+          </Text>
         </Card>
-      ) : null}
-    </View>
+      ))}
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { gap: space[4] },
-  artwork: {
+  art: {
     aspectRatio: 1,
-    borderRadius: radius.md,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: radius.xl,
+    borderWidth: 1.5,
     overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
   },
   image: { width: '100%', height: '100%' },
-  imageFallback: { fontSize: font.sm , fontFamily: font.regular},
   tag: {
     position: 'absolute',
-    right: space[2],
-    bottom: space[2],
-    paddingHorizontal: space[2],
-    paddingVertical: space[1],
-    borderRadius: radius.sm,
-    borderWidth: StyleSheet.hairlineWidth,
+    left: space[4],
+    top: space[4],
+    paddingHorizontal: space[3],
+    paddingVertical: 6,
+    borderRadius: radius.full,
+    borderWidth: 1,
   },
-  tagText: { fontSize: font.xs , fontFamily: font.regular},
-  weatherRow: { flexDirection: 'row', alignItems: 'center', gap: space[2] },
-  weather: { fontSize: font.lg, fontFamily: font.bold },
-  content: { fontSize: font.base , fontFamily: font.regular},
-  comment: { fontSize: font.sm , fontFamily: font.regular},
-  actions: { flexDirection: 'row', gap: space[2] },
-  action: { flex: 1 },
-  badgeHead: { flexDirection: 'row', alignItems: 'center', gap: space[2] },
-  badgeTitle: { fontSize: font.base, fontFamily: font.bold },
-  badgeLine: { fontSize: font.sm , fontFamily: font.regular},
+  tagText: { fontSize: font.xs, fontFamily: font.regular },
+  /** 칩은 스스로 왼쪽에 붙지만, 바깥 stack 의 가로 늘리기를 끊어 주는 줄이 필요하다 */
+  verdict: { flexDirection: 'row' },
+  content: { fontSize: font.lg, lineHeight: leading(font.lg), fontFamily: font.medium },
+  actions: { flexDirection: 'row', gap: space[3] },
+  /** prototype `.actions .btn:last-child { flex: 0 0 76px }` */
+  shareSlot: { width: 76, flexDirection: 'row' },
+  badgeCard: { flexDirection: 'row', alignItems: 'center', gap: space[3], paddingVertical: space[4] },
+  medal: { width: 32, height: 32, borderRadius: radius.full, alignItems: 'center', justifyContent: 'center' },
+  badgeLine: { flex: 1, fontSize: font.base, fontFamily: font.bold },
 });

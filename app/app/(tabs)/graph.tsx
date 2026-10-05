@@ -1,14 +1,15 @@
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { formatAverage, formatScore, formatShortDate } from '@/shared/format';
 import { Card } from '@/shared/ui/Card';
 import { Chip } from '@/shared/ui/Chip';
 import { Screen } from '@/shared/ui/Screen';
 import { ScreenHeader } from '@/shared/ui/ScreenHeader';
+import { Heading, Muted } from '@/shared/ui/Type';
 import { Empty, ErrorRetry, Skeleton } from '@/shared/ui/StateBlock';
 import { Segmented } from '@/shared/ui/Segmented';
-import { font, space } from '@/shared/theme/tokens';
-import { useColors } from '@/shared/theme/useColors';
+import { space } from '@/shared/theme/tokens';
+import { useWeatherColors } from '@/shared/theme/useColors';
 import { useStats } from '@/features/diary/hooks/useDiary';
 import type { DiaryStats, StatsPeriod } from '@/features/diary/api/diaryTypes';
 import { KpiRow } from '@/features/diary/ui/KpiRow';
@@ -26,15 +27,16 @@ export default function GraphScreen() {
   const stats = useStats(period);
 
   return (
-    <Screen>
-      <ScreenHeader title="감정 그래프" />
-
-      <Segmented
-        options={PERIODS}
-        value={period}
-        onChange={setPeriod}
-        accessibilityLabel="기간 선택"
-      />
+    <Screen width="narrow">
+      <View style={styles.head}>
+        <ScreenHeader title="감정 그래프" />
+        <Segmented
+          options={PERIODS}
+          value={period}
+          onChange={setPeriod}
+          accessibilityLabel="기간 선택"
+        />
+      </View>
 
       {stats.isError ? (
         <ErrorRetry error={stats.error} onRetry={() => stats.refetch()} />
@@ -48,15 +50,15 @@ export default function GraphScreen() {
 }
 
 function StatsBody({ stats, periodLabel }: { stats: DiaryStats; periodLabel: string }) {
-  const colors = useColors();
+  const weatherColors = useWeatherColors();
   // 점이 2개 미만이면 추이선이 뜻을 갖지 못한다(06 화면 문서 5장)
   const drawable = stats.points.length >= 2;
 
   return (
     <>
       <Card>
-        <Text style={[styles.cardTitle, { color: colors.text }]}>{periodLabel} 기분 추이</Text>
-        <Text style={[styles.cardSub, { color: colors.textMuted }]}>{subtitle(stats)}</Text>
+        <Heading>{periodLabel} 기분 추이</Heading>
+        <Muted style={styles.tight}>{subtitle(stats)}</Muted>
 
         {drawable ? (
           <>
@@ -70,17 +72,18 @@ function StatsBody({ stats, periodLabel }: { stats: DiaryStats; periodLabel: str
 
       <KpiRow
         items={[
-          { label: '평균 기분', value: formatAverage(stats.average) },
+          { label: '평균 기분', value: formatAverage(stats.average), dot: weatherColors.SUNNY },
           {
             label: '최고의 날',
             value: stats.bestDate ? formatShortDate(stats.bestDate) : '-',
+            dot: weatherColors.RAINBOW,
           },
-          { label: '연속 기록', value: `${stats.streakDays}일` },
+          { label: '연속 기록', value: `${stats.streakDays}일`, dot: weatherColors.RAIN },
         ]}
       />
 
       <Card>
-        <Text style={[styles.cardTitle, { color: colors.text }]}>{periodLabel} 자주 쓴 말</Text>
+        <Heading>{periodLabel} 자주 쓴 말</Heading>
         {stats.words.length === 0 ? (
           <Empty message="아직 모을 말이 부족해요" />
         ) : (
@@ -116,7 +119,8 @@ function labelOf(period: StatsPeriod): string {
 }
 
 const styles = StyleSheet.create({
-  cardTitle: { fontSize: font.base, fontFamily: font.bold },
-  cardSub: { fontSize: font.xs , fontFamily: font.regular},
+  /** prototype 은 제목과 세그먼트를 gap 16 으로 묶는다 */
+  head: { gap: space[4] },
+  tight: { marginTop: -space[2] },
   words: { flexDirection: 'row', flexWrap: 'wrap', gap: space[2] },
 });

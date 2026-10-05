@@ -5,6 +5,7 @@ import { formatMonth } from '@/shared/format';
 import { Card } from '@/shared/ui/Card';
 import { Screen } from '@/shared/ui/Screen';
 import { ScreenHeader } from '@/shared/ui/ScreenHeader';
+import { Heading } from '@/shared/ui/Type';
 import { Empty, ErrorRetry, Skeleton } from '@/shared/ui/StateBlock';
 import { font, MIN_TOUCH_TARGET, space } from '@/shared/theme/tokens';
 import { useColors } from '@/shared/theme/useColors';
@@ -21,13 +22,14 @@ export default function CalendarScreen() {
   const today = new Date().toISOString().slice(0, 10);
 
   return (
-    <Screen>
-      <ScreenHeader title="감정 캘린더" />
-
-      <View style={styles.monthRow}>
-        <MonthButton label="‹" hint="이전 달" onPress={() => setMonth(shiftMonth(month, -1))} />
-        <Text style={[styles.month, { color: colors.text }]}>{formatMonth(month)}</Text>
-        <MonthButton label="›" hint="다음 달" onPress={() => setMonth(shiftMonth(month, 1))} />
+    <Screen width="narrow">
+      <View style={styles.head}>
+        <ScreenHeader title="감정 캘린더" />
+        <View style={styles.monthRow}>
+          <MonthButton label="‹" hint="이전 달" onPress={() => setMonth(shiftMonth(month, -1))} />
+          <Text style={[styles.month, { color: colors.text }]}>{formatMonth(month)}</Text>
+          <MonthButton label="›" hint="다음 달" onPress={() => setMonth(shiftMonth(month, 1))} />
+        </View>
       </View>
 
       {calendar.isError ? (
@@ -46,7 +48,7 @@ export default function CalendarScreen() {
           </Card>
 
           <Card>
-            <Text style={[styles.summaryTitle, { color: colors.text }]}>이번 달 요약</Text>
+            <Heading>이번 달 요약</Heading>
             {calendar.data.recordedDays === 0 ? (
               <Empty message="이 달은 아직 기록이 없어요" />
             ) : (
@@ -68,7 +70,7 @@ function MonthButton({ label, hint, onPress }: { label: string; hint: string; on
       accessibilityLabel={hint}
       style={({ pressed }) => [styles.monthButton, { opacity: pressed ? 0.5 : 1 }]}
     >
-      <Text style={{ color: colors.text, fontSize: font.lg , fontFamily: font.regular}}>{label}</Text>
+      <Text style={[styles.monthMark, { color: colors.textMuted }]}>{label}</Text>
     </Pressable>
   );
 }
@@ -85,13 +87,15 @@ function shiftMonth(month: string, delta: number): string {
 }
 
 const styles = StyleSheet.create({
-  monthRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space[4] },
+  /** prototype 은 제목과 달 이동을 gap 8 로 묶는다. 화면 gap(24)을 쓰면 둘이 떨어져 보인다 */
+  head: { gap: space[2] },
+  monthRow: { flexDirection: 'row', alignItems: 'center', gap: space[1] },
   monthButton: {
     minWidth: MIN_TOUCH_TARGET,
     minHeight: MIN_TOUCH_TARGET,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  month: { fontSize: font.base, fontFamily: font.bold },
-  summaryTitle: { fontSize: font.sm, fontFamily: font.bold },
+  monthMark: { fontSize: font.xl, fontFamily: font.bold },
+  month: { fontSize: font.md, fontFamily: font.bold },
 });

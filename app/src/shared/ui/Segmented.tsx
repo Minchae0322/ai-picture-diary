@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { font, MIN_TOUCH_TARGET, radius, space } from '@/shared/theme/tokens';
+import { font, radius, space } from '@/shared/theme/tokens';
 import { useColors } from '@/shared/theme/useColors';
 
 type Props<T extends string> = {
@@ -9,7 +9,10 @@ type Props<T extends string> = {
   accessibilityLabel: string;
 };
 
-/** 06 기간 세그먼트(주/월/년). 항상 하나만 선택된다 - 해제할 수 없다는 점이 Chip 과 다르다. */
+/**
+ * prototype.html `.seg`. 06 기간 세그먼트(주/월/년).
+ * 항상 하나만 선택된다 - 해제할 수 없다는 점이 Chip 과 다르다.
+ */
 export function Segmented<T extends string>({
   options,
   value,
@@ -39,9 +42,7 @@ export function Segmented<T extends string>({
               },
             ]}
           >
-            <Text
-              style={[styles.label, { color: selected ? colors.primaryFg : colors.textMuted }]}
-            >
+            <Text style={[styles.label, { color: selected ? colors.primaryFg : colors.textMuted }]}>
               {option.label}
             </Text>
           </Pressable>
@@ -53,18 +54,19 @@ export function Segmented<T extends string>({
 
 const styles = StyleSheet.create({
   wrap: {
+    alignSelf: 'flex-start',
     flexDirection: 'row',
     borderRadius: radius.full,
-    borderWidth: 1,
+    borderWidth: 1.5,
     padding: space[1],
-    gap: space[1],
   },
   item: {
-    flex: 1,
-    minHeight: MIN_TOUCH_TARGET - space[2],
+    minWidth: 72,
+    paddingVertical: 9,
+    paddingHorizontal: space[4],
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: radius.full,
   },
-  label: { fontSize: font.sm, fontFamily: font.medium },
+  label: { fontSize: font.md, fontFamily: font.bold },
 });

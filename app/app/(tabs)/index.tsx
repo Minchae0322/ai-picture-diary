@@ -4,6 +4,7 @@ import { ApiError } from '@/shared/api/ApiError';
 import { formatFullDate } from '@/shared/format';
 import { Screen } from '@/shared/ui/Screen';
 import { Button } from '@/shared/ui/Button';
+import { Muted } from '@/shared/ui/Type';
 import { ErrorRetry, Loading } from '@/shared/ui/StateBlock';
 import { font, space } from '@/shared/theme/tokens';
 import { useColors } from '@/shared/theme/useColors';
@@ -55,68 +56,89 @@ export default function HomeScreen() {
   }
 
   const diary = today.data ?? null;
+  const generating = diary?.status === 'GENERATING';
   const newBadges = diary ? earnedOn(badges.data?.badges ?? [], diary.entryDate) : [];
 
   return (
-    <Screen refreshing={today.isFetching && !today.isPending} onRefresh={() => today.refetch()}>
-      <View style={styles.header}>
-        <Text style={[styles.date, { color: colors.textMuted }]}>{formatFullDate(new Date())}</Text>
-        <Text style={[styles.greeting, { color: colors.text }]}>
-          안녕하세요{profile.data ? `, ${profile.data.nickname}님` : ''}
-        </Text>
-        <StreakBadge days={overview.data?.streakDays ?? 0} />
-      </View>
+    <View style={styles.root}>
+      <Screen refreshing={today.isFetching && !today.isPending} onRefresh={() => today.refetch()}>
+        <View style={styles.header}>
+          <View style={styles.greetingColumn}>
+            <Text style={[styles.date, { color: colors.textMuted }]}>
+              {formatFullDate(new Date())}
+            </Text>
+            <Text style={[styles.greeting, { color: colors.text }]}>
+              안녕하세요{profile.data ? `, ${profile.data.nickname}님` : ''}
+            </Text>
+          </View>
+          <StreakBadge days={overview.data?.streakDays ?? 0} />
+        </View>
 
-      {today.isPending ? (
-        <Loading label="오늘 기록을 불러오는 중" />
-      ) : today.isError ? (
-        // 조회가 실패해도 입력은 살려 둔다 - 카드 자리만 재시도로 바꾼다(02 화면 문서 5장)
-        <ErrorRetry error={today.error} onRetry={() => today.refetch()} />
-      ) : diary === null ? (
-        <DiaryComposer
-          submitting={write.isPending}
-          errorMessage={write.error instanceof ApiError ? write.error.message : undefined}
-          onSubmit={(content, userHint) => write.mutate({ content, userHint })}
-        />
-      ) : diary.status === 'GENERATING' ? (
-        <GeneratingCard content={diary.content} />
-      ) : diary.status === 'FAILED' ? (
-        <FailedBlock onRetry={() => regenerate.mutate(diary.id)} pending={regenerate.isPending} />
-      ) : (
-        <DiaryResult
-          diary={diary}
-          regenerating={regenerate.isPending}
-          onRegenerate={() => regenerate.mutate(diary.id)}
-          onShare={() => share.mutate(diary.id)}
-          sharing={share.isPending}
-          shared={share.isSuccess}
-          shareError={share.error instanceof ApiError ? share.error.message : undefined}
-          earnedBadges={newBadges}
-        />
-      )}
+        {today.isPending ? (
+          <Loading label="오늘 기록을 불러오는 중" />
+        ) : today.isError ? (
+          // 조회가 실패해도 입력은 살려 둔다 - 카드 자리만 재시도로 바꾼다(02 화면 문서 5장)
+          <ErrorRetry error={today.error} onRetry={() => today.refetch()} />
+        ) : diary === null ? (
+          <DiaryComposer
+            submitting={write.isPending}
+            errorMessage={write.error instanceof ApiError ? write.error.message : undefined}
+            onSubmit={(content, userHint) => write.mutate({ content, userHint })}
+          />
+        ) : diary.status === 'FAILED' ? (
+          <FailedBlock onRetry={() => regenerate.mutate(diary.id)} pending={regenerate.isPending} />
+        ) : generating ? null : (
+          <DiaryResult
+            diary={diary}
+            regenerating={regenerate.isPending}
+            onRegenerate={() => regenerate.mutate(diary.id)}
+            onShare={() => share.mutate(diary.id)}
+            sharing={share.isPending}
+            shared={share.isSuccess}
+            shareError={share.error instanceof ApiError ? share.error.message : undefined}
+            earnedBadges={newBadges}
+          />
+        )}
 
-      {recent.data ? (
-        <RecentDiaries items={recent.data.items} onSelect={(id) => router.push(`/diary/${id}`)} />
+        {recent.data ? (
+          <RecentDiaries items={recent.data.items} onSelect={(id) => router.push(`/diary/${id}`)} />
+        ) : null}
+      </Screen>
+
+      {/* 03 은 02 위에 덮는 딤 오버레이다(03 화면 문서 3장). 탭바는 덮지 않아 다른 탭으로 나갈 수 있다 -
+          생성은 서버가 계속하고, 돌아오면 04 가 기다린다(같은 문서 2장의 "허용"). */}
+      {generating && diary ? (
+        <View style={[styles.overlay, { backgroundColor: colors.scrim }]}>
+          <GeneratingCard content={diary.content} />
+        </View>
       ) : null}
-    </Screen>
+    </View>
   );
 }
 
 function FailedBlock({ onRetry, pending }: { onRetry: () => void; pending: boolean }) {
-  const colors = useColors();
   return (
     <View style={styles.block}>
-      <Text style={{ color: colors.textMuted, fontSize: font.sm , fontFamily: font.regular}}>
-        오늘을 그리지 못했어요. 다시 시도해 볼까요?
-      </Text>
-      <Button label="다시 그리기" size="medium" loading={pending} onPress={onRetry} />
+      <Muted>오늘을 그리지 못했어요. 다시 시도해 볼까요?</Muted>
+      <Button label="다시 그리기" size="medium" variant="soft" loading={pending} onPress={onRetry} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  header: { gap: space[2] },
-  date: { fontSize: font.xs , fontFamily: font.regular},
-  greeting: { fontSize: font.xl, fontFamily: font.bold },
+  root: { flex: 1 },
+  header: { flexDirection: 'row', alignItems: 'flex-start', gap: space[3] },
+  greetingColumn: { flex: 1, gap: space[1] },
+  date: { fontSize: font.sm, fontFamily: font.medium },
+  greeting: { fontSize: font.xxl, fontFamily: font.bold },
   block: { gap: space[3], alignItems: 'flex-start' },
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    paddingHorizontal: space[7],
+  },
 });

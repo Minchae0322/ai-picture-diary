@@ -5,6 +5,7 @@ import bottomArt from '@assets/images/bottom.png';
 import { completeOnboarding } from '@/features/onboarding/useOnboarding';
 import { NotebookLines } from '@/features/onboarding/ui/NotebookLines';
 import { OnboardingHero } from '@/features/onboarding/ui/OnboardingHero';
+import { Backdrop } from '@/shared/ui/Screen';
 import { CONTENT_MAX_WIDTH, font, leading, MIN_TOUCH_TARGET, radius, space } from '@/shared/theme/tokens';
 import { useColors } from '@/shared/theme/useColors';
 import { Button } from '@/shared/ui/Button';
@@ -30,7 +31,11 @@ export default function OnboardingScreen() {
   };
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.bg }]}>
+    <View style={[styles.root, { backgroundColor: colors.bgTop }]}>
+      {/* 하늘 그라디언트. 다른 화면은 Screen 이 깔지만 01 은 Screen 을 쓰지 않는다.
+          글로우는 끈다 - 히어로 그림과 겹쳐 그림의 흰 선이 묻힌다 */}
+      <Backdrop glow={false} />
+
       {/* 바닥을 가로지르는 손그림 띠. 원본이 정사각이라 그대로 두면 화면 절반을 먹는다.
           높이 230 으로 자르고 그 안에서 그림을 바닥에 붙인다.
           page 안에 두면 좌우 padding(45) 만큼 밀리므로 배경 레이어로 올린다 */}
@@ -106,7 +111,9 @@ export default function OnboardingScreen() {
                   styles.dot,
                   {
                     width: dot === 0 ? 22 : 8,
-                    backgroundColor: dot === 0 ? colors.primary : colors.decor,
+                    // prototype `.dots i` - 같은 색을 쓰고 지나간 점만 흐리다
+                    backgroundColor: colors.accentSoft,
+                    opacity: dot === 0 ? 1 : 0.25,
                   },
                 ]}
               />

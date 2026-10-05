@@ -65,5 +65,14 @@ export type DiaryOverview = { totalCount: number; streakDays: number };
 export const MOOD_MIN = -3;
 export const MOOD_MAX = 3;
 
+/** 본문 길이 상한. 서버 app.diary.max-content-length 와 같은 값이어야 한다(02 입력). */
+export const MAX_CONTENT_LENGTH = 500;
+
+/**
+ * 다시 그리기 하루 상한. 서버 app.diary.daily-regenerate-limit 와 같은 값이어야 한다(04 안내 문구).
+ * **남은 횟수는 서버만 안다** - 앱은 `canRegenerate` 만 받으므로 "N번 남았어요"는 쓰지 않는다.
+ */
+export const DAILY_REGENERATE_LIMIT = 3;
+
 /** 02 빠른 감정 칩 (시안 기준 4종) */
 export const QUICK_WEATHERS: Weather[] = ['SUNNY', 'PARTLY_CLOUDY', 'CLOUDY', 'RAIN'];

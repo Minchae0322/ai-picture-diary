@@ -10,6 +10,8 @@ import { GeneratingCard } from '@/features/diary/ui/GeneratingCard';
 /**
  * 04 결과 - 과거 날짜 모드. 05 캘린더와 02 최근 기록에서 들어온다.
  * 오늘 화면과 같은 레이아웃을 쓰되 공유 버튼은 주지 않는다(공유는 오늘 기록의 동선이다).
+ *
+ * 생성 중 카드는 여기서는 **딤 없이** 그대로 둔다 - 가릴 화면이 뒤에 없다(02 는 오버레이).
  */
 export default function DiaryDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();

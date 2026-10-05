@@ -81,7 +81,7 @@ export function DiaryComposer({ submitting, errorMessage, onSubmit }: Props) {
                     size={16}
                     color={selected ? colors.primaryFg : colors.text}
                   />
-                  <Text style={{ color: selected ? colors.primaryFg : colors.text, fontSize: font.sm }}>
+                  <Text style={{ color: selected ? colors.primaryFg : colors.text, fontSize: font.sm , fontFamily: font.regular}}>
                     {WEATHER_LABEL[weather]}
                   </Text>
                 </View>
@@ -107,8 +107,8 @@ export function DiaryComposer({ submitting, errorMessage, onSubmit }: Props) {
 
 const styles = StyleSheet.create({
   wrap: { gap: space[4] },
-  emptyTitle: { fontSize: font.lg, fontWeight: font.weightBold },
-  emptyBody: { fontSize: font.sm },
+  emptyTitle: { fontSize: font.lg, fontFamily: font.bold },
+  emptyBody: { fontSize: font.sm , fontFamily: font.regular},
   canvas: {
     height: 180,
     borderRadius: radius.md,
@@ -118,18 +118,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: space[1],
   },
-  canvasMark: { fontSize: font.xxl },
-  canvasLabel: { fontSize: font.xs },
+  canvasMark: { fontSize: font.xxl , fontFamily: font.regular},
+  canvasLabel: { fontSize: font.xs , fontFamily: font.regular},
   input: {
     minHeight: 96,
     borderRadius: radius.md,
     borderWidth: 1,
     padding: space[4],
-    fontSize: font.base,
+    fontSize: font.base, fontFamily: font.regular,
     textAlignVertical: 'top',
   },
-  counter: { alignSelf: 'flex-end', fontSize: font.xs, marginTop: space[1] },
-  sectionTitle: { fontSize: font.sm, marginBottom: space[2] },
+  counter: { alignSelf: 'flex-end', fontSize: font.xs, fontFamily: font.regular, marginTop: space[1] },
+  sectionTitle: { fontSize: font.sm, fontFamily: font.regular, marginBottom: space[2] },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space[2] },
   chipInner: { flexDirection: 'row', alignItems: 'center', gap: space[1] },
   chip: {
@@ -139,5 +139,5 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
     borderWidth: 1,
   },
-  error: { fontSize: font.sm },
+  error: { fontSize: font.sm , fontFamily: font.regular},
 });

@@ -51,14 +51,14 @@ export function PostCard({ post, onToggleLike, onReport }: Props) {
             size={16}
             color={post.likedByMe ? colors.primary : colors.textMuted}
           />
-          <Text style={{ color: post.likedByMe ? colors.primary : colors.textMuted, fontSize: font.sm }}>
+          <Text style={{ color: post.likedByMe ? colors.primary : colors.textMuted, fontSize: font.sm , fontFamily: font.regular}}>
             {post.likeCount}
           </Text>
         </Pressable>
 
         <View accessible accessibilityLabel={`댓글 ${post.commentCount}개`} style={styles.reaction}>
           <Icon name="chat" size={16} color={colors.textMuted} />
-          <Text style={{ color: colors.textMuted, fontSize: font.sm }}>{post.commentCount}</Text>
+          <Text style={{ color: colors.textMuted, fontSize: font.sm , fontFamily: font.regular}}>{post.commentCount}</Text>
         </View>
 
         <Pressable
@@ -67,7 +67,7 @@ export function PostCard({ post, onToggleLike, onReport }: Props) {
           accessibilityLabel="이 글 신고하기"
           style={({ pressed }) => [styles.reaction, styles.report, { opacity: pressed ? 0.6 : 1 }]}
         >
-          <Text style={{ color: colors.textSubtle, fontSize: font.sm }}>신고</Text>
+          <Text style={{ color: colors.textSubtle, fontSize: font.sm , fontFamily: font.regular}}>신고</Text>
         </Pressable>
       </View>
     </Card>
@@ -76,8 +76,8 @@ export function PostCard({ post, onToggleLike, onReport }: Props) {
 
 const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  author: { fontSize: font.sm, fontWeight: font.weightBold },
-  time: { fontSize: font.xs },
+  author: { fontSize: font.sm, fontFamily: font.bold },
+  time: { fontSize: font.xs , fontFamily: font.regular},
   weather: {
     alignSelf: 'flex-start',
     flexDirection: 'row',
@@ -87,8 +87,8 @@ const styles = StyleSheet.create({
     paddingVertical: space[1],
     borderRadius: radius.full,
   },
-  weatherText: { fontSize: font.xs },
-  content: { fontSize: font.base },
+  weatherText: { fontSize: font.xs , fontFamily: font.regular},
+  content: { fontSize: font.base , fontFamily: font.regular},
   reactions: { flexDirection: 'row', alignItems: 'center', gap: space[4] },
   reaction: { minHeight: MIN_TOUCH_TARGET, flexDirection: 'row', alignItems: 'center', gap: space[1] },
   report: { marginLeft: 'auto' },

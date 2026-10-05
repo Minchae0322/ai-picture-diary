@@ -118,6 +118,6 @@ export function MoodChartSummary({ points }: { points: Point[] }) {
 
 const styles = StyleSheet.create({
   axis: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
-  axisLabel: { position: 'absolute', left: 0, fontSize: font.xs, width: AXIS_WIDTH - space[1] },
-  summary: { fontSize: font.xs, marginTop: space[2] },
+  axisLabel: { position: 'absolute', left: 0, fontSize: font.xs, fontFamily: font.regular, width: AXIS_WIDTH - space[1] },
+  summary: { fontSize: font.xs, fontFamily: font.regular, marginTop: space[2] },
 });

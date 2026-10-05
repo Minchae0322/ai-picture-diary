@@ -1,29 +1,53 @@
 /**
- * 디자인 토큰. 프리셋 soft-modern(브랜드만 젤리 바이올렛으로 교체), 주 타깃 모바일.
+ * 디자인 토큰. 프리셋 muted-sky, 주 타깃 모바일(390x844).
  * 3계층: 원시 -> 의미 -> 컴포넌트. 컴포넌트는 의미 토큰만 참조한다(design-system 1장).
  * RN이라 CSS 변수가 없어 TS 객체로 표현한다(expo-app-conventions 4장).
+ *
+ * 값의 출처는 `.claude/skills/design-system/presets/muted-sky.md`.
+ * **이 파일이 색의 진실이다.** Figma 시안(복숭아 톤)과 갈라져 있고, 그 방향은 의도된 것이다
+ * (figma-workflow 4장. docs/screen/README.md "토큰의 진실" 참고).
  */
 
 import type { Weather } from '@/shared/weather';
 
 const primitive = {
-  neutral0: '#ffffff',
-  neutral50: '#f7f8fa',
-  neutral100: '#eef0f4',
-  neutral200: '#e2e5eb',
-  neutral300: '#cbd0d9',
-  neutral400: '#9aa2b1',
-  neutral500: '#6b7385',
-  neutral800: '#232936',
-  neutral900: '#151a23',
-  neutral950: '#0d1117',
-  brand100: '#e7e2ff',
-  brand300: '#b3a5ff',
-  brand500: '#6c5ce7',
-  brand600: '#5849c4',
-  red500: '#dc2f3c',
-  amber500: '#d97706',
-  green500: '#128a5e',
+  /** 배경 바닐라 */
+  paper: '#faf4dc',
+  paperRaised: 'rgba(255,253,247,0.95)',
+  paperLine: '#ece3c2',
+
+  slate900: '#253544',
+  slate600: '#4e6375',
+  slate500: '#5b6e7f',
+  /** 장식 전용. 텍스트로 쓰면 1.5:1 (muted-sky 5장) */
+  slate300: '#a8bccd',
+
+  blue300: '#8fbfe0',
+  /** 장식 전용. 텍스트로 쓰면 2.8:1 */
+  blue400: '#5b9bc4',
+  blue600: '#3f6d8e',
+  blue700: '#325a77',
+
+  amber300: '#e5b877',
+  sand200: '#dcc9a6',
+  gray300: '#b6bfc8',
+  steel300: '#8fa9c8',
+  ice200: '#cfe0ee',
+  mauve300: '#c79ab4',
+  violet300: '#a99ac7',
+  sage300: '#8fbfae',
+
+  /** 형광펜 띠. 그 위 글자는 배경과 같은 바닐라라 글자가 파인 것처럼 보인다 */
+  cocoa600: '#7c5445',
+
+  red600: '#b0434e',
+  amber700: '#8a6a1f',
+  green700: '#1f7a63',
+
+  night900: '#111a21',
+  night800: '#18242d',
+  night700: '#1c2831',
+  night600: '#26343f',
 } as const;
 
 /** 의미 토큰의 모양. primitive 가 as const 라 추론에 맡기면 리터럴 타입이 되어 다크 팔레트가 안 맞는다. */
@@ -35,75 +59,160 @@ export type Colors = {
   borderStrong: string;
   text: string;
   textMuted: string;
+  /** 표면 위에서만 쓴다. 배경 위는 textMuted (muted-sky 2장) */
   textSubtle: string;
+  /** 장식 전용 - 점선 테두리, 인디케이터, 뜻 없는 큰 글리프 */
+  decor: string;
   primary: string;
   primaryPressed: string;
   primaryFg: string;
+  /** 주 버튼 그림자에 섞는 브랜드색 */
+  primaryShadow: string;
   danger: string;
   warning: string;
   success: string;
+  /** 03 화면의 딤 오버레이 */
+  scrim: string;
+  skeleton: string;
+  /** 진행 막대의 빈 부분 */
+  track: string;
+  /** 01 헤드라인의 형광펜 띠 */
+  highlight: string;
+  /** 그 띠 위에 얹히는 글자색 */
+  highlightText: string;
+  /** 01 히어로 뒤 노트 괘선 */
+  rule: string;
+  /** 날씨 색 위에 바로 얹히는 글자색. 날씨 색이 테마 불변이라 이것도 고정이다 */
+  weatherInk: string;
 };
 
 const light: Colors = {
-  bg: primitive.neutral50,
-  surface: primitive.neutral0,
-  surfaceRaised: primitive.neutral0,
-  border: primitive.neutral200,
-  borderStrong: primitive.neutral300,
-  text: primitive.neutral900,
-  textMuted: primitive.neutral500,
-  textSubtle: primitive.neutral400,
-  primary: primitive.brand500,
-  primaryPressed: primitive.brand600,
+  bg: primitive.paper,
+  surface: 'rgba(255,255,255,0.92)',
+  surfaceRaised: primitive.paperRaised,
+  /** 배경이 밝아 흰 카드가 묻힌다. 테두리가 경계를 대신 잡는다(배경과 ΔE 4.7) */
+  border: 'rgba(37,53,68,0.12)',
+  borderStrong: primitive.paperLine,
+
+  text: primitive.slate900,
+  textMuted: primitive.slate600,
+  textSubtle: primitive.slate500,
+  decor: primitive.slate300,
+
+  primary: primitive.blue600,
+  primaryPressed: primitive.blue700,
   primaryFg: '#ffffff',
-  danger: primitive.red500,
-  warning: primitive.amber500,
-  success: primitive.green500,
+  primaryShadow: 'rgba(63,109,142,0.32)',
+
+  danger: primitive.red600,
+  warning: primitive.amber700,
+  success: primitive.green700,
+
+  scrim: 'rgba(37,53,68,0.32)',
+  skeleton: 'rgba(37,53,68,0.07)',
+  track: 'rgba(37,53,68,0.10)',
+
+  highlight: primitive.cocoa600,
+  highlightText: primitive.paper,
+  rule: 'rgba(63,63,63,0.22)',
+  weatherInk: primitive.slate900,
 };
 
 const dark: Colors = {
-  bg: primitive.neutral950,
-  surface: primitive.neutral900,
-  surfaceRaised: primitive.neutral800,
-  border: 'rgba(255,255,255,0.08)',
-  borderStrong: 'rgba(255,255,255,0.16)',
-  text: primitive.neutral100,
-  textMuted: primitive.neutral400,
-  textSubtle: primitive.neutral500,
-  primary: primitive.brand300,
-  primaryPressed: primitive.brand100,
-  primaryFg: primitive.neutral950,
-  danger: primitive.red500,
-  warning: primitive.amber500,
-  success: primitive.green500,
+  bg: primitive.night900,
+  surface: primitive.night700,
+  surfaceRaised: primitive.night600,
+  border: 'rgba(255,255,255,0.10)',
+  borderStrong: 'rgba(255,255,255,0.18)',
+
+  text: '#e8f0f6',
+  textMuted: '#b3c4d1',
+  textSubtle: '#8ea1b1',
+  decor: '#5d6d7b',
+
+  primary: primitive.blue300,
+  primaryPressed: '#b3d4ec',
+  primaryFg: '#0e1a23',
+  primaryShadow: 'rgba(0,0,0,0.5)',
+
+  danger: '#ef8b95',
+  warning: '#e0b45f',
+  success: '#6cc7ab',
+
+  scrim: 'rgba(0,0,0,0.55)',
+  skeleton: 'rgba(255,255,255,0.07)',
+  track: 'rgba(255,255,255,0.12)',
+
+  /** 띠가 어둡고 글자가 밝은 조합이라 다크에서도 그대로 통한다(4.30:1). 따로 잡지 않는다 */
+  highlight: primitive.cocoa600,
+  highlightText: primitive.paper,
+  /** 어두운 배경에서 #3f3f3f 괘선은 보이지 않는다 */
+  rule: 'rgba(255,255,255,0.12)',
+  /** weatherColor 가 다크에서도 같은 값이라 라이트와 같다 */
+  weatherInk: primitive.slate900,
 };
 
 export const colorsFor = (scheme: string | null | undefined) => (scheme === 'dark' ? dark : light);
 
-export const space = { 1: 4, 2: 8, 3: 12, 4: 16, 6: 24, 8: 32, 12: 48, 16: 64 } as const;
-export const radius = { sm: 6, md: 10, lg: 16, xl: 24, full: 9999 } as const;
+export const space = { 1: 4, 2: 8, 3: 12, 4: 16, 5: 20, 6: 24, 7: 28, 8: 32, 12: 48, 16: 64 } as const;
+export const radius = { sm: 10, md: 16, lg: 24, xl: 34, full: 9999 } as const;
+
+/**
+ * 서체는 **SUIT 하나**다. 등록은 `app/app/_layout.tsx` 의 `useFonts(FONT_ASSETS)` 한 곳.
+ *
+ * **굵기는 패밀리로 고른다.** RN은 커스텀 폰트에서 `fontWeight` 로 굵기를 합성하지 못한다
+ * (특히 안드로이드). 그래서 `weightBold` 같은 토큰을 두지 않는다.
+ * 그리고 RN은 폰트가 상속되지 않으므로 **글자가 있는 스타일마다 `fontFamily` 를 넣는다.**
+ */
 export const font = {
-  xs: 12, sm: 14, base: 16, lg: 20, xl: 24, xxl: 32,
-  weightMedium: '500', weightBold: '700',
+  micro: 10,
+  xs: 12,
+  sm: 13,
+  base: 14,
+  md: 15,
+  lg: 17,
+  xl: 20,
+  xxl: 24,
+  /** 01 온보딩 헤드라인 */
+  display: 34,
+
+  regular: 'SUIT-Regular',
+  medium: 'SUIT-Medium',
+  bold: 'SUIT-Bold',
+  black: 'SUIT-Heavy',
 } as const;
 
+/** `useFonts` 에 그대로 넘긴다. 굵기마다 파일이 따로다 */
+export const FONT_ASSETS = {
+  'SUIT-Regular': require('@assets/fonts/SUIT-Regular.otf'),
+  'SUIT-Medium': require('@assets/fonts/SUIT-Medium.otf'),
+  'SUIT-Bold': require('@assets/fonts/SUIT-Bold.otf'),
+  'SUIT-Heavy': require('@assets/fonts/SUIT-Heavy.otf'),
+} as const;
+
+/** 줄 높이. 본문 1.45, 제목은 호출부에서 비율을 넘긴다 */
+export const leading = (size: number, ratio = 1.45) => Math.round(size * ratio);
+
 /** 버튼 높이 4단계(design-system 5.5장). 44 미만이면 히트 영역을 따로 넓힌다. */
-export const buttonHeight = { small: 32, medium: 40, large: 48, xlarge: 56 } as const;
+export const buttonHeight = { small: 33, medium: 40, large: 48, xlarge: 63 } as const;
 
 /** 터치 타깃 최소값(expo-app-conventions 2장) */
 export const MIN_TOUCH_TARGET = 44;
 
+/** 390 기준 본문 칼럼. 태블릿에서 글줄이 늘어지지 않게 가둔다 */
+export const CONTENT_MAX_WIDTH = 420;
+
 /** iOS/Android 그림자 API가 달라 둘 다 담는다 */
 export const shadow = {
   sm: {
-    shadowColor: '#151a23',
+    shadowColor: primitive.slate900,
     shadowOpacity: 0.08,
     shadowRadius: 3,
     shadowOffset: { width: 0, height: 1 },
     elevation: 1,
   },
   md: {
-    shadowColor: '#151a23',
+    shadowColor: primitive.slate900,
     shadowOpacity: 0.1,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 4 },
@@ -113,27 +222,33 @@ export const shadow = {
 
 /**
  * 날씨 6종의 의미 색. 05 캘린더 셀과 06 차트가 같은 색을 쓴다.
- * 색만으로 뜻을 전달하지 않는다 - 옆에 항상 이모지나 라벨이 붙는다(dataviz / ui-fundamentals).
+ * 색만으로 뜻을 전달하지 않는다 - 옆에 항상 아이콘이나 라벨이 붙는다(dataviz / ui-fundamentals).
+ * dataviz 팔레트 검증에서 이 6색은 범주형으로 **실패**한다(흐림 #b6bfc8 과 비 #8fa9c8 의 분리 부족).
+ * 그래서 라벨이 없는 자리에는 반드시 `WEATHER_ICON` 을 같이 둔다.
  */
 export type WeatherColors = Record<Weather, string>;
 
-const weatherLight: WeatherColors = {
-  SUNNY: '#e8a33d',
-  PARTLY_CLOUDY: '#7fa8d9',
-  CLOUDY: '#8b93a3',
-  RAIN: '#4f74b8',
-  SNOW: '#6fb5c7',
-  RAINBOW: primitive.brand500,
+const weather: WeatherColors = {
+  SUNNY: primitive.amber300,
+  PARTLY_CLOUDY: primitive.sand200,
+  CLOUDY: primitive.gray300,
+  RAIN: primitive.steel300,
+  SNOW: primitive.ice200,
+  RAINBOW: primitive.mauve300,
 };
 
-const weatherDark: WeatherColors = {
-  SUNNY: '#f0bd6b',
-  PARTLY_CLOUDY: '#9dc0e8',
-  CLOUDY: '#a7aebd',
-  RAIN: '#7d9cd9',
-  SNOW: '#8fd0e0',
-  RAINBOW: primitive.brand300,
-};
+/**
+ * 날씨 색은 **스킴에 따라 갈리지 않는다.** 여섯 색 모두 중간 밝기 파스텔이라 어두운 배경에서도
+ * 그대로 읽히고, 그 위에 얹히는 글자색(`weatherInk`)을 고정해 두었기 때문이다.
+ * 함수 모양은 유지해 호출부가 스킴 인자를 계속 넘길 수 있게 한다.
+ */
+export const weatherColorsFor = (_scheme: string | null | undefined) => weather;
 
-export const weatherColorsFor = (scheme: string | null | undefined) =>
-  scheme === 'dark' ? weatherDark : weatherLight;
+/** 탭바 아이콘의 색. 탭마다 다른 악센트 하나씩 */
+export const tabTint = {
+  index: primitive.blue400,
+  calendar: primitive.amber300,
+  graph: primitive.violet300,
+  community: primitive.sage300,
+  my: primitive.mauve300,
+} as const;

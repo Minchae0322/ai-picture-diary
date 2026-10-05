@@ -98,7 +98,7 @@ function buildCells(
 
 const styles = StyleSheet.create({
   week: { flexDirection: 'row' },
-  weekday: { flexBasis: `${100 / 7}%`, textAlign: 'center', fontSize: font.xs },
+  weekday: { flexBasis: `${100 / 7}%`, textAlign: 'center', fontSize: font.xs , fontFamily: font.regular},
   grid: { flexDirection: 'row', flexWrap: 'wrap' },
   cell: { flexBasis: `${100 / 7}%`, alignItems: 'center', paddingVertical: space[1], gap: 2 },
   mark: {
@@ -108,5 +108,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  day: { fontSize: font.xs },
+  day: { fontSize: font.xs , fontFamily: font.regular},
 });

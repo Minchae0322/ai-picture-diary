@@ -27,5 +27,5 @@ const styles = StyleSheet.create({
     paddingVertical: space[1],
     borderRadius: radius.full,
   },
-  text: { fontSize: font.xs, fontWeight: font.weightBold },
+  text: { fontSize: font.xs, fontFamily: font.bold },
 });

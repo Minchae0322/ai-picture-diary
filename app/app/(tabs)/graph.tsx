@@ -116,7 +116,7 @@ function labelOf(period: StatsPeriod): string {
 }
 
 const styles = StyleSheet.create({
-  cardTitle: { fontSize: font.base, fontWeight: font.weightBold },
-  cardSub: { fontSize: font.xs },
+  cardTitle: { fontSize: font.base, fontFamily: font.bold },
+  cardSub: { fontSize: font.xs , fontFamily: font.regular},
   words: { flexDirection: 'row', flexWrap: 'wrap', gap: space[2] },
 });

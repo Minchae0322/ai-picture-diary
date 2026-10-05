@@ -66,5 +66,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: radius.full,
   },
-  label: { fontSize: font.sm, fontWeight: font.weightMedium },
+  label: { fontSize: font.sm, fontFamily: font.medium },
 });

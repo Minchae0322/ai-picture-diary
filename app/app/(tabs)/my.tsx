@@ -96,5 +96,5 @@ function notReady(name: string) {
 }
 
 const styles = StyleSheet.create({
-  note: { fontSize: font.xs, textAlign: 'center', paddingHorizontal: space[4] },
+  note: { fontSize: font.xs, fontFamily: font.regular, textAlign: 'center', paddingHorizontal: space[4] },
 });

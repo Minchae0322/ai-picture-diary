@@ -19,8 +19,8 @@ export function GeneratingCard({ content }: { content: string }) {
 }
 
 const styles = StyleSheet.create({
-  quote: { fontSize: font.sm },
+  quote: { fontSize: font.sm , fontFamily: font.regular},
   loader: { flexDirection: 'row', alignItems: 'center', gap: space[3] },
-  title: { fontSize: font.base, fontWeight: font.weightBold },
-  sub: { fontSize: font.xs },
+  title: { fontSize: font.base, fontFamily: font.bold },
+  sub: { fontSize: font.xs , fontFamily: font.regular},
 });

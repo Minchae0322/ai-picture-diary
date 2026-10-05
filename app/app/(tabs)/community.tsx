@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
   wrap: { flex: 1 },
   content: { paddingHorizontal: space[4], gap: space[3] },
   header: { gap: space[3], marginBottom: space[1] },
-  hint: { fontSize: font.xs, lineHeight: 18 },
+  hint: { fontSize: font.xs, fontFamily: font.regular, lineHeight: 18 },
   footer: { paddingVertical: space[4] },
   fab: {
     position: 'absolute',
@@ -149,5 +149,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  fabLabel: { fontSize: font.base, fontWeight: font.weightBold },
+  fabLabel: { fontSize: font.base, fontFamily: font.bold },
 });

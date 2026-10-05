@@ -48,5 +48,5 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
     borderWidth: 1,
   },
-  text: { fontSize: font.sm, textAlignVertical: 'center', lineHeight: MIN_TOUCH_TARGET },
+  text: { fontSize: font.sm, fontFamily: font.regular, textAlignVertical: 'center', lineHeight: MIN_TOUCH_TARGET },
 });

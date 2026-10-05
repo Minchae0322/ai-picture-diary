@@ -40,7 +40,7 @@ export function ReportSheet({ visible, onClose, onSubmit }: Props) {
               { borderColor: colors.border, opacity: pressed ? 0.6 : 1 },
             ]}
           >
-            <Text style={{ color: colors.text, fontSize: font.base }}>{reason.label}</Text>
+            <Text style={{ color: colors.text, fontSize: font.base , fontFamily: font.regular}}>{reason.label}</Text>
           </Pressable>
         ))}
         <Pressable
@@ -48,7 +48,7 @@ export function ReportSheet({ visible, onClose, onSubmit }: Props) {
           accessibilityRole="button"
           style={({ pressed }) => [styles.row, { opacity: pressed ? 0.6 : 1 }]}
         >
-          <Text style={{ color: colors.textMuted, fontSize: font.base }}>취소</Text>
+          <Text style={{ color: colors.textMuted, fontSize: font.base , fontFamily: font.regular}}>취소</Text>
         </Pressable>
       </View>
     </Modal>
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: radius.xl,
     gap: space[1],
   },
-  title: { fontSize: font.base, fontWeight: font.weightBold, marginBottom: space[2] },
+  title: { fontSize: font.base, fontFamily: font.bold, marginBottom: space[2] },
   row: {
     minHeight: MIN_TOUCH_TARGET,
     justifyContent: 'center',

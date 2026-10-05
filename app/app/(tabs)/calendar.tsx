@@ -68,7 +68,7 @@ function MonthButton({ label, hint, onPress }: { label: string; hint: string; on
       accessibilityLabel={hint}
       style={({ pressed }) => [styles.monthButton, { opacity: pressed ? 0.5 : 1 }]}
     >
-      <Text style={{ color: colors.text, fontSize: font.lg }}>{label}</Text>
+      <Text style={{ color: colors.text, fontSize: font.lg , fontFamily: font.regular}}>{label}</Text>
     </Pressable>
   );
 }
@@ -92,6 +92,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  month: { fontSize: font.base, fontWeight: font.weightBold },
-  summaryTitle: { fontSize: font.sm, fontWeight: font.weightBold },
+  month: { fontSize: font.base, fontFamily: font.bold },
+  summaryTitle: { fontSize: font.sm, fontFamily: font.bold },
 });

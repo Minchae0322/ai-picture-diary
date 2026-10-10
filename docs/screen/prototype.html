@@ -53,6 +53,9 @@
      배경과 ΔE 10 이내인 픽셀은 어느 캐릭터도 1% 미만이다.
      바닐라 페이지 배경과는 ΔE 12.3 이라 면 자체로 경계가 보인다. 위에 글자가 오면 #253544 로 8.32:1 */
   --face-bg: #b8d7e7;
+  /* 면을 채우지 않는 입력창의 테두리. --border-strong(ΔE 5.3)은 바닐라에서 거의 안 보인다.
+     이 값은 ΔE 11.3 으로, 경계는 잡히고 선은 조용하다 */
+  --field-line: rgba(37,53,68,0.18);
   --e-HAPPY:#e3564f; --e-ENERGETIC:#d33b57; --e-SOSO:#dd4a3c;
   --e-SHY:#eda7ae; --e-EMBARRASSED:#e08a3c; --e-TIRED:#8a9e62;
   --e-SAD:#5b3f8f; --e-DEPRESSED:#3b3f7a; --e-ANGRY:#c2ba3e;
@@ -215,6 +218,23 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .stack { display: flex; flex-direction: column; gap: 12px; }
 .row { display: flex; align-items: center; gap: 12px; }
 .wrap { display: flex; flex-wrap: wrap; gap: 8px; }
+/* ---- 세기 게이지 ----
+   캡슐 하나에 네 칸. 가운데가 0 이고 고른 쪽으로 채워진다 */
+.gauge { display: flex; flex-direction: column; gap: 6px; }
+.g-track {
+  display: flex; height: 26px; border-radius: var(--r-full); overflow: hidden;
+  border: 1.5px solid var(--field-line);
+}
+.g-step { flex: 1; border: 0; background: none; padding: 0; }
+/* 칸 사이 눈금. 가운데(2번째 뒤)는 조금 진하게 - 0 이 어디인지 보여야 한다 */
+.g-step + .g-step { border-left: 1px solid var(--field-line); }
+.g-step:nth-child(3) { border-left: 1.5px solid var(--border-strong); }
+/* 고를 수 없는 쪽. 감추지 않고 회색으로 덮는다 - 왜 한쪽만 되는지 보여야 한다 */
+.g-step.off { cursor: default; background: var(--track); }
+.g-scale { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--muted); }
+.g-scale .off { opacity: .45; }
+.g-mid { display: grid; place-items: center; }
+
 
 .card {
   border-radius: var(--r-xl); border: 1.5px solid var(--border); padding: 20px;
@@ -231,6 +251,27 @@ button { font: inherit; color: inherit; cursor: pointer; }
   transition: background .15s ease, border-color .15s ease;
 }
 button.chip:hover { border-color: var(--primary); }
+/* 가로로 미는 칩 줄. 한 화면에 셋이 들어가고 넷째가 조금 걸쳐 보인다 -
+   걸쳐 보이는 것이 "더 있다"는 유일한 신호다. 딱 셋만 보이면 밀 생각을 안 한다.
+
+   **.chip 뒤에 와야 한다.** 특정도가 같아서 앞에 두면 .chip 의 padding 이 이긴다.
+   **min-width:0 이 필요하다.** 이 줄은 flex 세로 칸(.stack) 안에 있고,
+   flex 자식은 기본이 min-width:auto 라 내용보다 작아지지 않는다 - 그러면 줄이 늘어나기만 하고
+   overflow-x 가 발동하지 않는다. */
+.hchips {
+  display: flex; gap: 8px; min-width: 0; overflow-x: auto; scroll-snap-type: x proximity;
+  padding-bottom: 2px; margin: 0 -28px; padding-left: 28px; padding-right: 28px;
+  scrollbar-width: none;
+}
+.hchips::-webkit-scrollbar { display: none; }
+/* 끌어서 밀 때 글자가 선택되면 끌림이 끊긴다 */
+.hchips { user-select: none; -webkit-user-select: none; touch-action: pan-x; }
+.hchips > * {
+  flex: 0 0 30%; scroll-snap-align: start; justify-content: center;
+  /* 전역 .chip 보다 좁게. 그림이 라벨 옆에 붙어 있어 여백이 덜 필요하다 */
+  padding: 6px 8px; gap: 4px;
+}
+
 .chip i { width: 12px; height: 12px; border-radius: 50%; flex: none; }
 .chip[aria-pressed="true"] { background: var(--primary); border-color: var(--primary); color: var(--primary-fg); font-weight: 700; }
 .chip[aria-pressed="true"] i { box-shadow: 0 0 0 1.5px var(--primary-fg); }
@@ -338,13 +379,92 @@ button.chip:hover { border-color: var(--primary); }
   background: var(--surface); display: grid; place-content: center; justify-items: center; gap: 8px;
 }
 .canvas b { font-size: 44px; line-height: 1; font-weight: 900; color: var(--accent-soft); }
+/* 높이의 바닥은 안에 든 "기록" 버튼(.btn.sm 33px)이다.
+   패딩을 그 선까지 줄였다 - 더 줄이려면 버튼을 줄여야 하고 그러면 터치 타깃이 무너진다 */
+/* 11 로그인의 소셜 버튼.
+   **여기 마크는 임시 도형이다.** 애플과 구글은 공식 버튼 규정이 있다 -
+   애플은 지정 로고·문구·최소 높이(44pt)·허용 색(검정/흰색/외곽선)만 쓸 수 있고,
+   구글도 공식 4색 G 마크와 지정 색을 요구한다. 배포 전에 공식 에셋이나 SDK 버튼으로 바꾼다. */
+.btn.apple { background: #000000; color: #ffffff; box-shadow: none; }
+.btn.apple:hover { background: #1a1a1a; }
+.btn.google {
+  background: #ffffff; color: #1f1f1f;
+  border: 1.5px solid #dadce0; box-shadow: none;
+}
+.btn.google:hover { background: #f7f8f8; }
+.btn .mark { flex: none; }
+
+/* 또는 구분선 */
+.or { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 12px; }
+.or::before, .or::after { content: ""; flex: 1; height: 1px; background: var(--border-strong); }
+
+.btn.naver { background: #03c75a; color: #ffffff; box-shadow: none; }
+.btn.naver:hover { background: #02b351; }
+
+.login { display: flex; flex-direction: column; height: 100%; padding: 8px 20px 24px; gap: 12px; overflow-y: auto; }
+/* 카드를 쓰지 않는다. 폼이 페이지 배경 위에 그대로 앉는다 */
+.auth { display: flex; flex-direction: column; gap: 16px; }
+/* 세그먼트도 면을 비운다. 고른 쪽만 색이 찬다 */
+.auth .seg { display: flex; width: 100%; background: none; }
+.auth .seg button { flex: 1; min-width: 0; }
+
+/* 라벨 + 입력 한 묶음 */
+.fl { display: flex; align-items: baseline; justify-content: space-between; font-size: 13px; font-weight: 700; }
+.fl .aux { font-size: 12px; font-weight: 500; color: var(--muted); }
+/* 입력창. 면을 채우지 않고 테두리만 둔다 - 바닐라 배경이 그대로 보인다 */
+.field {
+  display: flex; align-items: center; gap: 10px; height: 50px; padding: 0 14px;
+  border-radius: var(--r-md); border: 1.5px solid var(--field-line); background: none;
+}
+.field:focus-within { border-color: var(--primary); }
+.field svg { flex: none; }
+.field input {
+  flex: 1; min-width: 0; border: 0; background: none; padding: 0; margin: 0;
+  font: inherit; font-size: 14px; color: var(--text);
+}
+.field input:focus { outline: none; }
+.field input::placeholder { color: var(--subtle); }
+.field .tog { border: 0; background: none; padding: 4px 2px; font-size: 12px; font-weight: 500; color: var(--muted); }
+.field .side { flex: none; height: 38px; padding: 0 14px; border-radius: var(--r-sm);
+  border: 1.5px solid var(--field-line); background: none; color: var(--primary);
+  font-size: 13px; font-weight: 700; }
+
+/* 체크박스. 네모는 장식이라 숨기고 진짜 input 을 위에 투명하게 덮는다 */
+/* 진짜 <input type="checkbox"> 를 쓴다. 켜짐/꺼짐, 키보드 조작, 스크린리더 낭독이
+   공짜로 따라온다 - 버튼에 aria-pressed 를 붙여 흉내 내지 않는다.
+   appearance:none 으로 기본 그림만 지우고 네모는 우리가 그린다 */
+.cbx { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text); }
+.cbx input {
+  appearance: none; -webkit-appearance: none;
+  width: 22px; height: 22px; flex: none; margin: 0;
+  border: 1.5px solid var(--field-line); border-radius: 7px; background: none;
+  display: grid; place-items: center; cursor: pointer;
+}
+.cbx input:checked { background: var(--primary); border-color: var(--primary); }
+/* 체크 표시. ::after 대신 배경 그림이라 어느 브라우저에서나 같게 나온다 */
+.cbx input:checked {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E");
+  background-size: 15px 15px; background-position: center; background-repeat: no-repeat;
+}
+.cbx input:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.cbx span { cursor: pointer; }
+/* 약관 줄도 박스를 두지 않는다 */
+.cbx.box { padding: 4px 0; }
+.cbx em { font-style: normal; font-weight: 700; color: var(--primary); }
+
+/* 이 화면은 버튼이 넉 줄이다. .btn.xl 의 63px 를 그대로 쓰면 화면을 다 먹는다.
+   52px 로 낮춘다 - 애플 버튼 최소 높이(44pt)는 지킨다 */
+.auth .btn.xl { height: 52px; font-size: 15px; }
+
+.login .terms { margin: 0; font-size: 11px; line-height: 1.5; color: var(--subtle); text-align: center; }
+
 .composer {
-  display: flex; align-items: flex-end; gap: 12px; min-height: 53px;
-  padding: 8px 8px 8px 20px; border-radius: var(--r-full);
+  display: flex; align-items: flex-end; gap: 10px; min-height: 46px;
+  padding: 6px 6px 6px 18px; border-radius: var(--r-full);
   border: 1.5px solid var(--border-strong); background: var(--surface-solid);
 }
 .composer textarea {
-  flex: 1; border: 0; background: none; resize: none; padding: 9px 0; margin: 0;
+  flex: 1; border: 0; background: none; resize: none; padding: 5px 0; margin: 0;
   font: inherit; font-size: 14px; line-height: 1.45; color: var(--text);
   max-height: 96px; field-sizing: content;
 }
@@ -356,6 +476,47 @@ button.chip:hover { border-color: var(--primary); }
   flex: 1; border: 1px solid var(--border); background: var(--surface); border-radius: 22px;
   display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px 8px;
 }
+/* ---- 12 일기 모음집 ----
+   공책처럼 한 장씩 넘긴다. 뒤에 겹친 종이 두 장을 깔아 "넘길 것이 더 있다"를 보인다 */
+.book { gap: 16px; }
+.leaf { position: relative; }
+/* 뒤에 겹쳐 보이는 종이. 포인터를 받지 않는다 */
+.leaf::before, .leaf::after {
+  content: ""; position: absolute; left: 10px; right: 10px; bottom: -6px; height: 18px;
+  border: 1.5px solid var(--border); border-top: 0;
+  border-radius: 0 0 var(--r-lg) var(--r-lg); background: var(--surface);
+  pointer-events: none; z-index: -1;
+}
+.leaf::after { left: 18px; right: 18px; bottom: -11px; opacity: .6; }
+.leaf > .card { gap: 12px; }
+.leaf .meta { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; }
+.leaf .meta .date { margin-left: auto; font-weight: 500; color: var(--muted); }
+.leaf .body { margin: 0; font-size: 15px; line-height: 1.6; white-space: pre-wrap; }
+.leaf textarea {
+  width: 100%; min-height: 96px; resize: none; padding: 12px 14px; margin: 0;
+  border-radius: var(--r-md); border: 1.5px solid var(--field-line); background: none;
+  font: inherit; font-size: 15px; line-height: 1.6; color: var(--text);
+}
+.leaf textarea:focus { outline: none; border-color: var(--primary); }
+
+/* 넘기는 줄. 가운데 쪽수, 양끝 화살표 */
+.pager { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.pager button {
+  width: 44px; height: 44px; flex: none; border-radius: var(--r-full);
+  border: 1.5px solid var(--field-line); background: none; color: var(--text); font-size: 18px;
+}
+.pager button:disabled { opacity: .35; }
+.pager .count { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* 섹션 머리줄. 제목은 왼쪽, 더보기는 오른쪽 끝 */
+.sec-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+/* <button> 이라 면과 테두리를 직접 지운다(전역 리셋은 font/color/cursor 만 지운다) */
+.more {
+  border: 0; background: none; padding: 4px 0; margin: -4px 0;
+  font-size: 13px; font-weight: 500; color: var(--muted); white-space: nowrap;
+}
+.more:hover { color: var(--primary); }
+
 .recent .thumb { width: 100%; height: 78px; border-radius: var(--r-md); display: grid; place-items: center;
   background: var(--face-bg); border: 1px solid var(--border); }
 .recent b { font-size: 12px; font-weight: 700; }
@@ -668,7 +829,7 @@ button.chip:hover { border-color: var(--primary); }
 'use strict';
 
 /* =========================================================================
-   도메인 상수 - app/src/shared/weather/weather.ts 와 같은 값
+   도메인 상수 - app/src/shared/emotion.ts 와 같은 값
    ========================================================================= */
 // 감정 9종. 밝은 쪽에서 어두운 쪽으로 - 06 그래프의 세로축 순서이자 칩이 놓이는 순서다
 const EMOTIONS = ['HAPPY', 'ENERGETIC', 'SOSO', 'SHY', 'EMBARRASSED', 'TIRED', 'SAD', 'DEPRESSED', 'ANGRY'];
@@ -677,7 +838,25 @@ const LABEL = { HAPPY:'행복한', ENERGETIC:'활기찬', SOSO:'무난한', SHY:
 // 어떤 과일인지. 라벨 옆에 덧붙이지 않고 설명에서만 쓴다
 const FRUIT = { HAPPY:'딸기', ENERGETIC:'체리', SOSO:'토마토', SHY:'복숭아', EMBARRASSED:'당근',
                 TIRED:'아보카도', SAD:'가지', DEPRESSED:'블루베리', ANGRY:'키위' };
-const QUICK = ['HAPPY', 'SOSO', 'TIRED', 'SAD'];
+/**
+ * 감정의 극성. 세기 게이지에서 어느 쪽을 고를 수 있는지를 정한다.
+ *
+ *   '+'  긍정이라 오른쪽만      '-'  부정이라 왼쪽만
+ *   '+-' 양쪽 다 (부끄러움은 설렘일 수도, 민망함일 수도 있다)
+ *   '0'  기준점. 무난함은 세기가 없다 - 토마토가 0 그 자체다
+ */
+const POLARITY = {
+  HAPPY: '+', ENERGETIC: '+', SHY: '+-', SOSO: '0',
+  EMBARRASSED: '-', TIRED: '-', SAD: '-', DEPRESSED: '-', ANGRY: '-',
+};
+const allows = (emotion, level) => {
+  const p = POLARITY[emotion];
+  if (p === '0') return false;
+  return level > 0 ? p.includes('+') : p.includes('-');
+};
+
+/** 빠른 감정 선택. 아홉 종을 다 두고 가로로 민다 - 넷만 두면 나머지를 고를 길이 없다 */
+const QUICK = EMOTIONS;
 const MOOD_MIN = -3, MOOD_MAX = 3;
 const MAX_LENGTH = 500, COUNTER_FROM = 450, REGEN_LIMIT = 3;
 
@@ -707,6 +886,16 @@ const SEED_RECENT = [
   { id:'r1', d:-1, e:'HAPPY', c:'햇살 가득한 하루' },
   { id:'r2', d:-2, e:'SAD', c:'비 오는 날' },
   { id:'r3', d:-3, e:'SHY', c:'설레는 밤' },
+];
+
+/** 12 모음집의 본문. 날짜마다 돌아가며 붙인다 - 프로토타입이라 글은 지어낸 것이다 */
+const BOOK_LINES = [
+  '오늘 팀 회의가 잘 끝나서 마음이 가벼웠다. 돌아오는 길에 하늘이 유난히 맑아 보였다.',
+  '아무것도 안 한 날. 그래도 괜찮다고 스스로에게 말해 줬다.',
+  '오랜만에 친구를 만나 실컷 웃었다. 이런 날이 더 자주 있었으면.',
+  '퇴근길에 비를 맞았다. 우산을 안 챙긴 내가 미웠지만 금방 잊었다.',
+  '새벽까지 잠이 오지 않았다. 생각이 많은 밤이었다.',
+  '별일 없는 하루. 별일 없는 게 다행인 날도 있다.',
 ];
 
 const BADGES = [
@@ -770,9 +959,15 @@ const S = {
   route: 'tabs',          // 'onboarding' | 'tabs'
   tab: 'home',
   push: null,             // null | 'badges' | 'store'
-  diary: null,            // {content, hint, status, weather, mood, comment, regen, seed}
+  diary: null,            // {content, hint, hintLevel, status, emotion, mood, comment, regen, seed}
   draft: '',
   hint: null,
+  /** 세기. -2 ~ 2, 0 은 기준 */
+  hintLevel: 0,
+  // 11 로그인. 인증이 없어 값은 화면 안에서만 산다
+  auth: { tab: 'login', email: '', pw: '', pw2: '', remember: true, agree: false, show: false },
+  // 12 모음집. edits 는 고친 본문을 날짜별로 덮어쓴다(프로토타입 안에서만 산다)
+  book: { i: 0, editing: false, edits: {} },
   recent: SEED_RECENT.map((r) => {
     const d = new Date(today); d.setDate(d.getDate() + r.d);
     return { id:r.id, date: iso(d.getFullYear(), d.getMonth()+1, d.getDate()), e:r.e, c:r.c };
@@ -841,8 +1036,113 @@ function viewOnboarding() {
       <div class="cta-stage">
         <button class="btn xl glass" data-act="start"><span>무료로 시작하기</span></button>
       </div>
-      <button class="link" data-act="start" style="text-align:center">이미 계정이 있어요</button>
+      <button class="link" data-act="login" style="text-align:center">이미 계정이 있어요</button>
       <span class="dots"><i class="on"></i><i></i><i></i></span>
+    </div>
+  </div></div>`;
+}
+
+/* ---------------- 11 로그인 ---------------- */
+/* 마크는 임시 도형이다(위 .btn.apple 주석). currentColor 를 써서 버튼 글자색을 따라간다 */
+const NAVER_MARK = `<svg class="mark" width="15" height="15" viewBox="0 0 24 24" aria-hidden="true">
+  <path fill="currentColor" d="M15.1 12.5 8.6 3H3v18h5.9v-9.5L15.4 21H21V3h-5.9v9.5z"/>
+</svg>`;
+/** 앱 로고 자리. 지금은 글자만 쓰고 그림은 온보딩 히어로가 맡는다 */
+const APPLE_MARK = `<svg class="mark" width="17" height="17" viewBox="0 0 24 24" aria-hidden="true">
+  <path fill="currentColor" d="M16.3 12.8c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.9-3.5.9-.7 0-1.8-.8-3-.8-1.5 0-3 .9-3.8 2.3-1.6 2.8-.4 7 1.2 9.3.8 1.1 1.7 2.4 2.9 2.3 1.2 0 1.6-.7 3-.7s1.8.7 3 .7c1.3 0 2.1-1.1 2.8-2.3.9-1.3 1.3-2.6 1.3-2.6s-2.5-1-2.5-3.8z"/>
+  <path fill="currentColor" d="M14.3 5.9c.6-.8 1-1.9.9-3-.9 0-2 .6-2.7 1.4-.6.7-1.1 1.8-.9 2.9 1 .1 2-.5 2.7-1.3z"/>
+</svg>`;
+const GOOGLE_MARK = `<svg class="mark" width="17" height="17" viewBox="0 0 24 24" aria-hidden="true">
+  <path fill="#4285f4" d="M21.6 12.2c0-.7-.1-1.3-.2-1.9H12v3.7h5.4a4.6 4.6 0 0 1-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.3z"/>
+  <path fill="#34a853" d="M12 22c2.7 0 5-.9 6.6-2.5l-3.2-2.5c-.9.6-2 1-3.4 1-2.6 0-4.8-1.8-5.6-4.1H3.1v2.6A10 10 0 0 0 12 22z"/>
+  <path fill="#fbbc05" d="M6.4 13.9a6 6 0 0 1 0-3.8V7.5H3.1a10 10 0 0 0 0 9l3.3-2.6z"/>
+  <path fill="#ea4335" d="M12 5.9c1.5 0 2.8.5 3.8 1.5l2.8-2.8A10 10 0 0 0 3.1 7.5l3.3 2.6C7.2 7.7 9.4 5.9 12 5.9z"/>
+</svg>`;
+
+const MAIL_ICON = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+  <path d="M3.5 6.5h17v11h-17zM3.5 7l8.5 6 8.5-6" stroke="var(--subtle)" stroke-width="1.8" stroke-linejoin="round"/></svg>`;
+const LOCK_ICON = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+  <path d="M5.5 11h13v9h-13z" stroke="var(--subtle)" stroke-width="1.8" stroke-linejoin="round"/>
+  <path d="M8.5 11V8.4a3.5 3.5 0 0 1 7 0V11" stroke="var(--subtle)" stroke-width="1.8" stroke-linecap="round"/></svg>`;
+
+function authTabs() {
+  const t = (id, label) =>
+    `<button data-act="auth-tab" data-v="${id}" aria-pressed="${S.auth.tab === id}">${label}</button>`;
+  return `<div class="seg" role="group" aria-label="로그인 또는 회원가입">${t('login', '로그인')}${t('signup', '회원가입')}</div>`;
+}
+
+function checkbox(key, label, boxed) {
+  // label 로 감싸면 글자를 눌러도 켜진다. for/id 를 맞출 필요가 없다
+  return `<label class="cbx${boxed ? ' box' : ''}">
+    <input type="checkbox" data-auth-check="${key}"${S.auth[key] ? ' checked' : ''}>
+    <span>${label}</span></label>`;
+}
+
+/** 간편 로그인 3종. **로고와 색은 각 브랜드 규정값이다** - 우리 토큰으로 바꾸지 않는다 */
+function socialBlock() {
+  return `
+    <span class="or">또는 간편 로그인</span>
+    <button class="btn xl apple" data-act="signin" data-v="Apple">${APPLE_MARK}Apple로 시작하기</button>
+    <button class="btn xl google" data-act="signin" data-v="Google">${GOOGLE_MARK}Google</button>
+    <button class="btn xl naver" data-act="signin" data-v="Naver">${NAVER_MARK}Naver</button>`;
+}
+
+function viewLogin() {
+  const a = S.auth;
+  const loginReady = a.email.trim() !== '' && a.pw !== '';
+  const signupReady = a.email.trim() !== '' && a.pw.length >= 8 && a.pw === a.pw2 && a.agree;
+
+  const body = a.tab === 'login'
+    ? `
+      <div class="stack" style="gap:8px">
+        <label class="fl" for="auth-email">이메일 주소</label>
+        <div class="field">${MAIL_ICON}
+          <input id="auth-email" data-auth="email" type="text" inputmode="email" autocomplete="email"
+                 placeholder="name@example.com" value="${esc(a.email)}"></div>
+      </div>
+      <div class="stack" style="gap:8px">
+        <span class="fl"><label for="auth-pw">비밀번호</label>
+          <button class="aux" data-act="soon" data-v="비밀번호 찾기" style="border:0;background:none;padding:0">비밀번호 찾기</button></span>
+        <div class="field">${LOCK_ICON}
+          <input id="auth-pw" data-auth="pw" type="${a.show ? 'text' : 'password'}" autocomplete="current-password"
+                 placeholder="비밀번호" value="${esc(a.pw)}">
+          <button class="tog" data-act="auth-toggle" data-v="show">${a.show ? '숨김' : '표시'}</button></div>
+      </div>
+      ${checkbox('remember', '아이디 저장')}
+      <button class="btn xl" id="auth-submit" data-act="signin" data-v="이메일"${loginReady ? '' : ' disabled'}>로그인</button>
+      ${socialBlock()}`
+    : `
+      <div class="stack" style="gap:8px">
+        <label class="fl" for="auth-email">이메일 주소</label>
+        <div class="field">${MAIL_ICON}
+          <input id="auth-email" data-auth="email" type="text" inputmode="email" autocomplete="email"
+                 placeholder="name@example.com" value="${esc(a.email)}">
+          <button class="side" data-act="soon" data-v="인증번호 전송">인증번호 전송</button></div>
+      </div>
+      <div class="stack" style="gap:8px">
+        <label class="fl" for="auth-pw">비밀번호</label>
+        <div class="field">${LOCK_ICON}
+          <input id="auth-pw" data-auth="pw" type="${a.show ? 'text' : 'password'}" autocomplete="new-password"
+                 placeholder="8자 이상, 영문/숫자/특수문자" value="${esc(a.pw)}">
+          <button class="tog" data-act="auth-toggle" data-v="show">${a.show ? '숨김' : '표시'}</button></div>
+      </div>
+      <div class="stack" style="gap:8px">
+        <label class="fl" for="auth-pw2">비밀번호 확인</label>
+        <div class="field">${LOCK_ICON}
+          <input id="auth-pw2" data-auth="pw2" type="${a.show ? 'text' : 'password'}" autocomplete="new-password"
+                 placeholder="비밀번호를 다시 한 번 입력하세요" value="${esc(a.pw2)}"></div>
+        ${a.pw2 !== '' && a.pw !== a.pw2 ? '<p class="mut" style="font-size:12px;color:var(--danger)">비밀번호가 서로 달라요</p>' : ''}
+      </div>
+      ${checkbox('agree', '<em>이용약관</em> 및 <em>개인정보처리방침</em>에 동의합니다.', true)}
+      <button class="btn xl" id="auth-submit" data-act="signup-submit"${signupReady ? '' : ' disabled'}>계정 생성하기</button>
+      ${socialBlock()}`;
+
+  return `<div class="view"><div class="login">
+    <button class="link" data-act="to-onboarding" aria-label="뒤로" style="font-size:16px">←</button>
+    <div class="auth">
+      ${authTabs()}
+      ${body}
+      <p class="terms">계속하면 이용약관과 개인정보처리방침에<br>동의하는 것으로 봅니다.</p>
     </div>
   </div></div>`;
 }
@@ -884,7 +1184,8 @@ function composerBlock() {
   </div>
   <div class="stack">
     <h3 class="h3">빠른 감정 선택</h3>
-    <div class="wrap">${QUICK.map((e) => chip(LABEL[e], { emotion: e, on: S.hint === e, act:'hint', v:e })).join('')}</div>
+    <div class="hchips">${QUICK.map((e) => chip(LABEL[e], { emotion: e, on: S.hint === e, act:'hint', v:e })).join('')}</div>
+    ${S.hint ? gauge(S.hint) : ''}
   </div>`;
 }
 
@@ -909,11 +1210,10 @@ function resultBlock(d) {
     ${face(d.emotion, 28)} ${LABEL[d.emotion]} · 기분 ${mood(d.mood)}
   </span>
   <p style="margin:0;font-size:17px;line-height:1.45;font-weight:500">“${esc(d.content)}”</p>
-  <p class="mut">AI 코멘트 · ${esc(d.comment)}</p>
   <div class="actions">
-    <button class="btn soft" data-act="regen"${left > 0 ? '' : ' disabled'} title="${left > 0 ? `오늘 ${left}번 남음` : '오늘은 더 다시 그릴 수 없어요'}">다시 그리기</button>
-    <button class="btn soft" disabled title="생성과 동시에 저장돼요">저장하기</button>
-    <button class="btn soft" data-act="share">공유</button>
+    <button class="btn soft" data-act="regen"${left > 0 ? '' : ' disabled'} title="${left > 0 ? `오늘 ${left}번 남음` : '오늘은 더 다시 그릴 수 없어요'}">다시그리기</button>
+    <button class="btn soft" data-act="save-image">저장</button>
+    <button class="btn soft" data-act="upload">업로드</button>
   </div>
   <p class="sub">다시 그리기는 하루 ${REGEN_LIMIT}번. ${left}번 남았어요.</p>
   ${STATS.streakDays === 14 ? `<div class="card flat" style="flex-direction:row;align-items:center;gap:12px;padding:16px 20px">
@@ -922,10 +1222,44 @@ function resultBlock(d) {
   </div>` : ''}`;
 }
 
+/**
+ * 세기 게이지. 가운데가 0(토마토 자리)이고 양옆으로 1, 2 칸이다.
+ *
+ * 칸을 누르면 가운데에서 그 칸까지 채워진다 - 막대 하나가 "얼마나"를 한눈에 말한다.
+ * 고를 수 없는 쪽은 눌리지 않고 흐리게 둔다. 감춰 버리면 왜 한쪽만 있는지 알 수 없다.
+ */
+function gauge(emotion) {
+  const level = S.hintLevel;
+  const step = (v) => {
+    const on = level !== 0 && (v > 0 ? level >= v : level <= v);
+    const can = allows(emotion, v);
+    return `<button class="g-step${on ? ' on' : ''}${can ? '' : ' off'}"
+      data-act="${can ? 'level' : 'noop'}" data-v="${v}"
+      style="${on ? `background:${ec(emotion)}` : ''}"
+      aria-label="${v > 0 ? '+' : ''}${v}" aria-pressed="${on}"${can ? '' : ' disabled'}></button>`;
+  };
+  return `<div class="gauge" role="group" aria-label="${LABEL[emotion]} 세기">
+    <div class="g-track">${step(-2)}${step(-1)}${step(1)}${step(2)}</div>
+    <div class="g-scale">
+      <span class="${allows(emotion, -2) ? '' : 'off'}">-2</span>
+      <span class="${allows(emotion, -1) ? '' : 'off'}">-1</span>
+      <span class="g-mid">${face(emotion, 22)}</span>
+      <span class="${allows(emotion, 1) ? '' : 'off'}">1</span>
+      <span class="${allows(emotion, 2) ? '' : 'off'}">2</span>
+    </div>
+    ${POLARITY[emotion] === '0'
+      ? '<p class="sub" style="text-align:center">무난함이 기준점이에요</p>'
+      : ''}
+  </div>`;
+}
+
 function recentBlock() {
   if (S.recent.length === 0) return '';
   return `<div class="stack">
-    <h3 class="h3">최근 기록</h3>
+    <div class="sec-head">
+      <h3 class="h3">최근 기록</h3>
+      <button class="more" data-act="open-book">더보기 ›</button>
+    </div>
     <div class="recent">${S.recent.map((r) => `
       <button data-act="recent" data-v="${r.id}">
         <span class="thumb">${face(r.e, 58)}</span>
@@ -933,6 +1267,79 @@ function recentBlock() {
         <small>${esc(r.c)}</small>
       </button>`).join('')}</div>
   </div>`;
+}
+
+/* ---------------- 12 일기 모음집 ---------------- */
+/** 캘린더와 같은 생성기를 쓴다. 두 화면이 서로 다른 기록을 보이면 안 된다 */
+function bookPages() {
+  const out = [];
+  const { y, m } = { y: today.getFullYear(), m: today.getMonth() + 1 };
+  for (const [ym, mm] of [[y, m], m === 1 ? [y - 1, 12] : [y, m - 1]]) {
+    for (const [date, emotion] of monthEntries(ym, mm)) {
+      if (date > iso(y, m, today.getDate())) continue;   // 미래는 기록이 없다
+      out.push({ date, emotion });
+    }
+  }
+  out.sort((a, b) => (a.date < b.date ? 1 : -1));        // 최신이 첫 장
+  return out.map((p, i) => ({
+    ...p,
+    mood: MOOD_OF[p.emotion],
+    content: S.book.edits[p.date] ?? BOOK_LINES[i % BOOK_LINES.length],
+  }));
+}
+
+/** 감정마다 기분 점수. 규칙 기반 대역이 쓰는 표와 같은 값이다 */
+const MOOD_OF = RULES.reduce((acc, r) => ({ ...acc, [r.e]: r.m }), { SOSO: 1 });
+
+function bookHead() {
+  return `<div class="stack" style="gap:8px">
+    <button class="link" data-act="back" aria-label="뒤로" style="font-size:16px">←</button>
+    <h2 class="h1">일기 모음집</h2>
+    <p class="mut" style="font-size:14px">공책처럼 한 장씩 넘겨 보세요</p>
+  </div>`;
+}
+
+function viewBook() {
+  const pages = bookPages();
+  if (pages.length === 0) {
+    return `${status()}
+    <div class="view"><div class="pad book">
+      ${bookHead()}
+      <div class="card"><p class="mut">아직 기록이 없어요</p></div>
+    </div></div>`;
+  }
+  const i = Math.min(S.book.i, pages.length - 1);
+  const p = pages[i];
+  const d = new Date(p.date);
+  const WEEK = ['일', '월', '화', '수', '목', '금', '토'];
+  const label = `${d.getMonth() + 1}/${d.getDate()}(${WEEK[d.getDay()]})`;
+
+  return `${status()}
+  <div class="view"><div class="pad book">
+    ${bookHead()}
+    <div class="leaf">
+      <div class="card">
+        ${artwork(p.emotion, i)}
+        <div class="meta">
+          ${face(p.emotion, 28)}<span>${LABEL[p.emotion]}</span><span class="mut">· 기분 ${mood(p.mood)}</span>
+          <span class="date">${label}</span>
+        </div>
+        ${S.book.editing
+          ? `<textarea id="book-edit" maxlength="${MAX_LENGTH}">${esc(p.content)}</textarea>
+             <div class="actions">
+               <button class="btn sm" data-act="book-save">저장</button>
+               <button class="btn sm soft" data-act="book-cancel">취소</button>
+             </div>`
+          : `<p class="body">${esc(p.content)}</p>
+             <button class="btn sm soft" data-act="book-edit" style="align-self:flex-start">내용 수정</button>`}
+      </div>
+    </div>
+    <div class="pager">
+      <button data-act="book-prev" aria-label="이전 기록"${i >= pages.length - 1 ? ' disabled' : ''}>‹</button>
+      <span class="count">${i + 1} / ${pages.length}</span>
+      <button data-act="book-next" aria-label="다음 기록"${i <= 0 ? ' disabled' : ''}>›</button>
+    </div>
+  </div></div>`;
 }
 
 /* ---------------- 05 캘린더 ---------------- */
@@ -1208,8 +1615,10 @@ function viewMy() {
    ========================================================================= */
 function screenHtml() {
   if (S.route === 'onboarding') return viewOnboarding();
+  if (S.route === 'login') return viewLogin();
   if (S.push === 'badges') return viewBadges();
   if (S.push === 'store') return viewStore();
+  if (S.push === 'book') return viewBook();
   return { home: viewHome, calendar: viewCalendar, graph: viewGraph, community: viewCommunity, my: viewMy }[S.tab]();
 }
 
@@ -1229,17 +1638,47 @@ function overlays() {
 const phone = document.getElementById('phone');
 const stage = document.getElementById('stage');
 
+/**
+ * 지금 어느 화면인가. **같은 화면을 다시 그릴 때만** 스크롤 위치를 되돌린다 -
+ * 화면이 바뀌었는데 되돌리면 엉뚱한 자리에서 시작한다.
+ */
+function screenKey() {
+  return [S.route, S.tab, S.push, S.route === 'login' ? S.auth.tab : ''].join('|');
+}
+let lastKey = screenKey();
+
 function render() {
   if (S.mode === 'all') { renderAll(); return; }
   const active = document.activeElement;
-  const keepFocus = active && active.id === 'draft';
+  // 다시 그리면 포커스가 날아간다. id 를 들고 있다가 되돌려 준다(작성창과 로그인 폼)
+  const keepFocus = active && active.id && /^(INPUT|TEXTAREA)$/.test(active.tagName);
+  const focusId = keepFocus ? active.id : null;
   const caret = keepFocus ? active.selectionStart : 0;
 
-  phone.innerHTML = screenHtml() + overlays();
+  // 스크롤 위치도 날아간다. 감정을 고르면 칩 줄이 맨 앞으로 돌아가 다음 것을 고를 수 없었다
+  const prevKey = lastKey;
+  const strip = phone.querySelector('.hchips');
+  const stripLeft = strip ? strip.scrollLeft : 0;
+  const view = phone.querySelector('.view');
+  const viewTop = view ? view.scrollTop : 0;
 
-  if (keepFocus) {
-    const next = document.getElementById('draft');
-    if (next) { next.focus(); next.setSelectionRange(caret, caret); }
+  phone.innerHTML = screenHtml() + overlays();
+  lastKey = screenKey();
+
+  if (lastKey === prevKey) {
+    const nextStrip = phone.querySelector('.hchips');
+    if (nextStrip) nextStrip.scrollLeft = stripLeft;
+    const nextView = phone.querySelector('.view');
+    if (nextView) nextView.scrollTop = viewTop;
+  }
+
+  if (focusId) {
+    const next = document.getElementById(focusId);
+    if (next) {
+      next.focus();
+      // email·number 입력은 setSelectionRange 를 지원하지 않아 예외를 던진다
+      try { next.setSelectionRange(caret, caret); } catch { /* 캐럿은 끝에 둔다 */ }
+    }
   }
 }
 
@@ -1248,6 +1687,8 @@ function renderAll() {
   const snapshot = JSON.parse(JSON.stringify({ route:S.route, tab:S.tab, push:S.push, diary:S.diary, draft:S.draft, hint:S.hint, calSel:S.calSel, toast:S.toast, sheet:S.sheet }));
   const frames = [
     ['01', '온보딩 / 시작', '', () => { S.route = 'onboarding'; }],
+    ['11', '로그인', '01의 \"이미 계정이 있어요\"', () => { S.route = 'login'; }],
+    ['12', '일기 모음집', '02의 더보기. 공책처럼 넘긴다', () => { S.route='tabs'; S.tab='home'; S.push='book'; S.book={i:0,editing:false,edits:{}}; }],
     ['02', '홈 · 오늘 기록 전', '', () => { S.route='tabs'; S.tab='home'; S.push=null; S.diary=null; }],
     ['03', 'AI 생성 중', '진행률 대신 불확정 막대', () => { S.diary = { content:'오늘 팀 회의가 잘 끝나서 마음이 가볍다', status:'GENERATING' }; }],
     ['04', '오늘의 결과', '', () => { S.diary = { content:'오늘 팀 회의가 잘 끝나서 마음이 가볍다', status:'DONE', emotion:'HAPPY', mood:2, comment:'성취감이 느껴지는 하루였네요. 이런 날은 오래 기억돼요.', regen:0, seed:0 }; }],
@@ -1276,14 +1717,19 @@ function renderAll() {
 function startGenerating() {
   const text = S.draft.trim();
   if (!text) return;
-  S.diary = { content: text, hint: S.hint, status: 'GENERATING', regen: 0, seed: 0 };
-  S.draft = ''; S.hint = null;
+  S.diary = { content: text, hint: S.hint, hintLevel: S.hintLevel, status: 'GENERATING', regen: 0, seed: 0 };
+  S.draft = ''; S.hint = null; S.hintLevel = 0;
   render();
   clearTimeout(genTimer);
   genTimer = setTimeout(() => {
     const judged = paint(S.diary.content);
+    // 사용자가 세기를 골랐으면 그 값이 이긴다 - 직접 고른 것을 대역이 덮어쓰지 않는다
+    if (S.diary.hint && S.diary.hintLevel !== 0) {
+      judged.emotion = S.diary.hint;
+      judged.mood = S.diary.hintLevel;
+    }
     Object.assign(S.diary, judged, { status: 'DONE' });
-    S.recent = [{ id:'today', date: TODAY_ISO, w: judged.weather, c: S.diary.content }, ...S.recent].slice(0, 3);
+    S.recent = [{ id:'today', date: TODAY_ISO, e: judged.emotion, c: S.diary.content }, ...S.recent].slice(0, 3);
     render();
   }, 2200);
 }
@@ -1305,12 +1751,55 @@ function regenerate() {
 
 const ACTIONS = {
   start: () => { S.route = 'tabs'; S.tab = 'home'; },
+  login: () => { S.route = 'login'; },
+  'auth-tab': (v) => { S.auth.tab = v; },
+  // 비밀번호 표시 토글. 체크박스 둘은 진짜 input 이라 change 로 처리한다
+  'auth-toggle': (v) => { S.auth[v] = !S.auth[v]; },
+  'signup-submit': () => { S.route = 'tabs'; S.tab = 'home'; toast('회원가입은 아직 붙지 않았어요'); },
+  'to-onboarding': () => { S.route = 'onboarding'; },
+  // 인증이 아직 없다. 어느 쪽을 눌러도 홈으로 보내고 그 사실을 알린다
+  signin: (v) => { S.route = 'tabs'; S.tab = 'home'; toast(v + ' 로그인은 아직 붙지 않았어요'); },
   tab: (v) => { S.tab = v; S.push = null; },
-  back: () => { S.push = null; },
-  hint: (v) => { S.hint = S.hint === v ? null : v; },
+  back: () => { S.push = null; S.book.editing = false; },
+  'open-book': () => { S.push = 'book'; S.book.i = 0; S.book.editing = false; },
+  'book-prev': () => { S.book.i += 1; S.book.editing = false; },   // 뒤로 갈수록 과거다
+  'book-next': () => { S.book.i -= 1; S.book.editing = false; },
+  'book-edit': () => { S.book.editing = true; },
+  'book-cancel': () => { S.book.editing = false; },
+  'book-save': () => {
+    const box = document.getElementById('book-edit');
+    if (box) S.book.edits[bookPages()[S.book.i].date] = box.value;
+    S.book.editing = false;
+    toast('고친 내용을 저장했어요');
+  },
+  hint: (v) => {
+    S.hint = S.hint === v ? null : v;
+    S.hintLevel = 0;   // 감정을 바꾸면 세기는 기준으로 돌아간다
+  },
+  level: (v) => {
+    const next = Number(v);
+    S.hintLevel = S.hintLevel === next ? 0 : next;   // 같은 칸을 또 누르면 해제
+  },
+  noop: () => {},
   write: () => startGenerating(),
   regen: () => regenerate(),
-  share: () => { S.tab = 'community'; S.push = null; toast('공유 작성 화면은 아직 없어 피드로 왔어요'); },
+  // 기기 사진첩에 내려받는다. 웹 프로토타입에서는 알림만 띄운다
+  'save-image': () => toast('이미지를 저장했어요'),
+  /**
+   * 커뮤니티 업로드. **공개 범위를 먼저 묻는다.**
+   * 올린 뒤에 바꾸게 하면 그 사이에 이미 남이 본다 - 올리기 전에 고르는 것이 순서다.
+   */
+  upload: () => {
+    S.sheet = {
+      title: '커뮤니티에 올릴까요?',
+      body: '공개로 올리면 피드에서 누구나 볼 수 있어요. 비공개는 나만 봅니다.',
+      options: [
+        { label: '공개로 올리기', run: () => { S.tab = 'community'; S.push = null; render(); toast('공개로 올렸어요'); } },
+        { label: '비공개로 저장', run: () => toast('비공개로 저장했어요. 나만 볼 수 있어요') },
+        { label: '취소', run: () => {} },
+      ],
+    };
+  },
   recent: () => toast('과거 날짜 상세 화면은 아직 없어요'),
   month: (v) => {
     const z = S.cal.m - 1 + Number(v);
@@ -1369,7 +1858,48 @@ const ACTIONS = {
   },
 };
 
+/**
+ * 가로로 미는 줄을 **마우스로도** 밀 수 있게 한다.
+ *
+ * <p>스크롤바를 감춰 두어서(디자인상 필요하다) 데스크톱에서는 밀 방법이 없었다.
+ * 폰에서는 손가락이 알아서 밀지만, 이 프로토타입은 주로 데스크톱에서 본다.
+ * 그래서 끌기와 세로 휠을 가로 스크롤로 옮긴다.
+ */
+let dragged = false;
+
+phone.addEventListener('pointerdown', (e) => {
+  const strip = e.target.closest('.hchips');
+  if (!strip) return;
+  const startX = e.clientX;
+  const startLeft = strip.scrollLeft;
+  dragged = false;
+
+  const move = (ev) => {
+    const dx = ev.clientX - startX;
+    if (Math.abs(dx) > 3) dragged = true;
+    strip.scrollLeft = startLeft - dx;
+  };
+  const up = () => {
+    window.removeEventListener('pointermove', move);
+    // 끌고 손을 뗀 **다음** 클릭까지만 막는다. 그 뒤의 클릭은 정상 선택이다
+    if (dragged) setTimeout(() => { dragged = false; }, 0);
+  };
+  window.addEventListener('pointermove', move);
+  window.addEventListener('pointerup', up, { once: true });
+});
+
+// 세로 휠을 가로로. 가로 휠(트랙패드)은 브라우저에 맡긴다
+phone.addEventListener('wheel', (e) => {
+  const strip = e.target.closest('.hchips');
+  if (!strip) return;
+  if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+  strip.scrollLeft += e.deltaY;
+  e.preventDefault();
+}, { passive: false });
+
 phone.addEventListener('click', (e) => {
+  // 밀고 나서 손을 뗀 자리의 클릭은 선택이 아니다
+  if (dragged) { dragged = false; return; }
   const el = e.target.closest('[data-act]');
   if (!el || el.disabled) return;
   // 시트 배경을 눌렀을 때만 닫히게 한다. 시트 안쪽 클릭은 통과시키지 않는다
@@ -1381,7 +1911,30 @@ phone.addEventListener('click', (e) => {
   if (el.dataset.act !== 'sheet-opt' || before !== JSON.stringify(S.sheet)) render();
 });
 
+/** 로그인 폼의 제출 버튼은 입력이 바뀔 때마다 직접 여닫는다. 다시 그리면 포커스가 날아간다 */
+function refreshAuthSubmit() {
+  const submit = document.getElementById('auth-submit');
+  if (!submit) return;
+  const a = S.auth;
+  submit.disabled = a.tab === 'login'
+    ? a.email.trim() === '' || a.pw === ''
+    : a.email.trim() === '' || a.pw.length < 8 || a.pw !== a.pw2 || !a.agree;
+}
+
+phone.addEventListener('change', (e) => {
+  const key = e.target.dataset.authCheck;
+  if (!key) return;
+  S.auth[key] = e.target.checked;
+  refreshAuthSubmit();
+});
+
 phone.addEventListener('input', (e) => {
+  const field = e.target.dataset.auth;
+  if (field) {
+    S.auth[field] = e.target.value;
+    refreshAuthSubmit();
+    return;
+  }
   if (e.target.id !== 'draft') return;
   S.draft = e.target.value;
   const send = document.getElementById('send');

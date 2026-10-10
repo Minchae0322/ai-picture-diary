@@ -98,6 +98,41 @@ export const EMOTION_SCALE: Record<Emotion, number> = {
   ANGRY: 1.05,
 };
 
+/**
+ * 감정의 극성. 세기 게이지에서 어느 쪽을 고를 수 있는지를 정한다.
+ *
+ *   POSITIVE  오른쪽(+)만      NEGATIVE  왼쪽(-)만
+ *   BOTH      양쪽 다 - 부끄러움은 설렘일 수도, 민망함일 수도 있다
+ *   NEUTRAL   기준점. 무난함은 세기가 없다 - 토마토가 0 그 자체다
+ *
+ * `docs/screen/prototype.html` 의 POLARITY 와 같은 값이다. **한쪽만 고치지 않는다.**
+ */
+export type Polarity = 'POSITIVE' | 'NEGATIVE' | 'BOTH' | 'NEUTRAL';
+
+const POLARITY: Record<Emotion, Polarity> = {
+  HAPPY: 'POSITIVE',
+  ENERGETIC: 'POSITIVE',
+  SHY: 'BOTH',
+  SOSO: 'NEUTRAL',
+  EMBARRASSED: 'NEGATIVE',
+  TIRED: 'NEGATIVE',
+  SAD: 'NEGATIVE',
+  DEPRESSED: 'NEGATIVE',
+  ANGRY: 'NEGATIVE',
+};
+
+export function emotionPolarity(emotion: Emotion): Polarity {
+  return POLARITY[emotion];
+}
+
+/** 그 감정에서 이 세기를 고를 수 있나. 0 은 늘 기준이라 묻지 않는다 */
+export function allowsLevel(emotion: Emotion, level: number): boolean {
+  const p = POLARITY[emotion];
+  if (p === 'NEUTRAL') return false;
+  if (p === 'BOTH') return true;
+  return level > 0 ? p === 'POSITIVE' : p === 'NEGATIVE';
+}
+
 /** 서버가 준 문자열이 9종 밖이면 화면이 깨지지 않게 null 로 떨어뜨린다. */
 export function toEmotion(value: string | null | undefined): Emotion | null {
   return value && (EMOTIONS as string[]).includes(value) ? (value as Emotion) : null;

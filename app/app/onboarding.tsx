@@ -83,12 +83,10 @@ export default function OnboardingScreen() {
             <Button label="무료로 시작하기" size="xlarge" onPress={start} />
           </View>
 
-          {/* 로그인 화면은 아직 없다(docs/screen/01-onboarding.md 7장).
-              뒤 띠의 가는 갈색 선이 글자를 끊어 대비가 떨어지는 자리다 - 같은 문서 8장에 미해결로 적어뒀다 */}
+          {/* 뒤 띠의 가는 갈색 선이 글자를 끊어 대비가 떨어지는 자리다 - 01 문서 8장에 미해결로 적어뒀다 */}
           <Pressable
-            onPress={start}
+            onPress={() => router.push('/login')}
             accessibilityRole="link"
-            accessibilityHint="로그인 화면이 아직 없어 홈으로 이동합니다"
             style={({ pressed }) => [styles.link, { opacity: pressed ? 0.6 : 1 }]}
           >
             <Text style={[styles.linkLabel, { color: colors.textMuted }]}>이미 계정이 있어요</Text>

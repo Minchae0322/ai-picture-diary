@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { EmotionFace } from '@/shared/ui/EmotionFace';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, StyleSheet, Text, View } from 'react-native';
 import { Button } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
 import { Icon } from '@/shared/ui/Icon';
@@ -23,7 +23,12 @@ type Props = {
   earnedBadges?: { code: string; name: string; condition: string }[];
 };
 
-/** 04 오늘의 결과. "AI generated" 표기는 제거하지 않는다(생성물 고지). */
+/**
+ * 04 오늘의 결과. "AI generated" 표기는 제거하지 않는다(생성물 고지).
+ *
+ * <p>AI 코멘트는 화면에서 뺐다. 서버는 여전히 `aiComment` 를 내려주고 저장도 한다 -
+ * 다시 보여주기로 하면 화면만 되돌리면 된다(마이그레이션이 필요 없다).
+ */
 export function DiaryResult({
   diary,
   regenerating,
@@ -70,15 +75,12 @@ export function DiaryResult({
         ) : null}
 
         <Text style={[styles.content, { color: colors.text }]}>“{diary.content}”</Text>
-        {diary.aiComment ? (
-          <Text style={[styles.comment, { color: colors.textMuted }]}>{diary.aiComment}</Text>
-        ) : null}
       </Card>
 
       <View style={styles.actions}>
         <View style={styles.action}>
           <Button
-            label="다시 그리기"
+            label="다시그리기"
             variant="ghost"
             loading={regenerating}
             disabled={!diary.canRegenerate}
@@ -87,23 +89,23 @@ export function DiaryResult({
           />
         </View>
         <View style={styles.action}>
-          {/* 시안의 "저장하기". 생성 직후 자동 저장이라 누를 것이 없다(04 화면 문서 7장) */}
+          {/* 기록 자체는 생성 직후 자동 저장된다. 이 버튼은 **그림을 기기 사진첩에 내려받는** 것이다.
+              expo-media-library 가 아직 없어 안내만 띄운다 - 되는 척하지 않는다 */}
           <Button
-            label="저장됨"
+            label="저장"
             variant="ghost"
-            disabled
-            accessibilityHint="기록은 자동으로 저장돼요"
-            onPress={() => {}}
+            accessibilityHint="그림을 기기 사진첩에 내려받아요"
+            onPress={saveImage}
           />
         </View>
         {onShare ? (
           <View style={styles.action}>
             <Button
-              label={shared ? '공유함' : '공유'}
+              label={shared ? '업로드함' : '업로드'}
               loading={sharing}
               disabled={shared}
-              accessibilityHint={shared ? '이미 커뮤니티에 공유했어요' : '커뮤니티 피드에 올려요'}
-              onPress={onShare}
+              accessibilityHint={shared ? '이미 커뮤니티에 올렸어요' : '커뮤니티에 올려요. 올리기 전에 공개 범위를 묻습니다'}
+              onPress={() => askVisibility(onShare)}
             />
           </View>
         ) : null}
@@ -126,6 +128,28 @@ export function DiaryResult({
       ) : null}
     </View>
   );
+}
+
+/** 그림 내려받기. expo-media-library 가 붙기 전까지는 안내만 한다 */
+function saveImage() {
+  Alert.alert('이미지 저장', '기기에 내려받는 기능은 다음 라운드에 붙습니다. 기록 자체는 이미 저장돼 있어요.');
+}
+
+/**
+ * 커뮤니티 업로드 전에 공개 범위를 묻는다.
+ *
+ * <p>올린 뒤에 바꾸게 하면 그 사이에 이미 남이 본다 - 올리기 전에 고르는 것이 순서다.
+ * 비공개 보관은 서버에 아직 없다.
+ */
+function askVisibility(onPublic: () => void) {
+  Alert.alert('커뮤니티에 올릴까요?', '공개로 올리면 피드에서 누구나 볼 수 있어요. 비공개는 나만 봅니다.', [
+    { text: '공개로 올리기', onPress: onPublic },
+    {
+      text: '비공개로 저장',
+      onPress: () => Alert.alert('비공개 저장', '비공개 보관은 서버에 아직 없어요. 다음 라운드에 붙습니다.'),
+    },
+    { text: '취소', style: 'cancel' },
+  ]);
 }
 
 const styles = StyleSheet.create({
@@ -153,7 +177,6 @@ const styles = StyleSheet.create({
   emotionRow: { flexDirection: 'row', alignItems: 'center', gap: space[2] },
   emotion: { fontSize: font.lg, fontFamily: font.bold },
   content: { fontSize: font.base , fontFamily: font.regular},
-  comment: { fontSize: font.sm , fontFamily: font.regular},
   actions: { flexDirection: 'row', gap: space[2] },
   action: { flex: 1 },
   badgeHead: { flexDirection: 'row', alignItems: 'center', gap: space[2] },

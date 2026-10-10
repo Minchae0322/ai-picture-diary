@@ -96,7 +96,11 @@ export default function HomeScreen() {
       )}
 
       {recent.data ? (
-        <RecentDiaries items={recent.data.items} onSelect={(id) => router.push(`/diary/${id}`)} />
+        <RecentDiaries
+          items={recent.data.items}
+          onSelect={(id) => router.push(`/diary/${id}`)}
+          onMore={() => router.push('/calendar')}
+        />
       ) : null}
     </Screen>
   );

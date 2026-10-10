@@ -8,7 +8,7 @@ export {
   type Emotion,
 } from '@/shared/emotion';
 
-import type { Emotion } from '@/shared/emotion';
+import { EMOTIONS, type Emotion } from '@/shared/emotion';
 
 export type DiaryStatus = 'GENERATING' | 'DONE' | 'FAILED';
 
@@ -66,4 +66,5 @@ export const MOOD_MIN = -3;
 export const MOOD_MAX = 3;
 
 /** 02 빠른 감정 칩 (시안 기준 4종) */
-export const QUICK_EMOTIONS: Emotion[] = ['HAPPY', 'SOSO', 'TIRED', 'SAD'];
+/** 빠른 감정 선택. 아홉 종을 다 두고 가로로 민다 - 넷만 두면 나머지를 고를 길이 없다 */
+export const QUICK_EMOTIONS: Emotion[] = EMOTIONS;

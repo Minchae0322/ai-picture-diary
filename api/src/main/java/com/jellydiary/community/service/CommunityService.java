@@ -43,7 +43,7 @@ public class CommunityService {
     @Transactional
     public Long share(Long userId, Long diaryId) {
         DiaryDetailResult diary = diaryQueryService.findDetail(userId, diaryId);
-        if (diary.status() != DiaryStatus.DONE || diary.weather() == null || diary.moodScore() == null) {
+        if (diary.status() != DiaryStatus.DONE || diary.emotion() == null || diary.moodScore() == null) {
             throw new BusinessException(ErrorCode.DIARY_NOT_DONE);
         }
         if (postRepository.existsByDiaryId(diaryId)) {
@@ -56,7 +56,7 @@ public class CommunityService {
                                 userId,
                                 diaryId,
                                 profileService.getOrCreate(userId).nickname(),
-                                diary.weather().name(),
+                                diary.emotion().name(),
                                 diary.content(),
                                 diary.moodScore()));
 

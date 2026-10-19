@@ -5,59 +5,12 @@ import Svg, { Circle, Path } from 'react-native-svg';
  * 앱의 모든 아이콘. 이모지를 쓰지 않는다 - 플랫폼/버전마다 모양이 다르고, 색과 굵기를 토큰에 맞출 수 없고,
  * 스크린리더가 이름을 제멋대로 읽는다.
  *
+ * <p>감정 캐릭터는 여기 없다 - 그림 자산이라 `EmotionFace.tsx` 가 따로 그린다.
+ *
  * <p>선 아이콘 하나의 규격: 24 뷰박스, stroke 1.8, 둥근 끝. 채우기는 heart 처럼 "눌린 상태"를 보여야 할 때만.
  * 새 아이콘은 이 표에 한 줄 추가한다 - 파일을 늘리지 않는다.
  */
-const CLOUD = 'M7 17.5h9a3.4 3.4 0 0 0 .3-6.8 5 5 0 0 0-9.6 1.4A3.2 3.2 0 0 0 7 17.5z';
-
-const rays = (cx: number, cy: number, r: number, len: number) =>
-  [0, 45, 90, 135, 180, 225, 270, 315].map((deg) => {
-    const rad = (deg * Math.PI) / 180;
-    const x1 = cx + Math.cos(rad) * r;
-    const y1 = cy + Math.sin(rad) * r;
-    const x2 = cx + Math.cos(rad) * (r + len);
-    const y2 = cy + Math.sin(rad) * (r + len);
-    return `M${x1.toFixed(1)} ${y1.toFixed(1)}L${x2.toFixed(1)} ${y2.toFixed(1)}`;
-  }).join('');
-
 const ICONS = {
-  // 날씨 6종 - shared/weather.ts 의 Weather 와 1:1
-  sunny: (s: string) => (
-    <>
-      <Circle cx={12} cy={12} r={4.2} stroke={s} strokeWidth={1.8} />
-      <Path d={rays(12, 12, 6.4, 2.4)} stroke={s} strokeWidth={1.8} strokeLinecap="round" />
-    </>
-  ),
-  'partly-cloudy': (s: string) => (
-    <>
-      <Circle cx={8.5} cy={7.5} r={2.8} stroke={s} strokeWidth={1.8} />
-      <Path d={rays(8.5, 7.5, 4.6, 1.8)} stroke={s} strokeWidth={1.6} strokeLinecap="round" />
-      <Path d={CLOUD} stroke={s} strokeWidth={1.8} fill="none" />
-    </>
-  ),
-  cloudy: (s: string) => <Path d={CLOUD} stroke={s} strokeWidth={1.8} fill="none" />,
-  rain: (s: string) => (
-    <>
-      <Path d={CLOUD} stroke={s} strokeWidth={1.8} fill="none" />
-      <Path d="M9 19l-.8 2.4M12.5 19l-.8 2.4M16 19l-.8 2.4" stroke={s} strokeWidth={1.8} strokeLinecap="round" />
-    </>
-  ),
-  snow: (s: string) => (
-    <>
-      <Path d={CLOUD} stroke={s} strokeWidth={1.8} fill="none" />
-      <Circle cx={9} cy={20.2} r={1} fill={s} />
-      <Circle cx={12.5} cy={21.6} r={1} fill={s} />
-      <Circle cx={16} cy={20.2} r={1} fill={s} />
-    </>
-  ),
-  rainbow: (s: string) => (
-    <>
-      <Path d="M3.5 19a8.5 8.5 0 0 1 17 0" stroke={s} strokeWidth={1.8} fill="none" strokeLinecap="round" />
-      <Path d="M7 19a5 5 0 0 1 10 0" stroke={s} strokeWidth={1.8} fill="none" strokeLinecap="round" />
-      <Path d="M10.5 19a1.5 1.5 0 0 1 3 0" stroke={s} strokeWidth={1.8} fill="none" strokeLinecap="round" />
-    </>
-  ),
-
   // 탭바 5개
   home: (s: string) => (
     <Path
@@ -176,6 +129,32 @@ const ICONS = {
     <>
       <Circle cx={12} cy={14.5} r={5} stroke={s} strokeWidth={1.8} />
       <Path d="M9.2 3.5l2 6M14.8 3.5l-2 6" stroke={s} strokeWidth={1.8} fill="none" strokeLinecap="round" />
+    </>
+  ),
+
+  /**
+   * 11 로그인의 브랜드 마크. **임시 도형이다.**
+   *
+   * 애플과 구글은 공식 버튼 규정이 있다 - 애플은 지정 로고·문구·최소 높이(44pt)·허용 색만 쓸 수 있고,
+   * 구글도 공식 4색 G 마크와 지정 색을 요구한다. 심사에서 걸린다.
+   * 배포 전에 `expo-apple-authentication` 의 기본 버튼과 구글 공식 에셋으로 바꾼다.
+   */
+  apple: (s: string) => (
+    <>
+      <Path
+        d="M16.3 12.8c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.9-3.5.9-.7 0-1.8-.8-3-.8-1.5 0-3 .9-3.8 2.3-1.6 2.8-.4 7 1.2 9.3.8 1.1 1.7 2.4 2.9 2.3 1.2 0 1.6-.7 3-.7s1.8.7 3 .7c1.3 0 2.1-1.1 2.8-2.3.9-1.3 1.3-2.6 1.3-2.6s-2.5-1-2.5-3.8z"
+        fill={s}
+      />
+      <Path d="M14.3 5.9c.6-.8 1-1.9.9-3-.9 0-2 .6-2.7 1.4-.6.7-1.1 1.8-.9 2.9 1 .1 2-.5 2.7-1.3z" fill={s} />
+    </>
+  ),
+  /** 구글은 네 가지 색이 규정이라 `color` 를 무시한다 */
+  google: (_s: string) => (
+    <>
+      <Path d="M21.6 12.2c0-.7-.1-1.3-.2-1.9H12v3.7h5.4a4.6 4.6 0 0 1-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.3z" fill="#4285f4" />
+      <Path d="M12 22c2.7 0 5-.9 6.6-2.5l-3.2-2.5c-.9.6-2 1-3.4 1-2.6 0-4.8-1.8-5.6-4.1H3.1v2.6A10 10 0 0 0 12 22z" fill="#34a853" />
+      <Path d="M6.4 13.9a6 6 0 0 1 0-3.8V7.5H3.1a10 10 0 0 0 0 9l3.3-2.6z" fill="#fbbc05" />
+      <Path d="M12 5.9c1.5 0 2.8.5 3.8 1.5l2.8-2.8A10 10 0 0 0 3.1 7.5l3.3 2.6C7.2 7.7 9.4 5.9 12 5.9z" fill="#ea4335" />
     </>
   ),
 

@@ -10,10 +10,11 @@ description: "이 저장소에서 코드·스키마·문서를 쓰거나 고치�
 
 ## 1. 제품이 무엇인가
 
-하루에 한 줄을 쓰면 AI가 그 문장의 감정을 읽어 **날씨로 판정하고 그림으로 그려 주는** 모바일 일기 앱. 쌓인 날씨는 캘린더와 그래프가 되고, 연속 기록은 젤리 뱃지가 된다. 핵심 화면은 홈이다 - 빈 그림 자리 하나와 "오늘 어땠나요?" 입력창 하나, 그 아래 최근 3일의 날씨.
+하루에 한 줄을 쓰면 AI가 그 문장의 감정을 읽어 **감정 9종으로 판정하고 그림으로 그려 주는** 모바일 일기 앱. 쌓인 감정은 캘린더와 그래프가 되고, 연속 기록은 젤리 뱃지가 된다. 핵심 화면은 홈이다 - 빈 그림 자리 하나와 "오늘 어땠나요?" 입력창 하나, 그 아래 최근 3일의 감정.
 
 - 저장소 구성: 모노레포. `api/`(Spring Boot 백엔드) + `app/`(Expo 모바일)
-- 시안: Figma `AI 감정 날씨일기 - Web App Sketch`, 10화면. 인덱스는 9장
+- 시안: Figma `AI 감정 날씨일기 - Web App Sketch`, 10화면(+11 로그인). 인덱스는 9장.
+  **시안 이름에 "날씨"가 남아 있지만 제품은 감정 9종이다**(2026-10-19 전환). 레이아웃만 시안이 진실이다
 - 도메인 4개: `diary`(01~06) · `badge`(07) · `community`(08) · `profile`(09·10)
 
 ## 2. 도메인 어휘
@@ -21,7 +22,8 @@ description: "이 저장소에서 코드·스키마·문서를 쓰거나 고치�
 | 용어 | 뜻 | 코드에서 |
 |---|---|---|
 | 일기 | 하루치 기록 1건. 본문 + AI 판정 + 그림 | `Diary` / `tb_diary` |
-| 날씨 | 감정의 표현. 6종 고정 | `Weather` |
+| 감정 | 하루의 판정 결과. 9종 고정, 과일 캐릭터로 그린다 | `Emotion` |
+| 감정 세기 | 02 에서 빠른 감정을 고른 뒤 묻는 -2 ~ +2. 감정마다 고를 수 있는 쪽이 다르다 | `EmotionGauge` / `allowsLevel()` |
 | 기분 점수 | -3 ~ +3 정수. 그래프의 Y축 | `Diary.moodScore` |
 | 빠른 감정 칩 | 02 화면에서 사용자가 고르는 힌트. AI 판정을 대체하지 않는다 | `Diary.userHint` |
 | 그리기 | 감정 분석 + 이미지 생성의 한 묶음 | `DiaryPainter.paint()` |
@@ -35,9 +37,18 @@ description: "이 저장소에서 코드·스키마·문서를 쓰거나 고치�
 
 범용 스킬이 판단을 요구하는 지점들의 **이 제품에서의 답**이다. 다시 묻지 않는다.
 
-- **일기는 사용자 x 날짜로 1건.** DB 부분 unique로 강제한다. 하루 여러 건은 없다.
+- **일기는 사용자 x 날짜로 1건.** DB unique 인덱스(`user_id, entry_date, alive`)로 강제한다. 하루 여러 건은 없다.
+  MySQL 에 부분 인덱스가 없어 `alive`(살아 있으면 1, 삭제됐으면 NULL) 생성 컬럼을 키에 끼운다(`docs/adr/2026-10-14-DB를-MySQL로.md`).
 - **"오늘"의 기준은 Asia/Seoul 자정.** 서버가 판단하고 클라이언트는 따르지 않는다.
-- **날씨는 6종 고정**: `SUNNY` `PARTLY_CLOUDY` `CLOUDY` `RAIN` `SNOW` `RAINBOW`. 07 뱃지의 "감정 6종 전부"가 이 목록이다. 늘리려면 뱃지 조건도 같이 본다.
+- **감정은 9종 고정**: `HAPPY` `ENERGETIC` `SOSO` `SHY` `EMBARRASSED` `TIRED` `SAD` `DEPRESSED` `ANGRY`.
+  07 뱃지의 "감정 9종 전부"(`EMOTION_EXPLORER`)가 이 목록이다. 늘리려면 뱃지 조건도 같이 본다.
+  한때 날씨 6종(`SUNNY` ...)이었다 - 2026-10-19 에 바꿨다(`sql/patch/2026-10-05-날씨-감정-전환.sql`).
+- **감정의 정체성은 그림이 나르지 색이 아니다.** 과일에서 뽑은 색이라 빨강이 셋이다
+  (체리 ENERGETIC / 딸기 HAPPY / 토마토 SOSO) - 색만으로는 구분되지 않는다.
+  감정 색(`tokens.ts` 의 `emotionColorsFor`)은 **배경 wash 와 테두리 같은 장식**에만 쓰고,
+  뜻은 항상 `EmotionFace` 그림이나 라벨이 전한다. 색 하나로 감정을 표시하는 자리를 새로 만들지 않는다.
+- **감정별 렌더 배율(`EMOTION_SCALE`)과 극성(`POLARITY`)은 앱과 `docs/screen/prototype.html` 양쪽에 있다.
+  한쪽만 고치지 않는다.**
 - **기분 점수는 -3 ~ +3 정수.** 04 표시, 06 그래프 축, DB check 제약이 같은 범위다.
 - **본문은 1~500자.** 초과는 400 `COMMON_INVALID_REQUEST`.
 - **위 수치(500자, 3회, -3~+3)의 출처는 설정 한 곳**(`app.diary.*`)이다. 도메인에는 `DiaryPolicy`로 넘어가며 코드에 상수로 박지 않는다(`config-and-secrets` 4-1장). 예외는 DB 컬럼 길이 `Diary.CONTENT_COLUMN_LENGTH`(스키마 상수, DDL과 같은 값).
@@ -52,12 +63,14 @@ description: "이 저장소에서 코드·스키마·문서를 쓰거나 고치�
 | 항목 | 값 | 정한 이유 / 근거 |
 |---|---|---|
 | 저장소 | 모노레포 `api/` + `app/` | 한 사람이 양쪽을 동시에 고치는 단계 |
-| 백엔드 | Spring Boot 3.5 / Java 21 / PostgreSQL | 백엔드 스킬 14개가 이 기준 |
+| 백엔드 | Spring Boot 3.5 / Java 21 / **MySQL 8.0** | 백엔드 스킬 14개가 이 기준. DB 전환 근거는 `docs/adr/2026-10-14-DB를-MySQL로.md` |
 | 앱 | Expo SDK 56 / React Native / TypeScript / expo-router | 시안이 390x844 모바일 |
 | 서버 상태 | TanStack Query v5 | `frontend-state` 기본값 |
 | 응답 형식 | 봉투 `{data, meta}` + `ErrorCode` enum | `api-design` 3장 |
 | 목록 | 커서 페이징 (커서 = entryDate Base64) | 하루 1건이라 정렬 키가 유일 |
-| 디자인 | 모바일 우선 + soft-modern, 브랜드 `#6c5ce7` | `CLAUDE.md` 선언 |
+| 디자인 | 모바일 우선 + muted-sky, 브랜드 `#3f6d8e` | `CLAUDE.md` 선언 |
+| UI 표현 | **손그림(색연필).** 선은 `SketchBorder`, 모서리는 비대칭 | `hand-drawn-ui` 스킬 · `docs/design/components.html` |
+| 감정 표현 | 감정 9종 과일 캐릭터(PNG 자산). 날씨 6종에서 전환 | 은유를 한 겹 덜어냈고 6칸이 좁았다 |
 | AI | 현재 `MockDiaryPainter`(규칙 기반). `app.ai.provider`로 교체 | 실모델은 다음 라운드 |
 | 인증 | **없음.** `X-User-Id` 헤더 임시 | 핵심 루프 먼저. `spring-auth`는 다음 |
 
@@ -104,7 +117,7 @@ com.jellydiary
   설정이 한 폴더 트리에 있다. 도메인 서비스는 인터페이스만 주입받고 LLM 타입은 모른다.
   (`ddd-spring`·`llm-integration`은 포트를 도메인에 두고 구현만 `infrastructure/ai`로 빼라고 말하지만
   **이 파일이 이긴다** - 모델 관련을 한자리에서 보는 쪽을 택했다.)
-  - 계약에 들어가도 되는 것은 **도메인 어휘**(`Weather`, 점수, 코멘트, 그림 URL)뿐이다. LLM 타입이 계약에
+  - 계약에 들어가도 되는 것은 **도메인 어휘**(`Emotion`, 점수, 코멘트, 그림 URL)뿐이다. LLM 타입이 계약에
     새면 도메인이 모델에 끌려간다. 이건 기계가 아니라 **리뷰가 막는다**.
   - 프롬프트는 자바 문자열이 아니라 `api/src/main/resources/prompts/<기능>-v<n>.st`.
 - **`llm`과 `common`은 업무 도메인이 아니라 기술 컨텍스트**라 ArchUnit 3번(도메인 간 참조 금지)에서 빠진다.
@@ -202,6 +215,7 @@ com.jellydiary
 | 문서 기반 답변, 임베딩, 벡터 검색 | `rag-pipeline` |
 | 화면/컴포넌트, 여백·라운드·색, 반응형 | `ui-fundamentals` |
 | 디자인 토큰, 테마, 다크 모드 | `design-system` |
+| 손그림·색연필 느낌, 스케치 테두리, 종이 바탕 | `hand-drawn-ui` |
 | 컴포넌트/훅/타입, 프론트 폴더 구조 | `frontend-architecture` |
 | 상태 위치, 스토어, 서버 데이터 캐시/무효화 | `frontend-state` |
 | 프론트 API 호출, 토큰 갱신, 에러 처리 | `frontend-api-client` |
@@ -224,10 +238,18 @@ com.jellydiary
 ## 8. 지금 상태 / 아직 안 된 것
 
 - **시안 10화면이 전부 구현됨** (2026-09-22). 도메인 4개: `diary`, `badge`, `community`, `profile`.
-- **백엔드 빌드·테스트 여전히 미검증.** 이 환경에 JDK 11만 있고 Gradle도 wrapper도 없어 `compileJava`/`test`를 한 번도 돌리지 못했다. 컴파일 오류가 남아 있을 수 있다. 앱은 `npx tsc --noEmit` 통과.
-- Gradle wrapper 없음: `cd api && gradle wrapper` 최초 1회 필요. 하네스 hook도 wrapper가 생겨야 동작한다.
+- **백엔드 빌드·테스트 검증 완료** (2026-09-22): JDK 21 + Gradle wrapper(`api/gradlew`)로 `./gradlew test` 74건 통과. 로컬 기동은 `bootRun` 기본값(`application-local.yml`, `jdbc:mysql://localhost:3306/jellydiary`). 앱은 `npx tsc --noEmit` 통과, `npm install`은 peer 충돌로 `--legacy-peer-deps` 필요.
+- 없는 경로 호출이 404가 아니라 500 `COMMON_INTERNAL_ERROR`로 나간다 (`GlobalExceptionHandler`가 `NoResourceFoundException`을 안 잡음). 미수정.
 - 통합 테스트(`DiaryRepositoryTest`)는 Docker가 있어야 돈다: `./gradlew integrationTest`.
 - 인증 없음(`X-User-Id` 임시). 붙는 순간 `common/auth/CurrentUser*`는 삭제 대상이고, `ProfileService`의 첫 조회 자동 생성도 회원가입으로 옮긴다.
+- **2026-10-14 DB를 PostgreSQL -> MySQL 8.0 으로 바꿨다**(`docs/adr/2026-10-14-DB를-MySQL로.md`).
+  `sql/patch/*.sql` 4개를 제자리에서 다시 썼고(아직 어디에도 실행 전), ID 생성은 시퀀스 -> `AUTO_INCREMENT`,
+  부분 인덱스는 `alive` 생성 컬럼으로 대체했다. **`ddl-auto: validate` 와 DDL 실행은 아직 검증되지 않았다** -
+  MySQL 8.0 이나 Docker(`./gradlew integrationTest`)가 필요하다. `./gradlew test` 74건은 통과.
+- **2026-10-19 날씨 6종을 감정 9종 과일 캐릭터로 바꿨다**(`feat/emotion-fruit` 머지).
+  `Weather` -> `Emotion`, `shared/weather.ts` -> `shared/emotion.ts`, 캐릭터 PNG 9장,
+  02 에 감정 세기 게이지(`EmotionGauge`)와 11 로그인 화면이 붙었다.
+  전환 SQL(`sql/patch/2026-10-05-날씨-감정-전환.sql`)은 **아직 실행 전**이다.
 - **배포를 막는 것**: 커뮤니티 신고 처리 도구·차단 없음, 계정 삭제 없음, 구독 복원 동선 없음 (`app-store-release`).
 - 댓글·구독 결제 도메인 없음. 뱃지 `FIRST_COMMENT`·`PREMIUM`은 그래서 영구 잠김이다.
 - 뱃지는 시안 12종만 정의됐다(시안이 말한 40종 중). "자주 쓴 말"은 형태소 분석기가 아니라 공백 토크나이저다.
@@ -237,7 +259,7 @@ com.jellydiary
 
 ## 9. 화면
 
-시안 10개, 모바일 390x844. 전체 목록·탐색 구조·공통 규칙은 `docs/screen/README.md`.
+시안 10개 + 11 로그인, 모바일 390x844. 전체 목록·탐색 구조·공통 규칙은 `docs/screen/README.md`.
 화면 문서를 새로 쓰거나 갱신할 때는 `screens/README.md`(이 폴더)를 먼저 읽는다.
 
 | # | 화면 | 규칙 | 명세 |
@@ -252,5 +274,6 @@ com.jellydiary
 | 08 | 커뮤니티 | `screens/08-community.md` | `docs/screen/08-community.md` |
 | 09 | 테마·캐릭터 상점 | `screens/09-store.md` | `docs/screen/09-store.md` |
 | 10 | 마이페이지 | `screens/10-mypage.md` | `docs/screen/10-mypage.md` |
+| 11 | 로그인 | 없음 | `docs/screen/11-login.md` |
 
 화면 작업 전 해당 행의 두 파일을 읽는다. 규칙 파일이 없으면 명세만 읽는다.

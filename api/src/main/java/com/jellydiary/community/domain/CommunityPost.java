@@ -18,7 +18,7 @@ import org.hibernate.annotations.SQLRestriction;
  * 08 피드의 글 한 건. 04에서 "공유"한 일기를 <b>복사</b>해 만든다 - 참조가 아니라 복사라서 원본을 고치거나
  * 지워도 피드는 그대로다(08 화면 문서 6장의 갈림길에서 복사를 택했다).
  *
- * <p>날씨를 문자열로 들고 있는 이유: 커뮤니티는 일기 도메인을 참조하지 않는다. 값의 진실은 diary.Weather 이고
+ * <p>감정을 문자열로 들고 있는 이유: 커뮤니티는 일기 도메인을 참조하지 않는다. 값의 진실은 diary.Emotion 이고
  * 변환은 CommunityService 가 한다.
  */
 @Getter
@@ -47,7 +47,7 @@ public class CommunityPost extends BaseEntity {
     private String authorName;
 
     @Column(nullable = false, length = 30)
-    private String weather;
+    private String emotion;
 
     /** DDL의 varchar(500)과 같은 값. 게시 시점의 일기 본문을 그대로 복사하므로 일기와 같은 길이다. */
     public static final int CONTENT_COLUMN_LENGTH = 500;
@@ -66,23 +66,23 @@ public class CommunityPost extends BaseEntity {
     private int commentCount;
 
     private CommunityPost(
-            Long userId, Long diaryId, String authorName, String weather, String content, int moodScore) {
+            Long userId, Long diaryId, String authorName, String emotion, String content, int moodScore) {
         this.userId = userId;
         this.diaryId = diaryId;
         this.authorName = authorName;
-        this.weather = weather;
+        this.emotion = emotion;
         this.content = content;
         this.moodScore = moodScore;
     }
 
     public static CommunityPost share(
-            Long userId, Long diaryId, String authorName, String weather, String content, int moodScore) {
+            Long userId, Long diaryId, String authorName, String emotion, String content, int moodScore) {
         // 사용자는 여기까지 못 온다(CommunityService 가 DIARY_NOT_DONE 으로 먼저 막는다).
         // 도달했다면 호출자의 버그이므로 ErrorCode 로 감싸지 않는다.
-        if (weather == null || weather.isBlank()) {
-            throw new IllegalArgumentException("아직 날씨가 없는 일기는 공유할 수 없다");
+        if (emotion == null || emotion.isBlank()) {
+            throw new IllegalArgumentException("아직 감정이 없는 일기는 공유할 수 없다");
         }
-        return new CommunityPost(userId, diaryId, authorName, weather, content, moodScore);
+        return new CommunityPost(userId, diaryId, authorName, emotion, content, moodScore);
     }
 
     public boolean isOwnedBy(Long otherUserId) {

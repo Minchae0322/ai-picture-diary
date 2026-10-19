@@ -23,8 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * 10 마이페이지와 09 꾸미기. 테마·캐릭터 선택은 "프로필의 표시 설정"이라 상점을 별도 도메인으로 나누지 않았다
- * (결제가 생기면 그때 나눈다).
+ * 10 마이페이지와 09 꾸미기. 테마·캐릭터 선택은 "프로필의 표시 설정"이라 상점을 별도 도메인으로 나누지 않았다 (결제가 생기면 그때 나눈다).
  *
  * <p>인증이 없어 프로필 행이 미리 존재하지 않는다. 첫 조회에 만든다 - 회원가입이 붙으면 그쪽으로 옮길 자리다.
  */
@@ -44,7 +43,11 @@ public class ProfileService {
 
     @Transactional
     public ProfileResult updateSettings(
-            Long userId, String nickname, LocalTime reminderTime, String aiStyle, Boolean diaryLock) {
+            Long userId,
+            String nickname,
+            LocalTime reminderTime,
+            String aiStyle,
+            Boolean diaryLock) {
         Profile profile = load(userId);
 
         if (nickname != null) {
@@ -59,7 +62,15 @@ public class ProfileService {
         return toResult(profile);
     }
 
-    /** 09 테마·캐릭터 목록. 잠금 여부는 서버가 구독 상태를 보고 정한다 - 클라이언트 플래그를 믿지 않는다. */
+    /**
+     * 09 테마·캐릭터 목록. 잠금 여부는 서버가 구독 상태를 보고 정한다 - 클라이언트 플래그를 믿지 않는다.
+     *
+     * <p>읽기처럼 보이지만 <b>읽기 전용이 아니다</b>. {@link #load(Long)} 가 프로필이 없으면 만들기 때문이다. 클래스의
+     * {@code readOnly = true} 를 그대로 물려받으면 처음 보는 사용자가 09 를 먼저 열었을 때 INSERT 가
+     * "Connection is read-only" 로 터진다 - 10 을 먼저 열어 본 사람에게는 안 보여서 더 늦게 발견된다. 첫 조회
+     * 생성이 회원가입으로 옮겨 가면 이 덮어쓰기도 같이 사라진다.
+     */
+    @Transactional
     public List<StoreItemResult> storeItems(Long userId) {
         Profile profile = load(userId);
 
@@ -95,13 +106,10 @@ public class ProfileService {
     }
 
     /**
-     * 첫 조회에서 만든다. 같은 사용자의 요청 두 개가 동시에 들어오면 한쪽이 unique 제약에 걸리는데,
-     * 그건 "다른 쪽이 이미 만들었다"는 뜻이라 다시 읽으면 된다.
+     * 첫 조회에서 만든다. 같은 사용자의 요청 두 개가 동시에 들어오면 한쪽이 unique 제약에 걸리는데, 그건 "다른 쪽이 이미 만들었다"는 뜻이라 다시 읽으면 된다.
      */
     private Profile load(Long userId) {
-        return profileRepository
-                .findByUserId(userId)
-                .orElseGet(() -> create(userId));
+        return profileRepository.findByUserId(userId).orElseGet(() -> create(userId));
     }
 
     private Profile create(Long userId) {
@@ -125,7 +133,8 @@ public class ProfileService {
     }
 
     private ProfileResult toResult(Profile profile) {
-        return ProfileResult.of(profile, nameOf(profile.getThemeCode()), nameOf(profile.getCharacterCode()));
+        return ProfileResult.of(
+                profile, nameOf(profile.getThemeCode()), nameOf(profile.getCharacterCode()));
     }
 
     private String nameOf(String code) {

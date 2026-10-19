@@ -31,18 +31,18 @@ public class CommunityController {
     private final CommunityQueryService communityQueryService;
 
     /**
-     * 08 피드. 정렬 1개(RECOMMENDED/POPULAR/LATEST) + 날씨 다중(08 화면 문서 4장).
+     * 08 피드. 정렬 1개(RECOMMENDED/POPULAR/LATEST) + 감정 다중(08 화면 문서 4장).
      * 추천을 요청했는데 오늘 기록이 없으면 <b>최신순으로 떨어진다</b>(feed-ranking 5장).
      */
     @GetMapping
     public ApiResponse<List<CommunityResponse.Post>> feed(
             @LoginUser Long userId,
             @RequestParam(defaultValue = "RECOMMENDED") PostSort sort,
-            @RequestParam(required = false) List<String> weather,
+            @RequestParam(required = false) List<String> emotion,
             @RequestParam(required = false) String cursor,
             @RequestParam(defaultValue = "20") int size) {
         CommunityQueryService.Page page =
-                communityQueryService.findFeed(userId, sort, weather, cursor, size);
+                communityQueryService.findFeed(userId, sort, emotion, cursor, size);
 
         return ApiResponse.cursor(
                 page.items().stream().map(CommunityResponse.Post::from).toList(), page.nextCursor());

@@ -5,7 +5,7 @@ import com.jellydiary.common.error.BusinessException;
 import com.jellydiary.common.error.ErrorCode;
 import com.jellydiary.diary.type.DiaryPolicy;
 import com.jellydiary.diary.type.DiaryStatus;
-import com.jellydiary.diary.type.Weather;
+import com.jellydiary.diary.type.Emotion;
 import com.jellydiary.llm.painter.DiaryPainting;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -55,11 +55,11 @@ public class Diary extends BaseEntity {
     /** 02 화면의 빠른 감정 칩. 사용자가 고른 힌트이며 AI 판정을 대체하지 않는다. */
     @Enumerated(EnumType.STRING)
     @Column(length = 30)
-    private Weather userHint;
+    private Emotion userHint;
 
     @Enumerated(EnumType.STRING)
     @Column(length = 30)
-    private Weather weather;
+    private Emotion emotion;
 
     private Integer moodScore;
 
@@ -76,7 +76,7 @@ public class Diary extends BaseEntity {
     @Column(nullable = false)
     private int regenerateCount;
 
-    private Diary(Long userId, LocalDate entryDate, String content, Weather userHint) {
+    private Diary(Long userId, LocalDate entryDate, String content, Emotion userHint) {
         this.userId = userId;
         this.entryDate = entryDate;
         this.content = content;
@@ -85,7 +85,7 @@ public class Diary extends BaseEntity {
     }
 
     public static Diary write(
-            Long userId, LocalDate entryDate, String content, Weather userHint, DiaryPolicy policy) {
+            Long userId, LocalDate entryDate, String content, Emotion userHint, DiaryPolicy policy) {
         String trimmed = content == null ? "" : content.strip();
         if (!policy.allowsContent(trimmed)) {
             throw new BusinessException(
@@ -105,7 +105,7 @@ public class Diary extends BaseEntity {
             throw new IllegalArgumentException(
                     "기분 점수 범위: " + policy.moodMin() + "~" + policy.moodMax());
         }
-        this.weather = painting.weather();
+        this.emotion = painting.emotion();
         this.moodScore = painting.moodScore();
         this.aiComment = painting.comment();
         this.imageUrl = painting.imageUrl();

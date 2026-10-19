@@ -1,10 +1,10 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Card } from '@/shared/ui/Card';
 import { Chip } from '@/shared/ui/Chip';
-import { GradientFill } from '@/shared/ui/Gradient';
+import { EmotionFace } from '@/shared/ui/EmotionFace';
 import { formatDotDate } from '@/shared/format';
 import { font, radius, space } from '@/shared/theme/tokens';
-import { useColors, useWeatherColors } from '@/shared/theme/useColors';
+import { useColors } from '@/shared/theme/useColors';
 import type { Profile } from '../api/profileApi';
 
 type Props = {
@@ -17,7 +17,6 @@ type Props = {
 /** 10 프로필 카드 + 통계 3개(prototype `.av` / `.stats`). 기록 0건이어도 0으로 표시한다. */
 export function ProfileCard({ profile, stats, onOpenBadges }: Props) {
   const colors = useColors();
-  const weatherColors = useWeatherColors();
 
   const items = [
     { label: '총 기록', value: stats.totalCount, suffix: '', onPress: undefined },
@@ -28,13 +27,18 @@ export function ProfileCard({ profile, stats, onOpenBadges }: Props) {
   return (
     <Card>
       <View style={styles.header}>
-        {/* 시안의 아바타는 그림이 아니라 두 색이 섞인 원이다. 캐릭터 그림은 아직 없다(09 상점) */}
+        {/*
+          시안의 아바타는 두 색이 섞인 원이었다. 캐릭터 9종이 생긴 뒤로는 그 원을 **캐릭터가 서는 자리**로 쓴다 -
+          앱에서 사용자를 대표하는 그림이 과일 캐릭터인데 프로필만 색 덩어리면 따로 논다.
+          지금은 어느 캐릭터인지 고를 길이 없어 HAPPY 로 둔다. 09 상점이 캐릭터를 실제 상품으로 들이는 날
+          `profile.characterCode` 가 이 자리를 가져간다.
+        */}
         <View
-          style={styles.avatar}
+          style={[styles.avatar, { backgroundColor: colors.faceBg }]}
           accessibilityElementsHidden
           importantForAccessibility="no-hide-descendants"
         >
-          <GradientFill from={weatherColors.RAINBOW} to={weatherColors.SUNNY} />
+          <EmotionFace emotion="HAPPY" size={52} />
         </View>
 
         <View style={styles.identity}>
@@ -88,7 +92,14 @@ export function ProfileCard({ profile, stats, onOpenBadges }: Props) {
 
 const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', gap: space[4] },
-  avatar: { width: 64, height: 64, borderRadius: radius.full, overflow: 'hidden' },
+  avatar: {
+    width: 64,
+    height: 64,
+    borderRadius: radius.full,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   identity: { flex: 1, alignItems: 'flex-start', gap: space[1] },
   name: { fontSize: font.xl, fontFamily: font.bold },
   meta: { fontSize: font.xs, fontFamily: font.regular },

@@ -23,6 +23,7 @@ description: 프로젝트의 디자인 토큰(색, 간격, 라운드, 그림자,
 | `presets/glass-depth.md` | 반투명 레이어, 블러, 그라디언트, 깊이감 |
 | `presets/clear-glass.md` | **완전 투명 유리.** 채움 0, 가장자리에서만 굴절. 어두운 고정 배경 전용 |
 | `presets/clear-glass-demo.html` | 위 프리셋의 동작 예. 브라우저로 열면 슬라이더로 굴절 값을 조절할 수 있다 |
+| (별도 스킬) `hand-drawn-ui` | **손그림·색연필.** 선의 떨림이 디자인의 핵심이라 값 표만으로 안 되어 스킬로 뺐다 |
 | `templates/tokens.css` | 토큰 뼈대(값 비움). 프리셋 값을 채워 넣는 시작점 |
 | `templates/tailwind-tokens.md` | 같은 토큰의 Tailwind 설정 매핑 |
 

@@ -6,7 +6,7 @@ import java.time.Instant;
 public record CommunityPostResult(
         Long id,
         String authorName,
-        String weather,
+        String emotion,
         String content,
         int likeCount,
         int commentCount,

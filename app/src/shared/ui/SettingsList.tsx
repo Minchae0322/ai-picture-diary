@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { SketchBorder } from '@/shared/ui/SketchBorder';
 import { Icon, type IconName } from '@/shared/ui/Icon';
 import { font, radius, space } from '@/shared/theme/tokens';
 import { useColors } from '@/shared/theme/useColors';
@@ -19,10 +20,12 @@ export type SettingsRow = {
 export function SettingsList({ rows }: { rows: SettingsRow[] }) {
   const colors = useColors();
   return (
-    <View style={[styles.list, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+    <View style={[styles.list, { backgroundColor: colors.surface }]}>
       {rows.map((row, index) => (
         <Row key={row.label} row={row} first={index === 0} />
       ))}
+      {/* 목록 전체를 한 장의 종이로 두르고, 칸 사이 선은 안에서 긋는다 */}
+      <SketchBorder radius={radius.lg} color={colors.border} strokeWidth={1.6} seed={311} />
     </View>
   );
 }
@@ -69,7 +72,6 @@ function Row({ row, first }: { row: SettingsRow; first: boolean }) {
 const styles = StyleSheet.create({
   list: {
     borderRadius: radius.lg,
-    borderWidth: 1.5,
     overflow: 'hidden',
   },
   row: {

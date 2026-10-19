@@ -21,21 +21,21 @@ public interface CommunityPostRepository extends JpaRepository<CommunityPost, Lo
      * (null 분기를 쿼리에 만들지 않는다).
      */
     @Query(
-            "select p from CommunityPost p where p.weather in :weathers and p.id < :cursorId"
+            "select p from CommunityPost p where p.emotion in :emotions and p.id < :cursorId"
                     + " order by p.id desc")
     List<CommunityPost> findLatest(
-            @Param("weathers") List<String> weathers,
+            @Param("emotions") List<String> emotions,
             @Param("cursorId") Long cursorId,
             Pageable pageable);
 
     /** 인기 정렬. (likeCount, id) 키셋 커서 - offset 을 쓰지 않는다(api-design 4장). */
     @Query(
-            "select p from CommunityPost p where p.weather in :weathers"
+            "select p from CommunityPost p where p.emotion in :emotions"
                     + " and (p.likeCount < :cursorRank"
                     + "      or (p.likeCount = :cursorRank and p.id < :cursorId))"
                     + " order by p.likeCount desc, p.id desc")
     List<CommunityPost> findPopular(
-            @Param("weathers") List<String> weathers,
+            @Param("emotions") List<String> emotions,
             @Param("cursorRank") int cursorRank,
             @Param("cursorId") Long cursorId,
             Pageable pageable);
@@ -46,13 +46,13 @@ public interface CommunityPostRepository extends JpaRepository<CommunityPost, Lo
      * 만든다 - 둘이 같은 답을 내는지는 통합 테스트가 본다.
      */
     @Query(
-            "select p from CommunityPost p where p.weather in :weathers"
+            "select p from CommunityPost p where p.emotion in :emotions"
                     + " and (" + FeedTaste.SCORE_JPQL + " < :cursorRank"
                     + "      or (" + FeedTaste.SCORE_JPQL + " = :cursorRank and p.id < :cursorId))"
                     + " order by " + FeedTaste.SCORE_JPQL + " desc, p.id desc")
     List<CommunityPost> findRecommended(
-            @Param("weathers") List<String> weathers,
-            @Param("tasteWeather") String tasteWeather,
+            @Param("emotions") List<String> emotions,
+            @Param("tasteEmotion") String tasteEmotion,
             @Param("tasteMood") int tasteMood,
             @Param("tasteFreshSince") Instant tasteFreshSince,
             @Param("cursorRank") int cursorRank,

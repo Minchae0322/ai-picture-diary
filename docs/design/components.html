@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>손그림 컴포넌트 - AI 그림일기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Gamja+Flower&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FAF6ED; --paper-mid:#F3EBDA; --kraft:#E8D5B5; --paper-shadow:#D9CEBC;
+  --graphite:#3B3B3B; --ink:#2C2825; --charcoal:#6B6560; --pencil:#A09888;
+  --blue:#5B9BD5; --coral:#E87461; --green:#6DAE6D; --yellow:#F7D55E;
+  --lilac:#B8A9D4; --orange:#E8943A; --teal:#4AADA1; --pink:#F5C6C2;
+  --hand:'Gaegu', cursive; --note:'Gamja Flower', cursive; --body:'Noto Sans KR', sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:var(--body); font-size:15px; line-height:1.75; color:var(--graphite);
+  background:var(--paper);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  padding:0 0 80px;
+}
+.wrap{max-width:1040px;margin:0 auto;padding:0 24px}
+
+/* 머리말 */
+header{padding:56px 0 32px;text-align:center}
+h1{font-family:var(--hand);font-size:54px;line-height:1.1;color:var(--ink);font-weight:700}
+.sub{font-family:var(--note);font-size:21px;color:var(--charcoal);margin-top:6px}
+.lead{max-width:640px;margin:18px auto 0;color:var(--charcoal);font-size:14px}
+
+/* 목차 */
+nav{
+  background:#fff;border-radius:18px 10px 22px 12px;padding:18px 24px;margin:28px 0 8px;
+  filter:url(#roughen); box-shadow:2px 3px 0 var(--paper-shadow);
+}
+nav h2{font-family:var(--hand);font-size:24px;color:var(--ink);margin-bottom:6px}
+nav ul{list-style:none;display:flex;flex-wrap:wrap;gap:8px 18px}
+nav a{font-family:var(--hand);font-size:19px;color:var(--blue);text-decoration:none;border-bottom:1.5px dashed var(--blue)}
+nav a:hover{color:var(--coral);border-bottom-color:var(--coral)}
+
+/* 구역 */
+section{margin:52px 0}
+h2.sec{font-family:var(--hand);font-size:34px;color:var(--ink);position:relative;display:inline-block}
+h2.sec::after{
+  content:'';display:block;height:7px;margin-top:2px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='7'%3E%3Cpath d='M2 4Q25 1,50 4T100 5T150 3T198 4' fill='none' stroke='%23E87461' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E") repeat-x;
+  background-size:200px 7px;
+}
+.sec-note{font-family:var(--note);font-size:18px;color:var(--charcoal);margin:4px 0 20px}
+
+/* 컴포넌트 카드 */
+.item{
+  background:#fff;border-radius:16px 8px 20px 10px;padding:24px;margin-bottom:22px;
+  filter:url(#roughen); box-shadow:2px 3px 0 var(--paper-shadow);
+}
+.item h3{font-family:var(--hand);font-size:26px;color:var(--coral);margin-bottom:2px}
+.item .why{font-size:13.5px;color:var(--charcoal);margin-bottom:16px}
+.demo{
+  background:var(--paper-mid);border-radius:12px 6px 14px 8px;padding:24px;
+  display:flex;flex-wrap:wrap;gap:16px;align-items:center;margin-bottom:14px;
+}
+.demo.col{flex-direction:column;align-items:flex-start}
+pre{
+  background:#2C2825;color:#F3EBDA;border-radius:10px 4px 12px 6px;padding:14px 16px;
+  font-family:ui-monospace,Menlo,monospace;font-size:12.5px;line-height:1.6;overflow-x:auto;
+}
+pre .c{color:#A09888}
+.spec{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 0}
+.spec span{
+  font-size:11.5px;background:var(--paper-mid);color:var(--charcoal);
+  padding:3px 10px;border-radius:9px 4px 8px 4px;
+}
+
+/* --- 실제 컴포넌트들 --- */
+.hd-btn{
+  font-family:var(--hand);font-size:19px;height:48px;padding:0 24px;color:#fff;
+  background:var(--coral);border:none;border-radius:24px 10px 22px 12px;cursor:pointer;
+  box-shadow:2px 3px 0 var(--ink); filter:url(#roughen); transition:.18s;
+}
+.hd-btn:hover{background:var(--blue);transform:translateY(-3px);box-shadow:3px 5px 0 var(--ink)}
+.hd-btn:active{transform:translateY(1px);box-shadow:1px 1px 0 var(--ink)}
+.hd-btn.ghost{background:transparent;color:var(--ink);border:2.5px dashed var(--ink);box-shadow:none}
+.hd-btn.ghost:hover{background:var(--yellow);border-style:solid}
+.hd-btn.sm{height:36px;font-size:16px;padding:0 16px}
+
+.hd-card{
+  background:#fff;border-radius:18px 10px 22px 12px;padding:20px;min-width:220px;
+  filter:url(#roughen); box-shadow:2px 3px 0 var(--paper-shadow); position:relative;
+}
+.hd-card.tilt{transform:rotate(-1.2deg)}
+.hd-card h4{font-family:var(--hand);font-size:22px;color:var(--ink)}
+.hd-card p{font-size:13px;color:var(--charcoal)}
+
+.hd-tape{
+  position:absolute;top:-12px;left:22px;width:76px;height:26px;
+  background:var(--kraft);opacity:.75;transform:rotate(-5deg);
+}
+.hd-badge{
+  display:inline-block;font-size:12px;font-weight:700;padding:4px 11px;
+  background:var(--pink);color:#9c4b42;border-radius:10px 4px 8px 4px;
+}
+.hd-badge.y{background:var(--yellow);color:#6b5610}
+.hd-badge.g{background:#cfe8cf;color:#2f6b2f}
+
+.hd-chip{
+  font-family:var(--hand);font-size:18px;height:36px;display:inline-flex;align-items:center;
+  gap:7px;padding:0 14px;background:#fff;border-radius:18px 8px 16px 8px;
+  filter:url(#roughen); color:var(--graphite);
+}
+.hd-chip.on{background:var(--blue);color:#fff}
+
+.hd-note{
+  font-family:var(--note);font-size:19px;background:var(--yellow);color:var(--ink);
+  padding:14px 18px;border-radius:8px 14px 8px 16px;transform:rotate(-1.5deg);
+  box-shadow:2px 3px 0 rgba(44,40,37,.18);max-width:280px;
+}
+.hd-bubble{
+  position:relative;background:#fff;border:2.5px solid var(--ink);border-radius:20px 16px 20px 4px;
+  padding:12px 16px;font-family:var(--note);font-size:18px;max-width:260px;
+}
+.hd-bubble::after{
+  content:'';position:absolute;bottom:-15px;left:24px;width:0;height:0;
+  border-left:11px solid transparent;border-right:7px solid transparent;border-top:16px solid var(--ink);
+}
+.hd-toggle{width:58px;height:32px;background:var(--paper-mid);border-radius:17px 15px 17px 15px;
+  position:relative;cursor:pointer;filter:url(#roughen)}
+.hd-toggle.on{background:#cfe8cf}
+.hd-toggle i{position:absolute;top:4px;left:5px;width:24px;height:24px;background:#fff;
+  border-radius:52% 48% 50% 50%/48% 52% 48% 52%;filter:url(#roughen);transition:.2s}
+.hd-toggle.on i{left:29px}
+
+.hd-avatar{width:56px;height:56px;border-radius:52% 48% 51% 49%/49% 52% 48% 51%;
+  background:var(--pink);display:flex;align-items:center;justify-content:center;
+  font-family:var(--hand);font-size:22px;color:#9c4b42;filter:url(#roughen)}
+
+.hd-sep{height:9px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='9'%3E%3Cpath d='M2 5Q20 2,40 6T80 4T120 6T160 4T200 6T240 4T280 6T320 5T360 6T398 5' fill='none' stroke='%23A09888' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") repeat-x;background-size:400px 9px;width:100%}
+
+.bg-sample{width:150px;height:96px;border-radius:12px 6px 14px 8px;filter:url(#roughen)}
+.bg-paper{background:var(--paper)}
+.bg-note{background:var(--paper);
+  background-image:repeating-linear-gradient(0deg,transparent,transparent 23px,rgba(59,59,59,.09) 23px,rgba(59,59,59,.09) 24px)}
+.bg-grid{background:var(--paper);
+  background-image:linear-gradient(rgba(59,59,59,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(59,59,59,.07) 1px,transparent 1px);
+  background-size:18px 18px}
+
+.hatch{width:150px;height:96px;border-radius:12px 6px 14px 8px;filter:url(#roughen);
+  background:repeating-linear-gradient(-35deg,var(--blue) 0 1.4px,transparent 1.4px 6px)}
+.hatch.cross{background:
+  repeating-linear-gradient(-35deg,var(--coral) 0 1.4px,transparent 1.4px 6px),
+  repeating-linear-gradient(35deg,var(--coral) 0 1.4px,transparent 1.4px 6px)}
+.hatch.dots{background:radial-gradient(var(--green) 1.1px,transparent 1.2px);background-size:7px 7px}
+
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px dashed var(--paper-shadow)}
+th{font-family:var(--hand);font-size:17px;color:var(--ink)}
+code{background:var(--paper-mid);padding:1px 6px;border-radius:5px;font-size:12.5px}
+.sw{display:inline-block;width:20px;height:20px;border-radius:6px 3px 7px 3px;vertical-align:-4px;margin-right:7px;border:1px solid rgba(0,0,0,.12)}
+footer{text-align:center;font-family:var(--note);font-size:17px;color:var(--charcoal);margin-top:56px}
+</style>
+</head>
+<body>
+
+<!-- 테두리를 손으로 그린 것처럼 떨게 만드는 필터. 이 문서의 모든 상자가 이걸 쓴다 -->
+<svg width="0" height="0" style="position:absolute">
+  <filter id="roughen">
+    <feTurbulence type="fractalNoise" baseFrequency="0.016" numOctaves="4" seed="7" result="n"/>
+    <feDisplacementMap in="SourceGraphic" in2="n" scale="4" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
+
+<div class="wrap">
+
+<header>
+  <h1>손그림 컴포넌트</h1>
+  <p class="sub">색연필로 그린 UI - 고르고, 복사해 쓰세요</p>
+  <p class="lead">
+    이 문서는 보는 문서가 아니라 <strong>쓰는 문서</strong>입니다. 각 컴포넌트는 실제로 그려져 있고,
+    바로 아래 React Native 코드가 붙어 있습니다. 규칙은
+    <code>.claude/skills/hand-drawn-ui/</code> 에 있고, 여기는 그 목록입니다.
+  </p>
+</header>
+
+<nav>
+  <h2>무엇이 있나</h2>
+  <ul>
+    <li><a href="#status">구현 현황</a></li>
+    <li><a href="#line">선</a></li>
+    <li><a href="#color">색</a></li>
+    <li><a href="#bg">바탕 3</a></li>
+    <li><a href="#frame">틀 4</a></li>
+    <li><a href="#action">행동 4</a></li>
+    <li><a href="#notice">알림 4</a></li>
+    <li><a href="#piece">조각 5</a></li>
+    <li><a href="#rule">하지 말 것</a></li>
+  </ul>
+</nav>
+
+
+<!-- ============ 구현 현황 ============ -->
+<section id="status">
+  <h2 class="sec">지금 쓸 수 있는 것</h2>
+  <p class="sec-note">목록만 보고 "있다"고 믿으면 쓰려다 없어서 되돌아옵니다. 가른 이유입니다.</p>
+  <div class="item">
+    <h3>만들어진 것 - 바로 import 해서 쓴다</h3>
+    <table>
+      <tr><th>파일</th><th>무엇</th><th>갖춘 것</th></tr>
+      <tr><td><code>sketch.ts</code></td><td>엔진 (RN 판 rough.js)</td><td>떨림·휨·seed, 채우기 6종, 도형 점, 변형 색</td></tr>
+      <tr><td><code>SketchShape.tsx</code></td><td>도형 하나</td><td>면 → 채우기(ClipPath) → 테두리 2번</td></tr>
+      <tr><td><code>SketchBorder.tsx</code></td><td>테두리만</td><td>크기 자동 측정, seed 고정</td></tr>
+      <tr><td><code>SketchButton.tsx</code></td><td>버튼 (원본 포팅)</td><td>채우기 6종, 변형 10종, 3D 두께, 눌림, 비활성</td></tr>
+      <tr><td><code>SketchBadge.tsx</code></td><td>뱃지 (원본 포팅)</td><td>모양 4종, 변형 10종, 테두리만</td></tr>
+      <tr><td><code>Tape.tsx</code></td><td>마스킹 테이프 (원본 포팅)</td><td>가장자리 3종, 변형 8종, 기울기·불투명도</td></tr>
+    </table>
+    <p class="why" style="margin-top:14px">
+      <strong>앱에 이미 적용된 곳:</strong> 공용 <code>Button</code> 이 손그림 테두리로 그려집니다
+      (11개 화면의 모든 버튼) · <code>Card</code> 가 <code>SketchBorder</code> 를 씁니다.
+      실제 기기에서 그려진 모습은 앱의 <code>/sketch-gallery</code> 화면에서 봅니다.
+    </p>
+  </div>
+
+  <div class="item">
+    <h3>아직 설계만 - 쓰려면 먼저 만들어야 한다</h3>
+    <p class="why">
+      아래 15종은 이 문서와 <code>reference.md</code> 에 <strong>수치와 만드는 법</strong>이 있습니다.
+      코드는 아직 없습니다.
+    </p>
+    <div class="spec">
+      <span>Paper</span><span>NotebookBackground</span><span>DoodleGridBackground</span>
+      <span>Separator</span><span>SectionTitle</span><span>Toggle</span><span>Checkbox</span>
+      <span>Combobox</span><span>Toast</span><span>Alert</span><span>Tooltip</span>
+      <span>HoverCard</span><span>Avatar</span><span>Loader</span><span>Calendar</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 선 ============ -->
+<section id="line">
+  <h2 class="sec">선</h2>
+  <p class="sec-note">색이 아니라 선에서 갈립니다. 셋이 동시에 있어야 손이 그린 선으로 읽힙니다.</p>
+
+  <div class="item">
+    <h3>떨림 + 휨 + 겹쳐 긋기</h3>
+    <p class="why">
+      가장 큰 것은 <strong>겹쳐 긋기</strong>입니다. 사람은 한 번에 선을 못 맞춰 두 번 긋습니다.
+      이게 없으면 아무리 떨어도 기계가 흉내 낸 선으로 보입니다.
+    </p>
+    <div class="demo">
+      <svg width="260" height="70">
+        <rect x="8" y="8" width="240" height="52" rx="12" fill="none" stroke="#3B3B3B" stroke-width="1.7"/>
+        <text x="128" y="39" text-anchor="middle" font-family="Gaegu" font-size="17" fill="#6B6560">자로 잰 선</text>
+      </svg>
+      <svg width="260" height="70" style="filter:url(#roughen)">
+        <rect x="8" y="8" width="240" height="52" rx="12" fill="none" stroke="#A09888" stroke-width="1.4" opacity=".45" transform="translate(1,1)"/>
+        <rect x="8" y="8" width="240" height="52" rx="12" fill="none" stroke="#3B3B3B" stroke-width="1.7"/>
+        <text x="128" y="39" text-anchor="middle" font-family="Gaegu" font-size="17" fill="#2C2825">손으로 그은 선</text>
+      </svg>
+    </div>
+    <div class="spec">
+      <span>roughness 1.4 (강조 1.9)</span><span>bowing 0.8</span><span>strokeWidth 1.7</span>
+      <span>stroke #111 (순수 검정 아님)</span><span>linecap round</span><span>2번 긋기, 둘째 opacity .4</span>
+    </div>
+    <pre><span class="c">// RN - 구현 전체는 app/src/shared/ui/SketchBorder.tsx</span>
+&lt;SketchBorder radius={24} color={colors.border} strokeWidth={1.7} seed={7} /&gt;
+
+<span class="c">// seed 는 자리마다 다르게. 같은 수면 네 귀가 똑같이 떨려 도장 찍은 티가 난다</span></pre>
+  </div>
+
+  <div class="item">
+    <h3>채우기 - 색연필은 종이 결을 남긴다</h3>
+    <p class="why">면을 단색으로 칠하지 않습니다. 다만 <strong>글자 뒤에는 빗금을 쓰지 않습니다</strong> - 읽을 수 없습니다.</p>
+    <div class="demo">
+      <div class="hatch"></div>
+      <div class="hatch cross"></div>
+      <div class="hatch dots"></div>
+    </div>
+    <div class="spec"><span>hachure - 기본</span><span>cross-hatch - 강조, 눌림</span><span>dots - 연한 강조, 비활성</span><span>간격 5px, 각도 -35도</span><span>누르면 간격 0.75 로</span></div>
+    <pre><span class="c">// 평행선 + ClipPath. 코드 전체는 skills/hand-drawn-ui/components.md</span>
+&lt;Hatch width={w} height={h} radius={18} color={colors.primary} gap={5} angle={-35} /&gt;</pre>
+  </div>
+</section>
+
+<!-- ============ 색 ============ -->
+<section id="color">
+  <h2 class="sec">색</h2>
+  <p class="sec-note">종이와 필기구에서 가져옵니다. 채도가 높으면 색연필이 아니라 형광등이 됩니다.</p>
+  <div class="item">
+    <table>
+      <tr><th>역할</th><th>값</th><th>쓰는 곳</th></tr>
+      <tr><td><span class="sw" style="background:#FAF6ED"></span>종이</td><td><code>#FAF6ED</code></td><td>바탕. 순백은 종이가 아니다</td></tr>
+      <tr><td><span class="sw" style="background:#F3EBDA"></span>종이(진한 면)</td><td><code>#F3EBDA</code></td><td>섹션 교대, 카드 바닥</td></tr>
+      <tr><td><span class="sw" style="background:#E8D5B5"></span>크라프트</td><td><code>#E8D5B5</code></td><td>테이프, 띠지</td></tr>
+      <tr><td><span class="sw" style="background:#D9CEBC"></span>종이 그림자</td><td><code>#D9CEBC</code></td><td>딱딱한 그림자, 구분선</td></tr>
+      <tr><td><span class="sw" style="background:#3B3B3B"></span>흑연</td><td><code>#3B3B3B</code></td><td>본문, 스케치 선</td></tr>
+      <tr><td><span class="sw" style="background:#2C2825"></span>잉크</td><td><code>#2C2825</code></td><td>굵은 외곽선, 사인펜 글자</td></tr>
+      <tr><td><span class="sw" style="background:#A09888"></span>연한 연필</td><td><code>#A09888</code></td><td>보조선, placeholder</td></tr>
+      <tr><td><span class="sw" style="background:#5B9BD5"></span>수채 파랑</td><td><code>#5B9BD5</code></td><td>주 강조, 링크</td></tr>
+      <tr><td><span class="sw" style="background:#E87461"></span>사인펜 산호</td><td><code>#E87461</code></td><td>주 행동</td></tr>
+      <tr><td><span class="sw" style="background:#6DAE6D"></span>색연필 초록</td><td><code>#6DAE6D</code></td><td>성공</td></tr>
+      <tr><td><span class="sw" style="background:#F7D55E"></span>크레용 노랑</td><td><code>#F7D55E</code></td><td>형광펜, 쪽지</td></tr>
+      <tr><td><span class="sw" style="background:#B8A9D4"></span>분필 라일락</td><td><code>#B8A9D4</code></td><td>3차 강조, 태그</td></tr>
+      <tr><td><span class="sw" style="background:#F5C6C2"></span>지우개 분홍</td><td><code>#F5C6C2</code></td><td>연한 바탕, 뱃지</td></tr>
+    </table>
+    <p class="why" style="margin-top:14px">
+      글자는 <strong>제목만 손글씨</strong>입니다. 한글 손글씨는 <code>Gaegu</code>,
+      주석은 <code>Gamja Flower</code>. 본문은 기존 고딕 그대로 둡니다 -
+      손글씨 본문은 세 줄만 넘어도 피곤합니다. 라틴 손글씨 폰트에는 <strong>한글 글리프가 없습니다</strong>.
+    </p>
+  </div>
+</section>
+
+<!-- ============ 바탕 ============ -->
+<section id="bg">
+  <h2 class="sec">바탕 3</h2>
+  <p class="sec-note">가장 싸고 가장 크게 바뀌는 자리입니다. 여기부터 바꾸세요.</p>
+  <div class="item">
+    <div class="demo">
+      <div><div class="bg-sample bg-paper"></div><p class="why" style="margin:8px 0 0">Paper - 종이 + 결</p></div>
+      <div><div class="bg-sample bg-note"></div><p class="why" style="margin:8px 0 0">Notebook - 괘선 24px</p></div>
+      <div><div class="bg-sample bg-grid"></div><p class="why" style="margin:8px 0 0">DoodleGrid - 모눈 + 낙서</p></div>
+    </div>
+    <div class="spec"><span>결 불투명도 0.025~0.03</span><span>괘선 rgba(59,59,59,.04)</span><span>모눈 24px</span><span>낙서는 가장자리에만</span></div>
+    <pre><span class="c">// RN 은 feTurbulence 가 없다. 점을 흩뿌린 SVG 한 장을 깐다(한 번만 계산)</span>
+&lt;PaperGrain /&gt;
+<span class="c">// 글이 올라가는 면에는 괘선을 넣지 않는다 - 글줄과 어긋나면 더 지저분하다</span></pre>
+  </div>
+</section>
+
+<!-- ============ 틀 ============ -->
+<section id="frame">
+  <h2 class="sec">틀 4</h2>
+  <p class="sec-note">Card · SketchBorder · Separator · SectionTitle</p>
+
+  <div class="item">
+    <h3>Card</h3>
+    <p class="why">네 귀를 다르게, 0.5~2.5도 기울임, 딱딱한 그림자. 셋이 모이면 "놓아둔 종이"가 됩니다.</p>
+    <div class="demo">
+      <div class="hd-card"><h4>오늘의 기분</h4><p>평균 +1.5 · 2일 연속</p></div>
+      <div class="hd-card tilt"><div class="hd-tape"></div><h4>테이프로 붙인 카드</h4><p>위 귀에 하나만 붙여도 됩니다</p></div>
+    </div>
+    <div class="spec"><span>radius 18 (네 귀 다르게)</span><span>padding 24</span><span>그림자 2px 3px 0</span><span>기울임 -1.2도</span></div>
+    <pre>&lt;Card seed={11}&gt;
+  &lt;Heading&gt;오늘의 기분&lt;/Heading&gt;
+&lt;/Card&gt;
+
+<span class="c">// 네 귀를 다르게</span>
+contentStyle={{ borderTopLeftRadius:26, borderTopRightRadius:18,
+                borderBottomRightRadius:28, borderBottomLeftRadius:20 }}</pre>
+  </div>
+
+  <div class="item">
+    <h3>Separator</h3>
+    <p class="why">직선 구분선을 쓰지 않습니다. 물결 하나로 손그림 티가 크게 올라갑니다.</p>
+    <div class="demo col"><div class="hd-sep"></div></div>
+    <pre>&lt;Separator width={320} color={colors.decor} /&gt;
+<span class="c">// 밑줄로 쓸 때는 제목 폭의 55~60%만. 다 그으면 구분선이 된다</span></pre>
+  </div>
+</section>
+
+<!-- ============ 행동 ============ -->
+<section id="action">
+  <h2 class="sec">행동 4</h2>
+  <p class="sec-note">Button · Toggle · Checkbox · Combobox</p>
+
+  <div class="item">
+    <h3>Button</h3>
+    <p class="why">
+      면은 <strong>solid</strong>, 테두리만 거칠게. 빗금 위 글자는 못 읽습니다.
+      웹의 hover 회전은 모바일에서 <strong>누름 1px</strong> 로 받습니다 - 움직이는 과녁은 못 누릅니다.
+    </p>
+    <div class="demo">
+      <button class="hd-btn">기록하기</button>
+      <button class="hd-btn ghost">다시 그리기</button>
+      <button class="hd-btn sm">저장</button>
+    </div>
+    <div class="spec"><span>height 48 (터치 44 이상)</span><span>radius 24/10/22/12</span><span>그림자 2px 3px 0 ink</span><span>누르면 translateY 1</span></div>
+    <pre>&lt;Pressable style={({pressed}) =&gt; [{
+  height:48, paddingHorizontal:24, borderRadius:24,
+  backgroundColor: pressed ? colors.primaryPressed : colors.primary,
+  transform:[{ translateY: pressed ? 1 : 0 }],
+}]}&gt;
+  &lt;Text&gt;{label}&lt;/Text&gt;
+  &lt;SketchBorder radius={24} color={colors.text} seed={3} /&gt;
+&lt;/Pressable&gt;</pre>
+  </div>
+
+  <div class="item">
+    <h3>Toggle · Checkbox</h3>
+    <p class="why">손잡이는 정원이 아니라 찌그러진 원. 체크는 폰트 글리프가 아니라 <strong>두 획으로 그은 V</strong>.</p>
+    <div class="demo">
+      <div class="hd-toggle on"><i></i></div>
+      <div class="hd-toggle"><i></i></div>
+      <svg width="34" height="34" style="filter:url(#roughen)">
+        <path d="M5 17 L13 25 L29 6" stroke="#6DAE6D" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      </svg>
+    </div>
+    <pre>&lt;Path d="M4 11 L9 16 L18 5" stroke={colors.primary}
+      strokeWidth={2.4} strokeLinecap="round" fill="none" /&gt;</pre>
+  </div>
+</section>
+
+<!-- ============ 알림 ============ -->
+<section id="notice">
+  <h2 class="sec">알림 4</h2>
+  <p class="sec-note">Toast · Alert · Tooltip · HoverCard</p>
+  <div class="item">
+    <h3>쪽지와 말풍선</h3>
+    <p class="why">Toast 는 "붙인 쪽지"입니다. 사라질 때 미끄러지기보다 <strong>떼어내듯</strong> 회전과 함께 흐려집니다.</p>
+    <div class="demo">
+      <div class="hd-note">오늘 기록이 저장됐어요</div>
+      <div class="hd-bubble">다시 그리기는 하루 세 번까지예요</div>
+    </div>
+    <div class="spec"><span>쪽지 기울임 -1.5도</span><span>말풍선 꼬리는 삼각형 두 겹</span><span>radius 20/16/20/4</span><span>심각도는 테이프 색 + 아이콘</span></div>
+  </div>
+</section>
+
+<!-- ============ 조각 ============ -->
+<section id="piece">
+  <h2 class="sec">조각 5</h2>
+  <p class="sec-note">Badge · Tape · Avatar · Loader · Calendar</p>
+  <div class="item">
+    <h3>Tape - 숨은 주역</h3>
+    <p class="why">가장 값싸고 효과가 큽니다. 카드 위 귀에 하나 붙이면 화면이 "붙여 둔 종이"가 됩니다.</p>
+    <div class="demo">
+      <span class="hd-badge">행복한</span>
+      <span class="hd-badge y">2일 연속</span>
+      <span class="hd-badge g">획득</span>
+      <span class="hd-chip on">추천</span>
+      <span class="hd-chip">인기</span>
+      <div class="hd-avatar">젤</div>
+    </div>
+    <div class="spec"><span>테이프 폭 60~90, 불투명도 .75</span><span>기울기 -6 ~ +6도</span><span>뱃지 네 귀 10/4/8/4</span><span>아바타는 찌그러진 원</span></div>
+    <pre>&lt;Tape color={colors.kraft} width={76} angle={-5} /&gt;
+<span class="c">// 불투명도 0.75 - 밑이 비쳐야 테이프다</span></pre>
+  </div>
+  <div class="item">
+    <h3>Loader</h3>
+    <p class="why">빙글 도는 원을 쓰지 않습니다. 끄적이는 획, 차오르는 빗금이 이 체계의 기다림입니다.</p>
+  </div>
+</section>
+
+<!-- ============ 하지 말 것 ============ -->
+<section id="rule">
+  <h2 class="sec">하지 말 것</h2>
+  <div class="item">
+    <table>
+      <tr><th>하지 말 것</th><th>왜</th></tr>
+      <tr><td>손글씨로 본문 쓰기</td><td>세 줄만 넘어도 피곤하다. 제목과 주석까지</td></tr>
+      <tr><td>난수를 매 렌더 새로 뽑기</td><td>선이 춤춘다. 손그림이 아니라 고장 난 화면</td></tr>
+      <tr><td>빗금 위에 글자</td><td>읽을 수 없다. 글자 자리는 solid</td></tr>
+      <tr><td>누르는 것을 기울이거나 흔들기</td><td>움직이는 과녁은 못 누른다</td></tr>
+      <tr><td>블러 그림자만 쓰기</td><td>종이는 번지지 않고 밀린다. 딱딱한 offset</td></tr>
+      <tr><td>순수 검정 선, 순백 바탕</td><td>연필은 검지 않고 종이는 희지 않다</td></tr>
+      <tr><td>기울임 3도 넘기기</td><td>취한 화면이 된다. 0.5~2.5도</td></tr>
+      <tr><td>네 귀 같은 radius</td><td>컴퍼스로 그린 티가 난다</td></tr>
+      <tr><td>대비 확인 생략</td><td>손그림이어도 WCAG AA 는 지킨다</td></tr>
+    </table>
+  </div>
+</section>
+
+<footer>
+  규칙은 <code>.claude/skills/hand-drawn-ui/</code> · 코드는 <code>components.md</code> · 이 문서는 목록입니다
+</footer>
+
+</div>
+</body>
+</html>

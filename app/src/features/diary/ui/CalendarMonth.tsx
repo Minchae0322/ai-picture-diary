@@ -1,17 +1,17 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { EmotionFace } from '@/shared/ui/EmotionFace';
 import { font, radius, space } from '@/shared/theme/tokens';
-import { useColors, useWeatherColors } from '@/shared/theme/useColors';
-import { Icon } from '@/shared/ui/Icon';
-import { WEATHER_ICON, weatherLabel, type Weather } from '@/shared/weather';
+import { useColors } from '@/shared/theme/useColors';
+import { emotionLabel, type Emotion } from '@/shared/emotion';
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
-type Cell = { day: number; date: string; weather: Weather | null; diaryId: string | null };
+type Cell = { day: number; date: string; emotion: Emotion | null; diaryId: string | null };
 
 type Props = {
   /** "2026-08" */
   month: string;
-  days: { date: string; diaryId: string; weather: Weather }[];
+  days: { date: string; diaryId: string; emotion: Emotion }[];
   today: string;
   onSelect: (diaryId: string) => void;
 };
@@ -19,15 +19,13 @@ type Props = {
 /**
  * 05 날짜 그리드(prototype `.grid7` / `.cell`). 주 시작은 일요일 고정(시안 기준).
  *
- * 기록이 있는 날은 **날씨 색을 꽉 채운 동그라미** 안에 날씨 아이콘을 둔다. 색이 옅으면
- * 한 달을 멀리서 봤을 때 날씨의 흐름이 보이지 않는다. 글자색은 `weatherInk` 고정이고
- * 날씨 6색 모두 4.5:1 을 넘는다(가장 낮은 비 #8fa9c8 에서 5.19:1).
+ * 기록이 있는 날은 **동그라미 안에 감정 캐릭터**를 둔다. 과일 색을 면에 깔면 같은 계열이라
+ * 캐릭터가 묻혀서, 면은 `faceBg` 하나로 고정하고 뜻은 그림이 나른다(`shared/emotion.ts`).
  *
  * 기록 없는 날·미래 날은 시안에 정의가 없어 여기서 정했다: 기록 없음은 테두리만, 미래는 흐리게.
  */
 export function CalendarMonth({ month, days, today, onSelect }: Props) {
   const colors = useColors();
-  const weatherColors = useWeatherColors();
   const byDate = new Map(days.map((day) => [day.date, day]));
   const cells = buildCells(month, byDate);
   const leadingBlanks = new Date(`${month}-01T00:00:00`).getDay();
@@ -50,7 +48,7 @@ export function CalendarMonth({ month, days, today, onSelect }: Props) {
         {cells.map((cell) => {
           const isToday = cell.date === today;
           const isFuture = cell.date > today;
-          const weather = cell.weather;
+          const recorded = cell.emotion !== null;
 
           return (
             <Pressable
@@ -58,21 +56,21 @@ export function CalendarMonth({ month, days, today, onSelect }: Props) {
               disabled={!cell.diaryId}
               onPress={() => cell.diaryId && onSelect(cell.diaryId)}
               accessibilityRole={cell.diaryId ? 'button' : undefined}
-              accessibilityLabel={`${cell.day}일, ${weatherLabel(weather)}`}
+              accessibilityLabel={`${cell.day}일 ${emotionLabel(cell.emotion)}`}
               style={({ pressed }) => [styles.cell, { opacity: isFuture ? 0.35 : pressed ? 0.6 : 1 }]}
             >
               <View
                 style={[
                   styles.mark,
-                  weather
-                    ? { backgroundColor: weatherColors[weather] }
-                    : { borderWidth: 1.5, borderColor: colors.borderStrong },
-                  isToday && { borderWidth: 2, borderColor: colors.primary },
+                  {
+                    // 과일 색을 깔면 같은 계열이라 캐릭터가 묻힌다. 면은 faceBg 하나로 고정한다
+                    backgroundColor: recorded ? colors.faceBg : 'transparent',
+                    borderColor: isToday ? colors.primary : recorded ? 'transparent' : colors.borderStrong,
+                    borderWidth: isToday ? 2 : 1.5,
+                  },
                 ]}
               >
-                {weather ? (
-                  <Icon name={WEATHER_ICON[weather]} size={17} color={colors.weatherInk} />
-                ) : null}
+                {cell.emotion ? <EmotionFace emotion={cell.emotion} size={26} /> : null}
               </View>
               <Text
                 style={[
@@ -95,7 +93,7 @@ export function CalendarMonth({ month, days, today, onSelect }: Props) {
 
 function buildCells(
   month: string,
-  byDate: Map<string, { date: string; diaryId: string; weather: Weather }>,
+  byDate: Map<string, { date: string; diaryId: string; emotion: Emotion }>,
 ): Cell[] {
   const [year, monthNumber] = month.split('-').map(Number);
   const lastDay = new Date(year, monthNumber, 0).getDate();
@@ -104,7 +102,7 @@ function buildCells(
     const day = index + 1;
     const date = `${month}-${String(day).padStart(2, '0')}`;
     const record = byDate.get(date);
-    return { day, date, weather: record?.weather ?? null, diaryId: record?.diaryId ?? null };
+    return { day, date, emotion: record?.emotion ?? null, diaryId: record?.diaryId ?? null };
   });
 }
 

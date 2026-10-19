@@ -50,7 +50,7 @@ public class DiaryGenerationListener {
 
             AppLog.event(log, "diary.painted")
                     .with("diaryId", diaryId)
-                    .with("weather", painting.weather())
+                    .with("emotion", painting.emotion())
                     .info("diary painted");
         } catch (RuntimeException e) {
             resultApplier.applyFailure(diaryId);

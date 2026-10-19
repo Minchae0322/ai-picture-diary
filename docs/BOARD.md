@@ -3,34 +3,33 @@
 CHANGELOG.md는 코드 변경 기록, 이 보드는 **현행 문서 동기화 상태**와 무엇이 구현됐는지를 다룬다.
 
 ## 동기화 상태
-- last_synced_commit: 972c6e9 + muted-sky 디자인 이식
-- last_synced_at: 2026-10-05
+- last_synced_commit: 4e0cca0 + feat/emotion-fruit 머지(감정 9종) + 미커밋 MySQL 전환
+- last_synced_at: 2026-10-19
 - synced_by: Claude
 
 ## 구현 현황 (화면 기준)
 
 | # | 화면 | 앱 | 서버 | 비고 |
 |---|---|---|---|---|
-| 01 | 온보딩 | 구현 | 해당 없음 | 로그인 화면 없음. CTA·보조 링크 둘 다 홈으로. **보조 링크 대비 미해결**(01 문서 8장) |
-| 02 | 홈 (기록 전) | 구현 | 구현 | 연속 배지·닉네임 붙음 |
+| 01 | 온보딩 | 구현 | 해당 없음 | 보조 링크가 11 로그인으로 간다 |
+| 02 | 홈 (기록 전) | 구현 | 구현 | 연속 배지·닉네임. 감정 칩 9종 가로 스크롤 + 세기 게이지(**값은 서버로 안 보냄**) |
 | 03 | AI 생성 중 | 구현 | 구현 | AI는 규칙 기반 대역(MockDiaryPainter) |
-| 04 | 결과 | 구현 | 구현 | 공유·뱃지 카드 붙음. 과거 날짜 모드 추가 |
-| 05 | 감정 캘린더 | 구현 | 구현 | 새 테이블 없이 tb_diary 집계 |
+| 04 | 결과 | 구현 | 구현 | 공유·뱃지 카드. 판정 줄이 감정 캐릭터 + 라벨 |
+| 05 | 감정 캘린더 | 구현 | 구현 | 새 테이블 없이 tb_diary 집계. 셀이 감정 캐릭터, 월 요약은 상위 4칸만 |
 | 06 | 감정 그래프 | 구현 | 구현 | 자주 쓴 말은 순진한 토크나이저 |
 | 07 | 뱃지 컬렉션 | 구현 | 구현 | 정의는 `tb_badge` 마스터. 12/40종만 seed. 댓글·구독 뱃지는 잠김 |
-| 08 | 커뮤니티 | 구현 | 구현 | 정렬 추천/최신/인기. **신고 처리 도구·차단 없음 - 배포 전 필수** |
+| 08 | 커뮤니티 | 구현 | 구현 | 정렬 추천/최신/인기. 감정 필터는 2종만 열려 있음. **신고 처리 도구·차단 없음 - 배포 전 필수** |
 | 09 | 테마 상점 | 구현 | 구현 | 결제·복원 없음. Plus 항목은 아무도 못 씀 |
 | 10 | 마이페이지 | 구현 | 구현 | **계정 삭제 없음 - 스토어 필수**. 설정 4행은 준비 중 안내 |
+| 11 | 로그인 | 구현 | **없음** | 시안에 없는 화면. 버튼을 눌러도 홈으로 간다 - 인증이 없다 |
 
 ## 검증 안 된 것
 
-- `npx tsc --noEmit` **못 돌렸다.** `node_modules` 가 없다. 포팅 후 확인한 것은
-  (1) 내부 `@/`·`@assets/` import 55개 파일 전부 실재, (2) `fontSize` 78곳에 `fontFamily` 78곳 대응,
-  (3) `.githooks/no-emoji.js` 통과, (4) 프로토타입 HTML 의 스크립트·CSS 파싱.
-  **타입은 아직 아무도 안 봤다** - `cd app && npm install && npm run typecheck` 가 다음 할 일이다
-- 앱을 **실행해 보지 않았다.** 특히 SUIT 등록(`useFonts`)과 `@assets` 별칭의 metro 해석은 런타임에서만 확인된다
-- 디자인 토큰 교체가 05~10 화면 레이아웃에 미치는 영향은 눈으로 확인하지 않았다.
-  본문 글자가 16 -> 14 로, 라운드가 전반적으로 커졌다
+- 앱을 **실행해 보지 않았다.** `npx tsc --noEmit` 과 `./gradlew test`(74건)는 통과했지만
+  SUIT 등록(`useFonts`), `@assets` 별칭의 metro 해석, 감정 PNG 9장의 실제 렌더는 런타임에서만 확인된다
+- 감정 전환 뒤의 **화면을 눈으로 보지 않았다.** 특히 캐릭터 배율(`EMOTION_SCALE`)이 상자를 넘치는지,
+  05 캘린더 셀(32px 안에 26px 캐릭터)과 02 칩(36px 안에 22px)에서 잘리지 않는지
+- `sql/patch/2026-10-05-날씨-감정-전환.sql` 은 **문법만 MySQL 로 맞췄고 실행해 보지 않았다**
 
 ## 미분류 변경 (사람 판단 필요)
 없음.
@@ -38,6 +37,16 @@ CHANGELOG.md는 코드 변경 기록, 이 보드는 **현행 문서 동기화 �
 ## 갱신 이력 (최근 10건만 유지)
 | 일시 | 갱신 문서 | 커밋 범위 |
 |---|---|---|
+| 2026-10-20 | 갱신: `app/INSTALL.md`(Skia 설치와 버전 함정), `screen/04-result.md`, `CHANGELOG.md` · 코드: `StrokeCanvas`(Skia), `penTools.ts`, `babel.config.js` | (미커밋) |
+| 2026-10-20 | 갱신: `screen/04-result.md`(덧그리기 + 저장 미정), `CHANGELOG.md` · 코드: `DiaryDrawModal`(도구 5종), 배경 토큰 재조정 | (미커밋) |
+| 2026-10-20 | 갱신: `CLAUDE.md` 배경 선언(바닐라 -> 종이), `screen/README.md`(면과 경계), `CHANGELOG.md` · 코드: `PaperGrain`, 칩·설정목록·세그먼트·뱃지·상점·입력창·썸네일 손그림화 | (미커밋) |
+| 2026-10-20 | 갱신: `hand-drawn-ui` 스킬 5장(구현/설계 분리), `design/components.html`(구현 현황), `CHANGELOG.md` · 신규 코드: `sketch.ts`, `SketchShape`, `SketchButton`, `SketchBadge`, `Tape`, `/sketch-gallery` | (미커밋) |
+| 2026-10-20 | 신규: 스킬 `hand-drawn-ui`(SKILL·components·reference), `design/components.html` · 갱신: `CLAUDE.md` 디자인 선언, 프로젝트 스킬 4장, `INDEX.md`, `docs/README.md` (손그림 체계 도입) | (미커밋) |
+| 2026-10-20 | 갱신: `screen/README.md`(버튼·면과 경계·탭바·칩/세그먼트), `screen/02`·`04`, `CHANGELOG.md` (버튼 줄바꿈·카드 대비·인사말 줄나눔·탭 선택 대비·칩 키) | (미커밋) |
+| 2026-10-19 | 갱신: `screen/README.md`(빈 화면 규칙), `screen/01`·`07`·`09`·`11`, `CHANGELOG.md` (앱 디자인 - 빈 화면 캐릭터·프로필 아바타·뱃지/상점 정리, 한글 깨짐·상점 500 수정) | (미커밋) |
+| 2026-10-19 | 신규: `시스템구성도.drawio`(+png/pdf, 2페이지) · 삭제: 스킬 `architecture-diagram`(훅 3층은 구성도 파일을 직접 가리키게 고침) · `INDEX.md` 등록 | (미커밋) |
+| 2026-10-19 | 신규: `db/2026-10-05-날씨-감정-전환.md`, `screen/11-login.md` · 갱신: `domain/` 4건, `api/` 2건, `screen/` 7건, `feature/` 5건, `README.md`, `INDEX.md`, 프로젝트 스킬 1·2·3·4·8·9장 (날씨 6종 -> 감정 9종) | `ca1d5d2..cf388ce` |
+| 2026-10-14 | 신규: `adr/2026-10-14-DB를-MySQL로.md` · 갱신: `db/` 4건, `guide/`, `domain/badge/`, `README.md`, 프로젝트 스킬 3·4·8장 (DB PostgreSQL -> MySQL 8.0) | (미커밋) |
 | 2026-09-22 | 갱신: 추천 다양성(상위 10 중 2) - `domain/community/`, `screen/08`, API 명세 | (미커밋) |
 | 2026-09-22 | 신규: 스킬 `feed-ranking`·`similarity-search`, `db/2026-09-22-커뮤니티-추천정렬` · 갱신: `domain/community/`, `screen/08`, API 명세 | (미커밋) |
 | 2026-09-22 | 신규: `db/2026-09-22-badge-마스터-테이블.md` · 갱신: `domain/badge/`, `screen/07`, `feature/뱃지-컬렉션`, API 명세 | (미커밋) |
@@ -45,17 +54,12 @@ CHANGELOG.md는 코드 변경 기록, 이 보드는 **현행 문서 동기화 �
 | 2026-09-22 | 갱신: 도메인 예외를 `BusinessException`으로 통일 - `api/2026-09-21-*`, `domain/diary/`, `domain/profile/`, `guide/` | (미커밋) |
 | 2026-09-22 | 갱신: 프로필 기본값을 `app.profile.*`로 이전 - `domain/profile/`, API 명세, `feature/프로필과-꾸미기.md` | (미커밋) |
 | 2026-09-22 | 신규: `api/2026-09-22-화면05-10-API-명세.md`, `db/2026-09-22-badge-community-profile-테이블-추가.md` | (미커밋) |
-| 2026-09-22 | 신규: `domain/diary/감정집계-`, `domain/badge/`, `domain/community/`, `domain/profile/` 4건 | (미커밋) |
-| 2026-09-22 | 신규: `feature/` 4건(온보딩·캘린더그래프·뱃지·커뮤니티·프로필) | (미커밋) |
-| 2026-09-22 | 갱신: `screen/` 01·02·04~10 + README(라우트 표), `INDEX.md` 전면, `README.md` 기능 표 | (미커밋) |
-| 2026-09-21 | 신규: `feature/오늘-한줄-기록.md`, `README.md` 기능 표로 재편 | 73aa7fc |
-| 2026-09-21 | 신규: `guide/개발-가이드.md` (common·resources·app shared 매핑) | 73aa7fc |
 
 ## 할 일
 
 ### 막는 것 (배포 전 필수)
-- [ ] **백엔드 빌드·테스트 실행.** JDK 21 + `cd api && gradle wrapper`가 필요하다. **지금까지 한 번도 컴파일되지 않았다**
-- [ ] `sql/patch/*.sql` 4개를 순서대로 실행 (사람이) 후 각 `docs/db/` 문서의 실행 기록 채우기. **뱃지 마스터는 badge-community-profile 다음**
+- [ ] `sql/patch/*.sql` **5개**를 순서대로 실행 (사람이) 후 각 `docs/db/` 문서의 실행 기록 채우기. **뱃지 마스터는 badge-community-profile 다음, 감정 전환은 맨 마지막**
+- [ ] **MySQL 8.0 에서 DDL 실행 + `ddl-auto: validate` 기동 확인.** 2026-10-14 전환 이후 아직 어떤 DB에도 올라간 적이 없다. Docker 가 있으면 `./gradlew integrationTest` 로도 확인된다
 - [ ] 08 신고 처리 도구와 차단 (`app-store-release`)
 - [ ] 10 계정 삭제 (두 스토어 필수) - 인증 도입과 함께
 - [ ] 09 구독 복원(Restore) 동선 - iOS 심사 필수

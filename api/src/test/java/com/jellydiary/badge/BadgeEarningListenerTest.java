@@ -9,7 +9,7 @@ import com.jellydiary.badge.service.BadgeEarningListener;
 import com.jellydiary.badge.service.BadgeService;
 import com.jellydiary.badge.type.BadgeCriteria;
 import com.jellydiary.diary.event.DiaryCompletedEvent;
-import com.jellydiary.diary.type.Weather;
+import com.jellydiary.diary.type.Emotion;
 import java.time.LocalDate;
 import java.util.EnumMap;
 import java.util.Map;
@@ -17,20 +17,20 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-/** 사건 -> 판정 조건 번역만 본다. "6종 전부"의 6이 날씨 enum에서 오는지가 핵심이다. */
+/** 사건 -> 판정 조건 번역만 본다. "6종 전부"의 6이 감정 enum에서 오는지가 핵심이다. */
 class BadgeEarningListenerTest {
 
     private final BadgeService badgeService = mock(BadgeService.class);
     private final BadgeEarningListener listener = new BadgeEarningListener(badgeService);
 
     @Test
-    @DisplayName("'6종 전부'의 기준은 날씨 enum 개수다 - 뱃지 임계값에 숫자로 박지 않는다")
-    void allWeathersFollowsWeatherEnum() {
-        listener.on(event(Weather.values().length, 12));
-        assertThat(capture().allWeathers()).isTrue();
+    @DisplayName("'9종 전부'의 기준은 감정 enum 개수다 - 뱃지 임계값에 숫자로 박지 않는다")
+    void allEmotionsFollowsEmotionEnum() {
+        listener.on(event(Emotion.values().length, 12));
+        assertThat(capture().allEmotions()).isTrue();
 
-        listener.on(event(Weather.values().length - 1, 12));
-        assertThat(capture().allWeathers()).isFalse();
+        listener.on(event(Emotion.values().length - 1, 12));
+        assertThat(capture().allEmotions()).isFalse();
     }
 
     @Test
@@ -52,12 +52,12 @@ class BadgeEarningListenerTest {
         return captor.getValue();
     }
 
-    private DiaryCompletedEvent event(int distinctWeathers, int hour) {
-        Map<Weather, Integer> counts = new EnumMap<>(Weather.class);
-        for (int i = 0; i < distinctWeathers; i++) {
-            counts.put(Weather.values()[i], 1);
+    private DiaryCompletedEvent event(int distinctEmotions, int hour) {
+        Map<Emotion, Integer> counts = new EnumMap<>(Emotion.class);
+        for (int i = 0; i < distinctEmotions; i++) {
+            counts.put(Emotion.values()[i], 1);
         }
         return new DiaryCompletedEvent(
-                1L, 1L, LocalDate.of(2026, 8, 24), Weather.SUNNY, hour, 1, 1, counts);
+                1L, 1L, LocalDate.of(2026, 8, 24), Emotion.HAPPY, hour, 1, 1, counts);
     }
 }

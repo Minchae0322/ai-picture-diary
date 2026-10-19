@@ -11,6 +11,7 @@ import {
 import { Button } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
 import { EmotionFace } from '@/shared/ui/EmotionFace';
+import { SketchBorder } from '@/shared/ui/SketchBorder';
 import { Heading, Label, Muted, Note } from '@/shared/ui/Type';
 import { font, leading, MIN_TOUCH_TARGET, radius, space } from '@/shared/theme/tokens';
 import { useColors } from '@/shared/theme/useColors';
@@ -75,16 +76,20 @@ export function DiaryComposer({ submitting, errorMessage, onSubmit }: Props) {
             { borderColor: `${colors.accentSoft}59`, backgroundColor: colors.surface },
           ]}
         >
-          <Text style={[styles.canvasMark, { color: colors.accentSoft }]}>?</Text>
+          {/*
+            물음표 한 글자가 서 있던 자리다. 이 앱에서 가장 크고 가장 눈에 띄는 빈 칸인데
+            기호 하나만 두면 차갑다. 캐릭터를 **연하게** 올린다 - 진하면 "이게 내 그림인가"로
+            읽히므로, 아직 아무것도 없다는 것이 보이는 선(0.35)까지만 올린다.
+          */}
+          <View style={styles.canvasMark}>
+            <EmotionFace emotion="SOSO" size={56} />
+          </View>
           <Note>AI 그림 영역</Note>
         </View>
 
-        <View
-          style={[
-            styles.composer,
-            { borderColor: colors.borderStrong, backgroundColor: colors.surfaceSolid },
-          ]}
-        >
+        <View style={[styles.composer, { backgroundColor: colors.surfaceSolid }]}>
+          {/* 한 줄을 적는 자리다. 공책에 줄 그은 것처럼 보여야 한다 */}
+          <SketchBorder radius={28} color={colors.borderStrong} strokeWidth={1.6} seed={131} />
           <TextInput
             value={content}
             onChangeText={setContent}
@@ -146,7 +151,7 @@ export function DiaryComposer({ submitting, errorMessage, onSubmit }: Props) {
                 ]}
               >
                 <View style={styles.chipInner}>
-                  <EmotionFace emotion={emotion} size={22} />
+                  <EmotionFace emotion={emotion} size={24} />
                   <Text
                     style={[
                       styles.chipLabel,
@@ -180,7 +185,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: space[2],
   },
-  canvasMark: { fontSize: 44, lineHeight: 48, fontFamily: font.black },
+  canvasMark: { opacity: 0.35 },
   composer: {
     minHeight: 53,
     flexDirection: 'row',
@@ -189,7 +194,6 @@ const styles = StyleSheet.create({
     paddingLeft: space[5],
     padding: space[2],
     borderRadius: radius.full,
-    borderWidth: 1.5,
   },
   input: {
     flex: 1,

@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Defs, LinearGradient, RadialGradient, Rect, Stop } from 'react-native-svg';
+import { PaperGrain } from '@/shared/ui/PaperGrain';
 import { CONTENT_MAX_WIDTH, gutter, space } from '@/shared/theme/tokens';
 import { useColors } from '@/shared/theme/useColors';
 
@@ -62,8 +63,8 @@ export function Screen({
 }
 
 /**
- * prototype `.phone` 의 세로 그라디언트 + `::before` 의 원형 글로우.
- * 라이트에서는 세 정지점이 모두 바닐라라 단색으로 보이고, 다크에서만 위아래가 갈린다.
+ * prototype `.phone` 의 세로 그라디언트 + `::before` 의 원형 글로우 + **종이 결**.
+ * 라이트에서는 위아래가 아주 조금 갈려 종이 한 장을 비스듬히 본 느낌을 낸다.
  */
 export function Backdrop({ glow = true }: { glow?: boolean }) {
   const colors = useColors();
@@ -84,6 +85,9 @@ export function Backdrop({ glow = true }: { glow?: boolean }) {
         </Defs>
         <Rect x="0" y="0" width="100%" height="100%" fill="url(#sky)" />
       </Svg>
+
+      {/* 종이 결. 색만 바꾸면 그냥 노란 면이고, 결이 있어야 종이로 읽힌다 */}
+      <PaperGrain color={colors.grain} />
 
       {glow ? (
         <Svg width={GLOW} height={GLOW} style={styles.glow}>

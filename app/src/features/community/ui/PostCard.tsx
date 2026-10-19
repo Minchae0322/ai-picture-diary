@@ -1,11 +1,11 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { SketchBorder } from '@/shared/ui/SketchBorder';
 import { EmotionFace } from '@/shared/ui/EmotionFace';
 import { Card } from '@/shared/ui/Card';
 import { Chip } from '@/shared/ui/Chip';
 import { formatRelative } from '@/shared/format';
 import { font, leading, MIN_TOUCH_TARGET, radius, space } from '@/shared/theme/tokens';
 import { useColors, useEmotionColors } from '@/shared/theme/useColors';
-import { GradientFill } from '@/shared/ui/Gradient';
 import { Icon, type IconName } from '@/shared/ui/Icon';
 import { EMOTION_LABEL, toEmotion } from '@/shared/emotion';
 import type { CommunityPost } from '../api/communityApi';
@@ -53,8 +53,10 @@ export function PostCard({ post, onToggleLike, onReport, onNotReady }: Props) {
           </Text>
         </View>
 
-        {/* 색점은 붙이지 않는다 - 과일 색은 뜻을 나르지 않는다(`shared/emotion.ts`) */}
-        {emotion ? <Chip label={EMOTION_LABEL[emotion]} /> : null}
+        {/* 색점 대신 캐릭터를 넣는다 - 과일 색은 뜻을 나르지 않는다(`shared/emotion.ts`) */}
+        {emotion ? (
+          <Chip label={EMOTION_LABEL[emotion]} emotion={emotion} />
+        ) : null}
 
         <Pressable
           onPress={onReport}
@@ -68,13 +70,9 @@ export function PostCard({ post, onToggleLike, onReport, onNotReady }: Props) {
       </View>
 
       <View style={styles.body}>
-        <View style={styles.thumb}>
-          {emotion ? (
-            <>
-              <GradientFill from={colors.faceBg} fromOpacity={0.9} to={tint} />
-              <EmotionFace emotion={emotion} size={44} />
-            </>
-          ) : null}
+        <View style={[styles.thumb, { backgroundColor: colors.faceBg }]}>
+          <SketchBorder radius={16} color={colors.border} strokeWidth={1.3} wobble={0.8} seed={post.id ? Number(post.id) % 97 : 13} />
+          {emotion ? <EmotionFace emotion={emotion} size={64} /> : null}
         </View>
 
         <View style={styles.text}>
@@ -162,10 +160,10 @@ const styles = StyleSheet.create({
   time: { fontSize: font.xs, fontFamily: font.regular },
   more: { minWidth: 28, alignItems: 'flex-end' },
   body: { flexDirection: 'row', gap: space[3] },
-  /** EmotionFace 는 size 보다 커질 수 있어(EMOTION_SCALE) 상자에 여유를 둔다 */
+  /** prototype `.post .thumb` - 88px 안에 캐릭터 64. 면은 faceBg 단색 + 테두리 */
   thumb: {
-    width: 76,
-    height: 76,
+    width: 88,
+    height: 88,
     borderRadius: radius.md,
     overflow: 'hidden',
     alignItems: 'center',

@@ -11,10 +11,24 @@
 import type { Emotion } from '@/shared/emotion';
 
 const primitive = {
-  /** 배경 바닐라 */
-  paper: '#faf4dc',
-  paperRaised: 'rgba(255,253,247,0.95)',
-  paperLine: '#ece3c2',
+  /**
+   * 배경 종이. **브랜드에서 뽑은 아주 연한 하늘**이다(2026-10-20).
+   *
+   * <p>따뜻한 쪽을 두 번 시도했다가 두 번 다 접었다 - 오트밀(`#F3EBDA`)은 탁했고
+   * 크림(`#FBF8F0`)도 아니었다. 문제는 밝기가 아니라 **노란기 자체**였다.
+   *
+   * <p>그래서 온도를 뒤집었다. 브랜드색 흐린 하늘(`#3f6d8e`)을 아주 연하게 푼 값이라
+   * 회색처럼 밋밋하지 않고 제품의 색과 이어진다. 그리고 과일 캐릭터가 전부 따뜻한 색이라
+   * **서늘한 바탕 위에서 오히려 살아난다** - 크림 위에서는 같은 계열끼리 뭉쳤다.
+   *
+   * 본문 `#253544` 대비 **11.48**, 보조 `#4e6375` **5.70**, 흰 카드와 ΔE **3.2**
+   * (따뜻한 후보들보다 오히려 분리가 낫다). 경계는 손그림 선이 잡으므로 면 차이는 거들기만 하면 된다.
+   */
+  paper: '#F2F5F8',
+  /** 아래로 갈수록 조금 깊어진다. 종이 한 장을 비스듬히 본 정도 */
+  paperDeep: '#E9EEF3',
+  paperRaised: 'rgba(255,255,255,0.97)',
+  paperLine: '#e2d6ba',
 
   slate900: '#253544',
   slate600: '#4e6375',
@@ -101,19 +115,29 @@ export type Colors = {
   emotionInk: string;
   /** 감정 캐릭터가 얹히는 면. 과일 색을 깔면 같은 계열이라 캐릭터가 묻힌다 */
   faceBg: string;
+  /** 종이 결로 흩뿌리는 점의 색. 라이트는 흑연, 다크는 흰빛 */
+  grain: string;
 };
 
 const light: Colors = {
   bg: primitive.paper,
   bgTop: primitive.paper,
-  bgBottom: primitive.paper,
-  surface: 'rgba(255,255,255,0.92)',
+  /** 아래로 갈수록 아주 조금 깊어진다 - 종이 한 장을 비스듬히 본 느낌 */
+  bgBottom: primitive.paperDeep,
+  surface: 'rgba(255,255,255,0.96)',
   surfaceRaised: primitive.paperRaised,
   surfaceSolid: '#ffffff',
-  raisedA: '#fffefc',
-  raisedB: '#fffdf6',
-  /** 배경이 밝아 흰 카드가 묻힌다. 테두리가 경계를 대신 잡는다(배경과 ΔE 4.7) */
-  border: 'rgba(37,53,68,0.12)',
+  raisedA: '#ffffff',
+  raisedB: '#FFFDF9',
+  /**
+   * 배경이 밝아 흰 카드가 묻힌다 - 카드 면과 배경의 차이는 **ΔE 4.3**(OKLab x100)뿐이라
+   * 경계를 면 색으로는 만들 수 없다. 테두리가 그 일을 대신한다.
+   *
+   * 0.12 에서 **0.16** 으로 올렸다(2026-10-20). 0.12 일 때 테두리 선과 배경의 차이가 ΔE 5.2 라
+   * 화면 전체가 뿌옇게 읽혔다. 0.16 이면 7.4 로 올라가 카드가 제 모양으로 선다.
+   * 더 올리면(0.20 -> 9.8) 선이 먼저 보이기 시작해 바닐라의 부드러움이 깨진다.
+   */
+  border: 'rgba(37,53,68,0.16)',
   borderStrong: primitive.paperLine,
 
   text: primitive.slate900,
@@ -135,12 +159,14 @@ const light: Colors = {
   skeleton: 'rgba(37,53,68,0.07)',
   track: 'rgba(37,53,68,0.10)',
 
-  glow: '#fffbec',
+  /** 바탕이 서늘해져 글로우도 같이 식혔다. 따뜻한 빛만 남으면 그 모서리만 누렇게 뜬다 */
+  glow: '#f8fbff',
   glowOpacity: 0.85,
   highlight: primitive.cocoa600,
   highlightText: primitive.paper,
   rule: 'rgba(63,63,63,0.22)',
   emotionInk: primitive.slate900,
+  grain: '#3B3B3B',
   /**
    * 분리 정도는 **그림의 실제 픽셀**로 잰다 - 대표색 한 점으로 재면 여러 색을 가진 캐릭터를 놓친다.
    * 불투명 픽셀의 ΔE 중앙값(OKLab x100): 블루베리 50.9 / 가지 49.7 / 체리·딸기·토마토 35.7 /
@@ -194,6 +220,8 @@ const dark: Colors = {
   emotionInk: primitive.slate900,
   /** 캐릭터 그림이 테마를 따라 바뀌지 않으니 이 면도 같다 */
   faceBg: '#b8d7e7',
+  /** 어두운 면 위에서는 흰 점이 종이 결이 된다 */
+  grain: '#ffffff',
 };
 
 export const colorsFor = (scheme: string | null | undefined) => (scheme === 'dark' ? dark : light);
@@ -269,12 +297,13 @@ export const shadow = {
     shadowOffset: { width: 0, height: 1 },
     elevation: 1,
   },
+  /** 카드가 바닥에서 뜨는 정도. 테두리와 함께 경계를 만든다 - 둘 중 하나만으로는 약하다 */
   md: {
     shadowColor: primitive.slate900,
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 3,
+    shadowOpacity: 0.12,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 4,
   },
   /** 탭바처럼 **위로** 뜨는 면. prototype `--shadow-up` */
   up: {
@@ -315,11 +344,43 @@ const emotion: EmotionColors = {
  */
 export const emotionColorsFor = (_scheme: string | null | undefined) => emotion;
 
-/** 탭바 아이콘의 색. 탭마다 다른 악센트 하나씩 */
-export const tabTint = {
-  index: primitive.blue400,
+/**
+ * 탭바 아이콘의 색. 탭마다 다른 악센트 하나씩(prototype `--t-home` ~ `--t-my`).
+ *
+ * **선택된 탭의 아이콘은 3:1 을 넘겨야 한다**(비텍스트 대비). 전에는 장식용 `*300` 원시값을
+ * 그대로 썼는데, 흰 탭바 위에서 선택 상태가 홈 3.01 / 그래프 2.56 / MY 2.39 / 커뮤니티 2.04 /
+ * **캘린더 1.82** 였다 - 고른 탭조차 기준 아래였다.
+ * 같은 색상(OKLab 의 a·b)을 유지한 채 명도만 내려 전부 3.2 이상으로 맞춘다. 하늘색 계열이라는
+ * 인상은 그대로고 눈에만 또렷해진다.
+ *
+ * 다크에서는 어두운 면 위라 원래의 연한 값이 더 잘 보인다. 그대로 쓴다.
+ */
+const tabTintLight = {
+  index: '#5696bf',
+  calendar: '#b18645',
+  graph: '#9788b4',
+  community: '#699888',
+  my: '#ad829b',
+} as const;
+
+const tabTintDark = {
+  index: primitive.blue300,
   calendar: primitive.amber300,
   graph: primitive.violet300,
   community: primitive.sage300,
   my: primitive.mauve300,
 } as const;
+
+export const tabTintFor = (scheme: string | null | undefined) =>
+  scheme === 'dark' ? tabTintDark : tabTintLight;
+
+/**
+ * 고르지 않은 탭의 색. **같은 색을 흐리게 쓰지 않는다.**
+ *
+ * 전에는 탭 색을 28% 로 깔았는데, 그러면 캘린더의 선택/비선택 차이가 대비로 0.64 밖에 안 났다 -
+ * 흐린 노랑과 덜 흐린 노랑이라 어느 쪽이 켜진 것인지 읽히지 않는다.
+ * 비선택을 **무채색**으로 두면 "색이 있다 / 없다" 라는, 명도 차이보다 훨씬 또렷한 신호가 된다.
+ * 탭바 전체가 회색 띠가 되는 것도 아니다 - 고른 탭 하나는 늘 제 색을 들고 있다.
+ */
+export const tabInactiveFor = (scheme: string | null | undefined) =>
+  scheme === 'dark' ? '#6b7a86' : '#9aa7b2';

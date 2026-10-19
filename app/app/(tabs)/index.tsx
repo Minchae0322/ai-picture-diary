@@ -67,8 +67,16 @@ export default function HomeScreen() {
             <Text style={[styles.date, { color: colors.textMuted }]}>
               {formatFullDate(new Date())}
             </Text>
-            <Text style={[styles.greeting, { color: colors.text }]}>
-              안녕하세요{profile.data ? `, ${profile.data.nickname}님` : ''}
+            {/*
+              닉네임에 띄어쓰기가 들어가면("말랑한 구름이") 그 자리에서 줄이 갈려 "님" 한 글자만
+              둘째 줄에 남았다. 줄을 **우리가 먼저 나눠** 어떤 닉네임이 와도 같은 모양이 되게 한다.
+              아주 긴 닉네임은 둘째 줄에서 말줄임한다 - 세 줄로 번지면 카드가 밀린다.
+            */}
+            <Text
+              numberOfLines={2}
+              style={[styles.greeting, { color: colors.text }]}
+            >
+              {profile.data ? `안녕하세요,\n${profile.data.nickname}님` : '안녕하세요'}
             </Text>
           </View>
           <StreakBadge days={overview.data?.streakDays ?? 0} />

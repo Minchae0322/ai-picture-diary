@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { GradientFill } from '@/shared/ui/Gradient';
 import { Icon } from '@/shared/ui/Icon';
+import { SketchBorder } from '@/shared/ui/SketchBorder';
 import { font, radius, space } from '@/shared/theme/tokens';
 import { useColors, useEmotionColors } from '@/shared/theme/useColors';
 import { EMOTIONS } from '@/shared/emotion';
@@ -16,9 +17,18 @@ type Props = {
 /**
  * 09 테마(2열, prototype `.themes`) / 캐릭터(4열, `.chars`) 그리드.
  *
- * 미리보기 색은 서버가 주지 않아 **항목 순서로 날씨 6색을 돌려 쓴다**. 테마 고유의 색은
- * 테마를 실제로 적용하는 라운드에 서버 마스터 데이터로 내려받는다(09 화면 문서 7장).
+ * 미리보기 색은 서버가 주지 않는다. 전에는 **항목 순서로 감정 9색을 돌려 썼는데**, 그러면
+ * "Mint Soda" 아래 빨강이 깔리는 식으로 이름과 색이 어긋난다 - 고르는 화면에서 미리보기가
+ * 거짓말을 하면 미리보기가 아니다. 이름이 색을 말하는 네 테마만 여기서 짝지어 둔다.
+ *
+ * 테마를 실제로 적용하는 라운드에 서버 마스터 데이터가 이 표를 가져간다(09 화면 문서 7장).
  */
+const THEME_PREVIEW: Record<string, string> = {
+  JELLY: '#3f6d8e',
+  NIGHT_JELLY: '#1c2831',
+  MINT_SODA: '#8fbfae',
+  LAVENDER: '#a99ac7',
+};
 export function StoreGrid({ items, columns, onSelect, pendingCode }: Props) {
   const colors = useColors();
   const emotionColors = useEmotionColors();
@@ -27,7 +37,7 @@ export function StoreGrid({ items, columns, onSelect, pendingCode }: Props) {
   return (
     <View style={styles.grid}>
       {items.map((item, index) => {
-        const tint = emotionColors[EMOTIONS[index % EMOTIONS.length]];
+        const tint = THEME_PREVIEW[item.code] ?? emotionColors[EMOTIONS[index % EMOTIONS.length]];
         const busy = pendingCode === item.code;
 
         return (
@@ -39,14 +49,18 @@ export function StoreGrid({ items, columns, onSelect, pendingCode }: Props) {
             accessibilityLabel={label(item)}
             style={({ pressed }) => [
               theme ? styles.themeCell : styles.charCell,
-              theme && {
-                backgroundColor: colors.surface,
-                borderColor: item.selected ? colors.primary : colors.border,
-              },
+              theme && { backgroundColor: colors.surface },
               { opacity: pressed || busy ? 0.7 : 1 },
             ]}
           >
             {theme ? (
+              <>
+              <SketchBorder
+                radius={18}
+                color={item.selected ? colors.primary : colors.border}
+                strokeWidth={item.selected ? 2 : 1.5}
+                seed={index * 23 + 9}
+              />
               <View style={styles.preview}>
                 <GradientFill from={colors.surfaceSolid} to={tint} />
                 {item.locked ? (
@@ -55,12 +69,13 @@ export function StoreGrid({ items, columns, onSelect, pendingCode }: Props) {
                   </View>
                 ) : null}
               </View>
+              </>
             ) : (
               <View
                 style={[
                   styles.char,
                   item.locked
-                    ? { borderWidth: 1.5, borderStyle: 'dashed', borderColor: colors.borderStrong }
+                    ? { backgroundColor: colors.skeleton, borderWidth: 1.5, borderColor: colors.border }
                     : { backgroundColor: tint },
                 ]}
               >
@@ -109,7 +124,6 @@ const styles = StyleSheet.create({
     gap: 6,
     padding: space[3],
     borderRadius: radius.lg,
-    borderWidth: 1.5,
   },
   charCell: { flexBasis: '20%', flexGrow: 1, alignItems: 'center', gap: space[2] },
   preview: {

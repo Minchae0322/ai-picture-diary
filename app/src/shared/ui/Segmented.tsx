@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { font, radius, space } from '@/shared/theme/tokens';
+import { buttonHeight, font, radius, space } from '@/shared/theme/tokens';
 import { useColors } from '@/shared/theme/useColors';
+import { SketchBorder } from '@/shared/ui/SketchBorder';
 
 type Props<T extends string> = {
   options: { value: T; label: string }[];
@@ -24,8 +25,9 @@ export function Segmented<T extends string>({
     <View
       accessibilityRole="tablist"
       accessibilityLabel={accessibilityLabel}
-      style={[styles.wrap, { backgroundColor: colors.surface, borderColor: colors.border }]}
+      style={[styles.wrap, { backgroundColor: colors.surface }]}
     >
+      <SketchBorder radius={radius.full} color={colors.border} strokeWidth={1.6} seed={77} />
       {options.map((option) => {
         const selected = option.value === value;
         return (
@@ -57,12 +59,12 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     flexDirection: 'row',
     borderRadius: radius.full,
-    borderWidth: 1.5,
     padding: space[1],
   },
+  /** 키는 버튼 `medium`(40)에 맞춘다. 같은 줄에 서는 컨트롤끼리 키가 제각각이면 줄이 흔들린다 */
   item: {
     minWidth: 72,
-    paddingVertical: 9,
+    height: buttonHeight.medium,
     paddingHorizontal: space[4],
     alignItems: 'center',
     justifyContent: 'center',

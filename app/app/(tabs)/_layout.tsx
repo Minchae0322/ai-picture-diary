@@ -1,23 +1,27 @@
 import { Tabs } from 'expo-router';
-import { StyleSheet, Text, type ColorValue } from 'react-native';
+import { StyleSheet, Text, useColorScheme, type ColorValue } from 'react-native';
 import { Icon, type IconName } from '@/shared/ui/Icon';
-import { font, shadow, space, tabTint } from '@/shared/theme/tokens';
+import { font, shadow, space, tabInactiveFor, tabTintFor } from '@/shared/theme/tokens';
 import { useColors } from '@/shared/theme/useColors';
 
 /**
  * 시안의 탭바 5개. 라우트 이름 = 파일 이름.
  *
- * **탭마다 색이 다르다**(prototype `--t-home` ~ `--t-my`). 고르지 않은 탭은 그 색을 흐리게 쓴다 -
- * 전부 회색으로 두면 탭바가 화면의 바닐라·하늘색과 따로 노는 회색 띠가 된다.
+ * **탭마다 색이 다르다**(prototype `--t-home` ~ `--t-my`). 고른 탭만 그 색을 들고,
+ * 고르지 않은 탭은 무채색으로 물러난다 - "색이 있다 / 없다" 가 가장 또렷한 신호다.
+ * 전에는 같은 색을 28% 로 흐렸는데 캘린더의 선택/비선택 대비 차이가 0.64 뿐이라 읽히지 않았다
+ * (근거와 수치는 `tokens.ts` 의 `tabTintFor`).
  * 라벨은 `title` 이 담당하므로 아이콘에 label 을 주지 않는다(스크린리더가 두 번 읽지 않게).
  */
 export default function TabsLayout() {
   const colors = useColors();
+  const scheme = useColorScheme();
+  const tabTint = tabTintFor(scheme);
+  const inactive = tabInactiveFor(scheme);
 
-  // 고르지 않은 탭은 같은 색을 28% 로 흐린다(prototype `opacity: .28`). hex 뒤에 알파를 붙인다
   const icon = (name: IconName, tint: string) =>
     function TabIcon({ focused }: { focused: boolean }) {
-      return <Icon name={name} size={24} color={focused ? tint : `${tint}47`} />;
+      return <Icon name={name} size={24} color={focused ? tint : inactive} />;
     };
 
   const label = (text: string) =>

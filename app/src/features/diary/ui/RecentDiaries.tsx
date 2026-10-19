@@ -1,9 +1,9 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { SketchBorder } from '@/shared/ui/SketchBorder';
 import { EmotionFace } from '@/shared/ui/EmotionFace';
 import { formatShortDate } from '@/shared/format';
 import { font, radius, space } from '@/shared/theme/tokens';
-import { useColors, useEmotionColors } from '@/shared/theme/useColors';
-import { GradientFill } from '@/shared/ui/Gradient';
+import { useColors } from '@/shared/theme/useColors';
 import { Label } from '@/shared/ui/Type';
 import { emotionLabel } from '@/shared/emotion';
 import type { DiarySummary } from '../api/diaryTypes';
@@ -25,7 +25,6 @@ export function RecentDiaries({
   onMore: () => void;
 }) {
   const colors = useColors();
-  const emotionColors = useEmotionColors();
 
   if (items.length === 0) {
     return null;
@@ -46,7 +45,7 @@ export function RecentDiaries({
         </Pressable>
       </View>
       <View style={styles.row}>
-        {items.map((item) => (
+        {items.map((item, index) => (
           <Pressable
             key={item.id}
             onPress={() => onSelect(item.id)}
@@ -54,24 +53,13 @@ export function RecentDiaries({
             accessibilityLabel={`${formatShortDate(item.entryDate)} ${emotionLabel(item.emotion)} ${item.content}`}
             style={({ pressed }) => [
               styles.cell,
-              {
-                borderColor: colors.border,
-                backgroundColor: colors.surface,
-                opacity: pressed ? 0.6 : 1,
-              },
+              { backgroundColor: colors.surface, opacity: pressed ? 0.6 : 1 },
             ]}
           >
-            <View style={styles.thumb}>
-              {item.emotion ? (
-                <>
-                  <GradientFill
-                    from={colors.faceBg}
-                    fromOpacity={0.9}
-                    to={emotionColors[item.emotion]}
-                  />
-                  <EmotionFace emotion={item.emotion} size={34} />
-                </>
-              ) : null}
+            {/* 세 칸이 제각기 떨려야 "손으로 놓은 더미"가 된다 */}
+            <SketchBorder radius={22} color={colors.border} strokeWidth={1.3} seed={index * 41 + 7} />
+            <View style={[styles.thumb, { backgroundColor: colors.faceBg }]}>
+              {item.emotion ? <EmotionFace emotion={item.emotion} size={58} /> : null}
             </View>
             <Text style={[styles.date, { color: colors.text }]}>
               {formatShortDate(item.entryDate)}
@@ -100,12 +88,14 @@ const styles = StyleSheet.create({
     paddingVertical: space[3],
     paddingHorizontal: space[2],
     borderRadius: 22,
-    borderWidth: 1,
   },
-  /** EmotionFace 는 size 보다 커질 수 있어(EMOTION_SCALE) 상자에 여유를 둔다 */
+  /**
+   * prototype `.recent .thumb` - 78px, 캐릭터 58. **과일 색을 깔지 않는다** -
+   * 같은 계열이라 캐릭터가 묻힌다. 면은 faceBg 단색이고 경계는 테두리가 잡는다
+   */
   thumb: {
     alignSelf: 'stretch',
-    height: 64,
+    height: 78,
     borderRadius: radius.md,
     overflow: 'hidden',
     alignItems: 'center',

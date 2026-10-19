@@ -5,6 +5,132 @@
 ## [Unreleased]
 
 ### Changed
+- **날씨 6종을 감정 9종 과일 캐릭터로 교체** (`feat/emotion-fruit` 머지)
+  - `Weather` -> `Emotion`(`HAPPY` `ENERGETIC` `SOSO` `SHY` `EMBARRASSED` `TIRED` `SAD` `DEPRESSED` `ANGRY`).
+    날씨는 은유를 한 겹 더 거쳤고 6칸이 좁았다 - 화남·황당함·부끄러움이 비와 흐림에 뭉쳐 있었다
+  - 앱: `shared/weather.ts` -> `shared/emotion.ts`, 캐릭터 PNG 9장(`assets/images/emotions/`),
+    `EmotionFace`·`EmotionGauge` 추가. `useWeatherColors` -> `useEmotionColors`, `weatherInk` -> `emotionInk`
+  - **감정의 정체성은 그림이 나르고 색은 장식이다.** 과일에서 뽑은 색이라 빨강이 셋(체리·딸기·토마토)이고
+    dataviz 범주형 검증을 통과하지 못한다. 색점으로 감정을 표시하던 자리(04 판정 칩, 08 피드 칩, 05 월 요약)를 전부 캐릭터로 바꿨다
+  - 04 액션이 "저장됨(비활성) / 공유" -> **"저장(그림 내려받기) / 업로드"**. 자동 저장은 안내할 것이지 버튼으로 둘 일이 아니었다
+  - 캐릭터 치수와 면 처리는 `docs/screen/prototype.html` 을 따른다: 02 최근 78/58 · 04 판정 칩 24 ·
+    05 셀 40/30 · 05 요약 26 · 08 썸네일 88/64 · 칩 24. **썸네일 면에 감정 색을 깔지 않는다**
+  - 02 에 **감정 세기 게이지**(-2 ~ +2). 감정마다 고를 수 있는 쪽이 다르다(`POLARITY`). 값은 아직 서버로 보내지 않는다
+  - 뱃지: `SUNNY_RECORDS`/`RAIN_RECORDS`/`ALL_WEATHERS` -> `HAPPY_RECORDS`/`SAD_RECORDS`/`ALL_EMOTIONS`.
+    "감정 탐험가"가 6종 전부 -> 9종 전부. **code 는 식별자라 바꾸지 않았다**(획득 이력이 그 값으로 쌓인다)
+  - DB: `sql/patch/2026-10-05-날씨-감정-전환.sql`. 컬럼 이름 변경 + 값 변환 + 인덱스 이름 변경.
+    브랜치의 PostgreSQL 문법을 **MySQL 8.0 으로 다시 썼다**(`COMMENT ON COLUMN` -> `MODIFY COLUMN ... COMMENT`,
+    `ALTER INDEX` -> `ALTER TABLE ... RENAME INDEX`, DDL 암시적 커밋 때문에 트랜잭션 묶음 해제·멱등 UPDATE)
+  - **되돌릴 수 없다.** 9 -> 6 으로 되돌리면 `ANGRY`·`EMBARRASSED`·`SHY` 가 가장 가까운 값으로 뭉개진다
+
+### Added
+- **획을 Skia 로 그린다** (`@shopify/react-native-skia`). 색연필이 색연필처럼 안 보이던 것이 계기다 -
+  SVG 의 `strokeDasharray` 는 주기가 있어 결이 아니라 구슬이 꿰였다. Skia 의 `DiscretePathEffect` 는
+  토막마다 난수로 밀어 주기가 없다. **Expo Go 에 포함된 패키지라 개발 빌드는 필요 없다**
+  - 딸려 온 것: `react-native-reanimated` 4.3.1, `react-native-worklets` **0.8.3**(SDK 56 이 못 박은 값 -
+    최신 0.13.0 을 깔면 네이티브가 어긋나 "not installed" 로 뜬다), `babel.config.js` 신규
+  - 손그림 테두리와 종이 결은 그대로 `react-native-svg` 다. Skia 는 획에만 쓴다
+
+- **AI 그림 위에 덧그리기** (04). 전체 화면 모달 + 도구 5종(연필·색연필·사인펜·형광펜·붓) + 지우개,
+  색 8종, 굵기 3단계, 되돌리기, 전체 지우기. **새 의존성 없이** RN 내장 `PanResponder` 와
+  이미 쓰는 `react-native-svg` 로 만들었다.
+  도구마다 긋는 방식이 다르다 - 연필은 톱니, 색연필은 세 번 겹쳐 긋기, 형광펜은 각진 끝,
+  붓은 속도에 따라 굵기가 변한다. **저장은 아직 안 된다**(화면 문서 04 7장에 두 선택지를 적어 뒀다)
+- **배경을 브랜드에서 뽑은 연한 하늘(`#F2F5F8`)로.** 따뜻한 쪽을 두 번 시도했다가 접었다 -
+  문제는 밝기가 아니라 노란기였다. 과일 캐릭터가 전부 따뜻한 색이라 서늘한 바탕에서 오히려 산다.
+  글로우도 같이 식혔다(`#f8fbff`)
+
+- **배경이 종이가 됐다.** 바닐라 `#faf4dc` -> 종이 `#F3EBDA` + `PaperGrain`(점 520 개를 흩뿌린 종이 결).
+  더 밝은 종이로 올리면 흰 카드와 ΔE 2.1 까지 좁아져 카드가 사라진다 - 한 단계 내린 값이
+  본문 10.59 · 보조 5.26(AA) · 카드 분리 ΔE **5.5**(전 3.7)를 동시에 만족한다. `CLAUDE.md` 선언도 같이 고쳤다
+- **남아 있던 자로 잰 선을 전부 손그림으로.** 커뮤니티 필터 칩 · 홈 빠른 감정 칩 · MY 설정 목록 ·
+  06 세그먼트 · 07 뱃지 메달 · 09 상점 테마 칸 · 02 입력창 · 04 "AI generated" 표식 ·
+  08 게시글 썸네일 · 02 최근 3일. 자리마다 다른 `seed` 라 한 줄에 선 것들이 제각기 떨린다
+- 손그림 컴포넌트 `PaperGrain` 추가 (설계만 있던 15종 중 첫 구현)
+
+- **손그림 컴포넌트를 실제로 구현했다.** 전까지 스킬·문서에는 "컴포넌트 20종"이라 적혀 있었지만
+  저장소에 있던 것은 `SketchBorder` 하나였다 - 목록이 구현처럼 읽히던 것을 바로잡고 6종을 만들었다
+  - `sketch.ts` **엔진**. Rough.js 는 DOM 을 쓰므로 RN 에서 못 돈다. 같은 입력(roughness·bowing·
+    fillStyle·hachureGap·seed)을 받아 `react-native-svg` 가 그릴 자료로 바꾼다.
+    채우기 6종(hachure · cross-hatch · dots · dashed · zigzag · solid)
+  - `SketchShape.tsx` 도형 하나. 원본의 `rc.path(d, options)` 자리
+  - `SketchButton.tsx` · `SketchBadge.tsx` · `Tape.tsx` - 원본(SketchUI)의 Button/Badge/Tape 포팅.
+    **3D 두께**(옆면 85도·바닥 -35도), 모양 4종, 찢긴 가장자리 3종까지
+  - `/sketch-gallery` 견본 화면 - 실제 기기에서 그려진 모습을 눈으로 확인하는 자리
+- **공용 `Button` 이 손으로 그려진다.** 호출부를 고치지 않고 컴포넌트만 바꿔 11개 화면의 버튼이 한 번에 바뀌었다.
+  면은 `solid`(빗금 위 글자는 못 읽는다), 손그림 티는 테두리가 낸다. 라벨마다 다른 seed 라 버튼들이 제각기 떨린다.
+  눌리면 roughness 1.3 -> 1.9 로 거칠어진다 - 원본이 hover 에서 하던 일을 눌림이 받는다
+
+- **손그림(색연필) UI 체계.** 레퍼런스 둘(Hand Drawn 가이드, Rough.js 기반 SketchUI)을 읽고 이 저장소의 기본 표현으로 삼았다
+  - 스킬 `hand-drawn-ui` - 선의 성질(떨림 1.4 · 휨 0.8 · **겹쳐 긋기**), 색연필 팔레트 16색,
+    컴포넌트 20종, RN 에서 Rough.js 없이 같은 선을 만드는 법. `components.md` 에 복사해 쓰는 코드
+  - `app/src/shared/ui/SketchBorder.tsx` - 손으로 그은 테두리. 둘레를 7px 로 찍고 seed 고정 난수로 밀어
+    2차 곡선으로 잇고 **두 번 긋는다**. `Card` 의 `borderWidth` 를 이걸로 바꿨다
+  - `docs/design/components.html` - 브라우저에서 바로 열리는 컴포넌트 목록. 실제로 그려진 견본 + RN 코드
+  - `CLAUDE.md` 디자인 선언과 프로젝트 스킬 4장에 **기본값으로 못 박았다**
+
+- **02 빈 그림 자리에 캐릭터.** 물음표 한 글자가 서 있던, 앱에서 가장 큰 빈 칸이다(투명도 0.35)
+
+- **빈 화면에 감정 캐릭터를 세웠다** (`shared/ui/StateBlock.tsx`). 회색 글씨 한 줄이던 자리에
+  캐릭터 -> 제목 -> 한 줄 안내 -> 행동을 쌓는다. `page`(목록 전체가 빔)와 `inline`(카드 한 칸이 빔) 두 벌.
+  얼굴은 호출부가 고른다 - 08 에서 "행복한"으로 거르고 결과가 없으면 그 행복한 딸기가 선다
+- **10 프로필 아바타가 캐릭터가 됐다.** 두 색 그라디언트 원이었다. 캐릭터 9종이 생긴 뒤로 안 고쳐진 자리다
+- **11 로그인 가운데에 캐릭터 셋**(체리·딸기·복숭아). 제목과 버튼 사이가 화면 절반이 빈 노랑이었다
+
+- **시스템 구성도** `docs/시스템구성도.drawio` (+ 내보낸 `.png`, `.pdf`). 2페이지 -
+  FIG.01 전체 구성 · FIG.02 생성 시퀀스. 스타일은 `docs/시스템구성도_0927.drawio` 의 어법을 따랐다.
+  **미구축 영역을 회색 점선으로 같이 그린다** - 없는 것을 지어내지 않는 대신, 없다는 사실을 그림에 남긴다
+- 종료 훅 `.claude/hooks/before-stop.sh` 에 **3층(구성도 미갱신 확인)** 추가.
+  새 도메인·기술 컨텍스트 폴더, CI·Dockerfile, 새 ADR, 외부 연동·인증·캐시·배치·스토리지·푸시가
+  코드에 등장하면 한 세션에 한 번 잡는다. 기존 도메인에 파일이 하나 느는 것은 세지 않는다
+- **11 로그인 화면** (`app/app/login.tsx`, `docs/screen/11-login.md`). 시안에 없던 화면 -
+  01 온보딩의 "이미 계정이 있어요"가 갈 곳이 없어 홈으로 보내던 자리를 채운다. 인증이 없어 누르면 홈으로 간다
+
+### Fixed
+- **탭바에서 어느 탭이 켜졌는지 읽히지 않던 것.** 비선택을 같은 색 28% 로 흐려 둬서
+  캘린더의 선택/비선택 대비 차이가 0.64 뿐이었다. 더 큰 문제는 **고른 탭조차 비텍스트 3:1 미만**이었다는 것
+  (캘린더 1.82 · 커뮤니티 2.04 · MY 2.39 · 그래프 2.56 · 홈 3.01). 색상을 유지한 채 명도만 내려
+  전부 3.2 이상으로 맞추고(`tabTintFor`), 비선택은 무채색으로 물러나게 했다
+- **칩 키가 제각각이던 것** - `EmotionFace` 의 감정별 배율 때문에 "슬픈"이 "행복한"보다 크고,
+  얼굴 없는 "추천"은 둘보다 12 낮았다. 키를 36 으로 고정하고 터치 영역을 거기서 계산한다
+- 세그먼트 키를 버튼 `medium`(40)에 맞췄다
+
+- **04 액션 버튼이 두 줄로 접히던 것** - "다시 그리기"가 `다시그리 기`. 글자 길이가 아니라 **여백**이 원인이었다.
+  `fill` 로 폭을 셋이 나누면 칸당 약 103인데 `large` 의 좌우 여백 24가 그대로 들어가 글자 자리가 55만 남았다.
+  `fill` 일 때 여백 8 + 글자 13 + **라벨 한 줄 고정**. 라벨도 `다시그리기` -> `다시 그리기`
+- **화면이 전체적으로 뿌옇던 것** - 바닐라 배경과 흰 카드의 차이가 ΔE 4.3 뿐이라 카드가 묻혔다.
+  `border` 0.12 -> 0.16, `shadow.md` 를 한 단계 또렷하게. 배경색은 브랜드 선언이라 건드리지 않았다
+- **02 인사말의 "님" 한 글자가 둘째 줄에 남던 것** - 닉네임 안의 띄어쓰기에서 줄이 갈렸다.
+  `안녕하세요,` / `{닉네임}님` 두 줄로 우리가 먼저 나눈다
+- 면 없는 `ghost` 버튼이 눌러도 아무 반응이 없던 것
+
+- **한글이 깨져 나오던 것** - 뱃지 이름이 전부 `ì²« ê¸°ë¡`. DB 안의 값은 멀쩡했고 범인은 **연결 문자셋**이었다.
+  MySQL 의 `character_set_client` 가 latin1 이라 UTF-8 바이트를 잘못 읽었다.
+  `application-local.yml` 의 JDBC URL 에 `characterEncoding=UTF-8` 을 박았다 -
+  서버 설정에 기대면 다른 사람 로컬에서 또 터진다
+- **09 상점이 500 으로 죽던 것** (`GET /api/v1/profile/store/items`).
+  `ProfileService.storeItems` 가 클래스의 `readOnly = true` 를 물려받는데 프로필이 없으면 INSERT 를 한다 -
+  처음 보는 사용자가 09 를 **먼저** 열었을 때만 터져서, 10 을 먼저 본 사람에게는 안 보였다.
+  메서드에 `@Transactional` 을 덮어쓰고 회귀 테스트를 붙였다
+- **01 "이미 계정이 있어요"의 대비** - 뒤 띠의 갈색 선이 글자를 가로질러 1.0:1 까지 떨어지던 자리.
+  불투명한 알약 면을 깔아 5.54:1 (화면 문서 01 8장의 미해결 항목이었다)
+- **09 테마 미리보기가 이름과 어긋나던 것** - 감정 9색을 순서대로 돌려 써서 "Mint Soda" 아래 빨강이 깔렸다
+- 07 뱃지에 남아 있던 "날씨 6색" 문구를 "감정 9색"으로
+
+- 머지 충돌 8건 해소. main 의 `4e0cca0`(prototype 디자인 전면 이식)과 브랜치가 같은 UI 파일을 건드렸다 -
+  **디자인은 main, 감정 모델은 브랜치**로 합쳤다
+- 브랜치가 보지 못한 화면(06 그래프 KPI, 07 뱃지 메달, 09 상점, 10 마이페이지, 연속 기록 칩)의
+  `useWeatherColors` 참조를 `useEmotionColors` 로 옮겼다. 그대로 두면 삭제된 `shared/weather.ts` 를 가리켜 빌드가 깨진다
+
+### Changed
+- DB를 **PostgreSQL -> MySQL 8.0** 으로 교체 (ADR `docs/adr/2026-10-14-DB를-MySQL로.md`)
+  - `sql/patch/*.sql` 4개를 MySQL 방언으로 제자리에서 다시 씀. 아직 어느 환경에도 실행되지 않아 새 패치를 쌓지 않았다
+  - 부분 unique 인덱스 -> `alive` 생성 컬럼(`IF(deleted_at IS NULL, 1, NULL)` STORED)을 unique 키에 끼우는 방식.
+    하루 1건·중복 좋아요·중복 공유·프로필 1개를 DB가 보장하는 것은 그대로다
+  - 시퀀스 7개 -> `AUTO_INCREMENT`. 엔티티 7개의 `@GeneratedValue` 를 `IDENTITY` 로 (`allocationSize = 50` 의 쓰기 배치는 잃는다)
+  - `timestamptz` -> `datetime(6)`. 저장은 계속 UTC(`hibernate.jdbc.time_zone`)
+  - 드라이버 `mysql-connector-j`, Testcontainers 이미지 `mysql:8.4`, 접속 URL(`application-local.yml`, `.env.example`)
+  - **`ddl-auto: validate` 와 DDL 실행은 아직 검증 전이다** (MySQL 8.0 또는 Docker 필요). `./gradlew test` 74건은 통과
 - 디자인 프리셋을 **soft-modern -> muted-sky** 로 교체 (채도 낮은 하늘색, 배경 바닐라 `#faf4dc`)
   - `tokens.ts` 를 다시 씀. 의미 토큰에 `highlight`/`highlightText`/`rule`/`weatherInk`/`decor`/`scrim`/`skeleton`/`track` 추가
   - 날씨 6색을 스킴에 따라 갈리지 않게 고정. 그 위 글자색은 `weatherInk` 로 못 박았다
@@ -27,6 +153,8 @@
 
 ### Fixed
 - 장식 이모지 제거 (인사말 사탕, 커뮤니티 아바타, Plus 왕관). 아바타는 닉네임 첫 글자, Plus 는 글자 배지
+- 백엔드 첫 빌드 검증: 컴파일 오류 4곳 수정(`WordCounter` 정규식 이스케이프, `Meta` record 접근자 충돌, `CommunityCursor.decodeRaw` 누락, `ArchitectureTest`의 ArchUnit 1.3.0 미지원 API·lombok 런타임 참조). Gradle wrapper 추가, `./gradlew test` 74건 통과
+- 앱 `@types/react` 누락 추가 (Expo 기동 시 필수)
 
 ### Added
 - 화면 05~10 구현 (시안 10화면 전부 동작)

@@ -48,3 +48,20 @@ npm run start
 `@assets/*` 별칭은 `app/tsconfig.json` 에 있고 Expo 가 metro 에서 그대로 읽는다.
 **SVG 파일은 import 하지 않는다** - 아이콘은 `src/shared/ui/Icon.tsx` 가 코드로 그리므로
 svg transformer 도 metro 설정도 필요 없다.
+
+## 그리기 (Skia)
+
+04 덧그리기는 `@shopify/react-native-skia` 로 그린다. **Expo Go 에 포함된 패키지라 개발 빌드는 필요 없다.**
+
+```bash
+npx expo install @shopify/react-native-skia react-native-reanimated
+npm install react-native-worklets@0.8.3 babel-preset-expo@~56.0.0 --save-exact --legacy-peer-deps
+```
+
+- **버전을 손으로 못 박은 이유.** Skia 는 reanimated 를, reanimated 4 는 `react-native-worklets` 를 끌고 온다.
+  npm 이 최신(0.13.0)을 집어오는데 **Expo Go SDK 56 에 들어 있는 네이티브는 0.8.3** 이라 어긋나면
+  `react-native-reanimated is not installed!` 로 뜬다 - 설치는 됐는데 네이티브가 없다는 뜻이다.
+  맞는 버전은 `npx expo install --check` 가 알려준다.
+- **`babel.config.js` 가 있어야 한다.** reanimated 4 는 워크릿을 컴파일 단계에서 바꾸므로
+  `react-native-worklets/plugin` 이 **마지막 플러그인**으로 들어가야 한다. 없으면 같은 에러가 난다.
+- 손그림 테두리(`SketchBorder`)와 종이 결은 여전히 `react-native-svg` 다. Skia 는 **획을 그리는 데만** 쓴다.

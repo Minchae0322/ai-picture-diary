@@ -1,6 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/jellydiary
+    # 문자셋을 URL 에 박는다. MySQL 서버가 character_set_client 를 latin1 로 들고 있으면
+    # 한글이 깨진 채로 읽힌다 - DB 안의 값은 멀쩡한데 화면만 깨져서 원인 찾기가 오래 걸린다.
+    url: jdbc:mysql://localhost:3306/jellydiary?characterEncoding=UTF-8&connectionCollation=utf8mb4_0900_ai_ci
     username: jelly
     password: local-only-not-a-secret
   jpa:

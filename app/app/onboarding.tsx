@@ -88,13 +88,21 @@ export default function OnboardingScreen() {
             <Button label="무료로 시작하기" size="xlarge" onPress={start} />
           </View>
 
-          {/* 뒤 띠의 가는 갈색 선이 글자를 끊어 대비가 떨어지는 자리다 - 01 문서 8장에 미해결로 적어뒀다 */}
+          {/*
+            뒤 띠의 가는 갈색 선이 글자를 가로질러 획을 끊어 놓던 자리다(01 문서 8장의 미해결 항목).
+            글자색을 올리는 것으로는 안 된다 - 선이 글자와 같은 어두운 톤이라 어느 색을 써도 걸린다.
+            띠와 글자 사이에 불투명한 면을 하나 깔아 글자가 설 바닥을 만든다.
+          */}
           <Pressable
             onPress={() => router.push('/login')}
             accessibilityRole="link"
-            style={({ pressed }) => [styles.link, { opacity: pressed ? 0.6 : 1 }]}
+            style={({ pressed }) => [
+              styles.link,
+              { backgroundColor: colors.surfaceSolid, borderColor: colors.border },
+              { opacity: pressed ? 0.6 : 1 },
+            ]}
           >
-            <Text style={[styles.linkLabel, { color: colors.textMuted }]}>이미 계정이 있어요</Text>
+            <Text style={[styles.linkLabel, { color: colors.primary }]}>이미 계정이 있어요</Text>
           </Pressable>
 
           <View
@@ -161,7 +169,14 @@ const styles = StyleSheet.create({
   sub: { fontSize: font.md, fontFamily: font.regular, lineHeight: leading(font.md, 1.6) },
   footer: { alignItems: 'center', gap: space[4], marginTop: 'auto', marginBottom: space[8] },
   cta: { alignSelf: 'stretch' },
-  link: { minHeight: MIN_TOUCH_TARGET, justifyContent: 'center', paddingHorizontal: space[4] },
+  link: {
+    minHeight: MIN_TOUCH_TARGET,
+    justifyContent: 'center',
+    alignSelf: 'center',
+    paddingHorizontal: space[5],
+    borderRadius: radius.full,
+    borderWidth: 1.5,
+  },
   linkLabel: { fontSize: font.base, fontFamily: font.medium },
   dots: { flexDirection: 'row', gap: space[2] },
   dot: { height: 8, borderRadius: radius.full },

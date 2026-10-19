@@ -50,7 +50,7 @@ export default function CalendarScreen() {
           <Card>
             <Heading>이번 달 요약</Heading>
             {calendar.data.recordedDays === 0 ? (
-              <Empty message="이 달은 아직 기록이 없어요" />
+              <Empty variant="inline" face="SOSO" message="이 달은 아직 기록이 없어요" />
             ) : (
               <MonthSummary summary={calendar.data.summary} />
             )}

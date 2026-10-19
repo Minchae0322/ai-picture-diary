@@ -37,7 +37,7 @@ export default function BadgesScreen() {
             accessibilityLabel={`${data.earnedCount} / ${data.totalCount}개 수집`}
           />
           <BadgeGrid badges={data.badges} />
-          <Note>메달 색은 날씨 6색을 돌려 씁니다. 뱃지마다의 그림은 아직 없어요.</Note>
+          <Note>메달 색은 감정 9색을 돌려 씁니다. 뱃지마다의 그림은 아직 없어요.</Note>
         </>
       )}
     </Screen>

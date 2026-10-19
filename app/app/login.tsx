@@ -12,6 +12,7 @@ import {
   space,
 } from '@/shared/theme/tokens';
 import { useColors } from '@/shared/theme/useColors';
+import { EmotionFace } from '@/shared/ui/EmotionFace';
 import { Icon } from '@/shared/ui/Icon';
 
 /**
@@ -76,6 +77,17 @@ export default function LoginScreen() {
           <Text style={[styles.sub, { color: colors.textMuted }]}>
             그동안의 기록은 그대로 기다리고 있어요.
           </Text>
+        </View>
+
+        {/*
+          제목과 버튼 사이가 화면의 절반이었다. 01 온보딩이 손그림 캐릭터로 첫인상을 만드는데
+          바로 다음 화면이 빈 노랑이면 앱이 두 개처럼 보인다. 같은 식구를 세워 둔다.
+          그림일 뿐이라 읽어 줄 것이 없다 - EmotionFace 가 기본으로 접근성에서 숨긴다.
+        */}
+        <View style={styles.cast} pointerEvents="none">
+          <EmotionFace emotion="ENERGETIC" size={56} />
+          <EmotionFace emotion="HAPPY" size={104} />
+          <EmotionFace emotion="SHY" size={64} />
         </View>
 
         <View style={styles.actions}>
@@ -151,8 +163,15 @@ const styles = StyleSheet.create({
   head: { gap: space[1] },
   title: { fontSize: font.xxl, lineHeight: leading(font.xxl, 1.35), fontFamily: font.black },
   sub: { fontSize: font.base, fontFamily: font.regular, lineHeight: leading(font.base) },
-  /** 버튼은 바닥에 모은다. 위쪽 글은 제자리에 두고 남는 공간을 여기서 먹는다 */
-  actions: { marginTop: 'auto', gap: space[2] },
+  /** 남는 세로 공간을 캐릭터가 먹는다. 버튼은 그 아래 바닥에 모인다 */
+  cast: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: space[3],
+  },
+  actions: { gap: space[2] },
   social: {
     height: buttonHeight.xlarge,
     borderRadius: radius.full,

@@ -66,7 +66,12 @@ function StatsBody({ stats, periodLabel }: { stats: DiaryStats; periodLabel: str
             <MoodChartSummary points={stats.points} />
           </>
         ) : (
-          <Empty message="기록이 3일 이상 쌓이면 추이를 보여드려요" />
+          <Empty
+            variant="inline"
+            face="SOSO"
+            title="추이는 3일부터"
+            message="기록이 3일 이상 쌓이면 선으로 이어 드려요"
+          />
         )}
       </Card>
 
@@ -86,7 +91,7 @@ function StatsBody({ stats, periodLabel }: { stats: DiaryStats; periodLabel: str
       <Card>
         <Heading>{periodLabel} 자주 쓴 말</Heading>
         {stats.words.length === 0 ? (
-          <Empty message="아직 모을 말이 부족해요" />
+          <Empty variant="inline" face="SHY" message="아직 모을 말이 부족해요" />
         ) : (
           <View style={styles.words}>
             {stats.words.map((word) => (

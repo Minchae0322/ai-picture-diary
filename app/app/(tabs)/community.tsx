@@ -87,8 +87,14 @@ export default function CommunityScreen() {
             <ErrorRetry error={feed.error} onRetry={() => feed.refetch()} />
           ) : (
             <Empty
-              message={
+              face={emotions[0] ?? 'SHY'}
+              title={
                 emotions.length > 0 ? '이 기분의 기록이 아직 없어요' : '아직 공유된 기록이 없어요'
+              }
+              message={
+                emotions.length > 0
+                  ? '다른 기분을 골라 보거나 필터를 풀어 보세요'
+                  : '오늘 그린 그림을 가장 먼저 올려 보세요'
               }
               action={
                 emotions.length > 0

@@ -25,7 +25,13 @@
 
 - 주 타깃: **모바일 우선** (390x844 기준)
 - 프리셋: **muted-sky** (채도 낮은 하늘색. `.claude/skills/design-system/presets/muted-sky.md`)
-- 브랜드: 흐린 하늘 `#3f6d8e`. 배경은 바닐라 `#faf4dc`
+- **표현 방식: 손그림(색연필).** UI 의 선·면·바탕을 손으로 그린 것처럼 만든다.
+  규칙과 컴포넌트 코드는 `.claude/skills/hand-drawn-ui/`, 눈으로 고르는 목록은 `docs/design/components.html`.
+  **새 UI 를 만들 때 기본값이다** - 반듯한 `borderWidth` 대신 `SketchBorder`, 네 귀 같은 radius 대신 비대칭
+- 브랜드: 흐린 하늘 `#3f6d8e`. 배경은 **종이 `#F3EBDA`** (2026-10-20, 바닐라 `#faf4dc` 에서 내렸다)
+  - 손그림 체계의 바탕은 색이 아니라 종이다. 더 밝은 종이(`#FAF6ED`)로 올리면 흰 카드와 ΔE 2.1 까지
+    좁아져 카드가 사라진다. 이 값이 본문 10.59 · 보조 5.26(AA 통과) · 카드 분리 ΔE 5.5 를 동시에 만족한다
+  - 종이 결은 `PaperGrain` 이 `Screen` 의 배경에 깐다. 색만 바꾸면 노란 면이고, 결이 있어야 종이다
 - 서체: **SUIT 하나로 통일.** 굵기는 `fontWeight` 가 아니라 패밀리로 고른다(RN 제약, `app/INSTALL.md`)
 - 토큰의 진실: `app/src/shared/theme/tokens.ts`. **색은 코드가 진실이다** - Figma 시안(복숭아)과
   갈라져 있고 그 방향은 의도된 것이다(figma-workflow 4장). 레이아웃·구조는 여전히 시안이 진실이다.

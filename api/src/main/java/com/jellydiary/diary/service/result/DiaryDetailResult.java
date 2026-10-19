@@ -3,7 +3,7 @@ package com.jellydiary.diary.service.result;
 import com.jellydiary.diary.domain.Diary;
 import com.jellydiary.diary.type.DiaryPolicy;
 import com.jellydiary.diary.type.DiaryStatus;
-import com.jellydiary.diary.type.Weather;
+import com.jellydiary.diary.type.Emotion;
 import java.time.LocalDate;
 
 /**
@@ -14,7 +14,7 @@ public record DiaryDetailResult(
         LocalDate entryDate,
         String content,
         DiaryStatus status,
-        Weather weather,
+        Emotion emotion,
         Integer moodScore,
         String aiComment,
         String imageUrl,
@@ -26,7 +26,7 @@ public record DiaryDetailResult(
                 diary.getEntryDate(),
                 diary.getContent(),
                 diary.getStatus(),
-                diary.getWeather(),
+                diary.getEmotion(),
                 diary.getMoodScore(),
                 diary.getAiComment(),
                 diary.getImageUrl(),

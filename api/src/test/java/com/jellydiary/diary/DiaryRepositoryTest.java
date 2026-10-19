@@ -7,7 +7,7 @@ import com.jellydiary.common.config.JpaConfig;
 import com.jellydiary.diary.domain.Diary;
 import com.jellydiary.diary.type.DiaryPolicy;
 import com.jellydiary.diary.repository.DiaryRepository;
-import com.jellydiary.diary.type.Weather;
+import com.jellydiary.diary.type.Emotion;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -97,7 +97,7 @@ class DiaryRepositoryTest {
     }
 
     private Diary diary(Long userId, int day, String content) {
-        return Diary.write(userId, LocalDate.of(2026, 8, day), content, Weather.SUNNY, POLICY);
+        return Diary.write(userId, LocalDate.of(2026, 8, day), content, Emotion.HAPPY, POLICY);
     }
 
     private List<Diary> olderThan(LocalDate cursor, int size) {

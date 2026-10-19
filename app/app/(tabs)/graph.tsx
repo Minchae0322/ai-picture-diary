@@ -9,7 +9,7 @@ import { Heading, Muted } from '@/shared/ui/Type';
 import { Empty, ErrorRetry, Skeleton } from '@/shared/ui/StateBlock';
 import { Segmented } from '@/shared/ui/Segmented';
 import { space } from '@/shared/theme/tokens';
-import { useWeatherColors } from '@/shared/theme/useColors';
+import { useEmotionColors } from '@/shared/theme/useColors';
 import { useStats } from '@/features/diary/hooks/useDiary';
 import type { DiaryStats, StatsPeriod } from '@/features/diary/api/diaryTypes';
 import { KpiRow } from '@/features/diary/ui/KpiRow';
@@ -50,7 +50,7 @@ export default function GraphScreen() {
 }
 
 function StatsBody({ stats, periodLabel }: { stats: DiaryStats; periodLabel: string }) {
-  const weatherColors = useWeatherColors();
+  const emotionColors = useEmotionColors();
   // 점이 2개 미만이면 추이선이 뜻을 갖지 못한다(06 화면 문서 5장)
   const drawable = stats.points.length >= 2;
 
@@ -72,13 +72,14 @@ function StatsBody({ stats, periodLabel }: { stats: DiaryStats; periodLabel: str
 
       <KpiRow
         items={[
-          { label: '평균 기분', value: formatAverage(stats.average), dot: weatherColors.SUNNY },
+          // 점은 세 칸을 구분하는 장식이다. 뜻은 라벨이 나른다(`shared/emotion.ts`)
+          { label: '평균 기분', value: formatAverage(stats.average), dot: emotionColors.HAPPY },
           {
             label: '최고의 날',
             value: stats.bestDate ? formatShortDate(stats.bestDate) : '-',
-            dot: weatherColors.RAINBOW,
+            dot: emotionColors.ENERGETIC,
           },
-          { label: '연속 기록', value: `${stats.streakDays}일`, dot: weatherColors.RAIN },
+          { label: '연속 기록', value: `${stats.streakDays}일`, dot: emotionColors.TIRED },
         ]}
       />
 

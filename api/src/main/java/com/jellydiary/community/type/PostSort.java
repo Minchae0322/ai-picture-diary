@@ -1,8 +1,8 @@
 package com.jellydiary.community.type;
 
 /**
- * 08 필터 줄의 정렬 축. 시안은 정렬(인기/최신)과 날씨 필터가 한 줄에 섞여 있지만 축이 둘이라
- * 정렬 1개 + 날씨 다중으로 나눠 받는다(feed-ranking 1장).
+ * 08 필터 줄의 정렬 축. 시안은 정렬(인기/최신)과 감정 필터가 한 줄에 섞여 있지만 축이 둘이라
+ * 정렬 1개 + 감정 다중으로 나눠 받는다(feed-ranking 1장).
  */
 public enum PostSort {
     /**

@@ -2,8 +2,8 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { GradientFill } from '@/shared/ui/Gradient';
 import { Icon } from '@/shared/ui/Icon';
 import { font, radius, space } from '@/shared/theme/tokens';
-import { useColors, useWeatherColors } from '@/shared/theme/useColors';
-import { WEATHERS } from '@/shared/weather';
+import { useColors, useEmotionColors } from '@/shared/theme/useColors';
+import { EMOTIONS } from '@/shared/emotion';
 import type { StoreItem } from '../api/profileApi';
 
 type Props = {
@@ -21,13 +21,13 @@ type Props = {
  */
 export function StoreGrid({ items, columns, onSelect, pendingCode }: Props) {
   const colors = useColors();
-  const weatherColors = useWeatherColors();
+  const emotionColors = useEmotionColors();
   const theme = columns === 2;
 
   return (
     <View style={styles.grid}>
       {items.map((item, index) => {
-        const tint = weatherColors[WEATHERS[index % WEATHERS.length]];
+        const tint = emotionColors[EMOTIONS[index % EMOTIONS.length]];
         const busy = pendingCode === item.code;
 
         return (

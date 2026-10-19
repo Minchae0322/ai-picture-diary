@@ -1,12 +1,13 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { EmotionFace } from '@/shared/ui/EmotionFace';
 import { Card } from '@/shared/ui/Card';
 import { Chip } from '@/shared/ui/Chip';
 import { formatRelative } from '@/shared/format';
 import { font, leading, MIN_TOUCH_TARGET, radius, space } from '@/shared/theme/tokens';
-import { useColors, useWeatherColors } from '@/shared/theme/useColors';
+import { useColors, useEmotionColors } from '@/shared/theme/useColors';
 import { GradientFill } from '@/shared/ui/Gradient';
 import { Icon, type IconName } from '@/shared/ui/Icon';
-import { WEATHER_ICON, WEATHER_LABEL, toWeather } from '@/shared/weather';
+import { EMOTION_LABEL, toEmotion } from '@/shared/emotion';
 import type { CommunityPost } from '../api/communityApi';
 
 type Props = {
@@ -20,15 +21,15 @@ type Props = {
 /**
  * 08 피드 카드(prototype `.post`).
  *
- * 시안에 그림이 없어 텍스트만 공유하지만, 카드마다 **날씨 썸네일**을 둬서 피드가 글 목록이 아니라
- * 날씨 목록으로 읽히게 한다(08 화면 문서 4장의 갈림길에서 텍스트를 택했다).
+ * 시안에 그림이 없어 텍스트만 공유하지만, 카드마다 **감정 캐릭터 썸네일**을 둬서 피드가 글 목록이
+ * 아니라 감정 목록으로 읽히게 한다(08 화면 문서 4장의 갈림길에서 텍스트를 택했다).
  * 신고는 시안에 없지만 UGC 배포의 필수 동선이라 카드마다 둔다(app-store-release).
  */
 export function PostCard({ post, onToggleLike, onReport, onNotReady }: Props) {
   const colors = useColors();
-  const weatherColors = useWeatherColors();
-  const weather = toWeather(post.weather);
-  const tint = weather ? weatherColors[weather] : colors.decor;
+  const emotionColors = useEmotionColors();
+  const emotion = toEmotion(post.emotion);
+  const tint = emotion ? emotionColors[emotion] : colors.decor;
 
   return (
     <Card variant="flat" contentStyle={styles.card}>
@@ -38,7 +39,7 @@ export function PostCard({ post, onToggleLike, onReport, onNotReady }: Props) {
           importantForAccessibility="no-hide-descendants"
           style={[styles.avatar, { backgroundColor: tint }]}
         >
-          <Text style={[styles.initial, { color: colors.weatherInk }]}>
+          <Text style={[styles.initial, { color: colors.emotionInk }]}>
             {[...post.authorName][0] ?? ''}
           </Text>
         </View>
@@ -52,7 +53,8 @@ export function PostCard({ post, onToggleLike, onReport, onNotReady }: Props) {
           </Text>
         </View>
 
-        {weather ? <Chip label={WEATHER_LABEL[weather]} dot={tint} /> : null}
+        {/* 색점은 붙이지 않는다 - 과일 색은 뜻을 나르지 않는다(`shared/emotion.ts`) */}
+        {emotion ? <Chip label={EMOTION_LABEL[emotion]} /> : null}
 
         <Pressable
           onPress={onReport}
@@ -67,10 +69,10 @@ export function PostCard({ post, onToggleLike, onReport, onNotReady }: Props) {
 
       <View style={styles.body}>
         <View style={styles.thumb}>
-          {weather ? (
+          {emotion ? (
             <>
-              <GradientFill from="#ffffff" fromOpacity={0.9} to={tint} />
-              <Icon name={WEATHER_ICON[weather]} size={28} color={colors.weatherInk} />
+              <GradientFill from={colors.faceBg} fromOpacity={0.9} to={tint} />
+              <EmotionFace emotion={emotion} size={44} />
             </>
           ) : null}
         </View>
@@ -160,6 +162,7 @@ const styles = StyleSheet.create({
   time: { fontSize: font.xs, fontFamily: font.regular },
   more: { minWidth: 28, alignItems: 'flex-end' },
   body: { flexDirection: 'row', gap: space[3] },
+  /** EmotionFace 는 size 보다 커질 수 있어(EMOTION_SCALE) 상자에 여유를 둔다 */
   thumb: {
     width: 76,
     height: 76,
@@ -171,6 +174,11 @@ const styles = StyleSheet.create({
   text: { flex: 1, minWidth: 0, justifyContent: 'space-between', gap: space[3] },
   content: { fontSize: font.base, lineHeight: leading(font.base), fontFamily: font.regular },
   reactions: { flexDirection: 'row', gap: space[4] },
-  reaction: { minHeight: MIN_TOUCH_TARGET - space[4], flexDirection: 'row', alignItems: 'center', gap: space[1] },
+  reaction: {
+    minHeight: MIN_TOUCH_TARGET - space[4],
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space[1],
+  },
   reactionLabel: { fontSize: font.base, fontVariant: ['tabular-nums'] },
 });

@@ -16,6 +16,7 @@
 | 08 | 커뮤니티 | [08-community.md](08-community.md) | [10:79](https://www.figma.com/design/zbYEQIRk1ttPOFzojh2hcL/AI-%25EA%25B0%2590%25EC%25A0%2595-%25EB%2582%25A0%25EC%2594%25A8%25EC%259D%25BC%25EA%25B8%25B0---Web-App-Sketch?node-id=10-79) | 커뮤니티 |
 | 09 | 테마 · 캐릭터 상점 | [09-store.md](09-store.md) | [11:2](https://www.figma.com/design/zbYEQIRk1ttPOFzojh2hcL/AI-%25EA%25B0%2590%25EC%25A0%2595-%25EB%2582%25A0%25EC%2594%25A8%25EC%259D%25BC%25EA%25B8%25B0---Web-App-Sketch?node-id=11-2) | MY 하위 |
 | 10 | 마이페이지 | [10-mypage.md](10-mypage.md) | [11:87](https://www.figma.com/design/zbYEQIRk1ttPOFzojh2hcL/AI-%25EA%25B0%2590%25EC%25A0%2595-%25EB%2582%25A0%25EC%2594%25A8%25EC%259D%25BC%25EA%25B8%25B0---Web-App-Sketch?node-id=11-87) | MY |
+| 11 | 로그인 | [11-login.md](11-login.md) | 시안 없음 | 01에서 진입 |
 
 ## 탐색 구조
 - 탭바 5개: 홈 / 캘린더 / 그래프 / 커뮤니티 / MY. 01·03·04를 제외한 모든 화면에 고정 노출.

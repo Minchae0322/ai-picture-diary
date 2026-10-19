@@ -8,7 +8,7 @@
  * (figma-workflow 4장. docs/screen/README.md "토큰의 진실" 참고).
  */
 
-import type { Weather } from '@/shared/weather';
+import type { Emotion } from '@/shared/emotion';
 
 const primitive = {
   /** 배경 바닐라 */
@@ -97,8 +97,10 @@ export type Colors = {
   highlightText: string;
   /** 01 히어로 뒤 노트 괘선 */
   rule: string;
-  /** 날씨 색 위에 바로 얹히는 글자색. 날씨 색이 테마 불변이라 이것도 고정이다 */
-  weatherInk: string;
+  /** 감정 색 위에 바로 얹히는 글자색. 감정 색이 테마 불변이라 이것도 고정이다 */
+  emotionInk: string;
+  /** 감정 캐릭터가 얹히는 면. 과일 색을 깔면 같은 계열이라 캐릭터가 묻힌다 */
+  faceBg: string;
 };
 
 const light: Colors = {
@@ -138,7 +140,16 @@ const light: Colors = {
   highlight: primitive.cocoa600,
   highlightText: primitive.paper,
   rule: 'rgba(63,63,63,0.22)',
-  weatherInk: primitive.slate900,
+  emotionInk: primitive.slate900,
+  /**
+   * 분리 정도는 **그림의 실제 픽셀**로 잰다 - 대표색 한 점으로 재면 여러 색을 가진 캐릭터를 놓친다.
+   * 불투명 픽셀의 ΔE 중앙값(OKLab x100): 블루베리 50.9 / 가지 49.7 / 체리·딸기·토마토 35.7 /
+   * 당근 30.2 / 아보카도 24.1 / 키위 20.6 / **복숭아 19.7** - 연분홍이라 제일 약하지만 충분하다.
+   * 배경과 ΔE 10 이내인 픽셀은 어느 캐릭터도 1% 미만이다.
+   * 바닐라 페이지 배경과는 ΔE 12.3, 위에 글자가 오면 #253544 로 8.32:1.
+   * 그림이 테마를 따라 바뀌지 않으므로 이 면도 다크에서 같은 값이다.
+   */
+  faceBg: '#b8d7e7',
 };
 
 const dark: Colors = {
@@ -179,8 +190,10 @@ const dark: Colors = {
   highlightText: primitive.paper,
   /** 어두운 배경에서 #3f3f3f 괘선은 보이지 않는다 */
   rule: 'rgba(255,255,255,0.12)',
-  /** weatherColor 가 다크에서도 같은 값이라 라이트와 같다 */
-  weatherInk: primitive.slate900,
+  /** 감정 색이 다크에서도 같은 값이라 라이트와 같다 */
+  emotionInk: primitive.slate900,
+  /** 캐릭터 그림이 테마를 따라 바뀌지 않으니 이 면도 같다 */
+  faceBg: '#b8d7e7',
 };
 
 export const colorsFor = (scheme: string | null | undefined) => (scheme === 'dark' ? dark : light);
@@ -274,28 +287,33 @@ export const shadow = {
 } as const;
 
 /**
- * 날씨 6종의 의미 색. 05 캘린더 셀과 06 차트가 같은 색을 쓴다.
- * 색만으로 뜻을 전달하지 않는다 - 옆에 항상 아이콘이나 라벨이 붙는다(dataviz / ui-fundamentals).
- * dataviz 팔레트 검증에서 이 6색은 범주형으로 **실패**한다(흐림 #b6bfc8 과 비 #8fa9c8 의 분리 부족).
- * 그래서 라벨이 없는 자리에는 반드시 `WEATHER_ICON` 을 같이 둔다.
+ * 감정 9종의 색조. 05 캘린더 셀과 06 차트가 같은 색을 쓴다.
+ *
+ * **색이 뜻을 나르지 않는다.** 과일에서 뽑은 색이라 빨강이 셋이다
+ * (체리 ENERGETIC #d33b57 / 딸기 HAPPY #e3564f / 토마토 SOSO #dd4a3c) - dataviz 범주형 검증을 통과하지 못한다.
+ * 그래서 이 색은 **배경 wash 와 테두리에만** 쓰고, 정체성은 늘 `EmotionFace` 그림과 라벨이 전한다.
+ * 색 하나로 감정을 표시하는 자리를 새로 만들지 않는다.
  */
-export type WeatherColors = Record<Weather, string>;
+export type EmotionColors = Record<Emotion, string>;
 
-const weather: WeatherColors = {
-  SUNNY: primitive.amber300,
-  PARTLY_CLOUDY: primitive.sand200,
-  CLOUDY: primitive.gray300,
-  RAIN: primitive.steel300,
-  SNOW: primitive.ice200,
-  RAINBOW: primitive.mauve300,
+const emotion: EmotionColors = {
+  HAPPY: '#e3564f',
+  ENERGETIC: '#d33b57',
+  SOSO: '#dd4a3c',
+  SHY: '#eda7ae',
+  EMBARRASSED: '#e08a3c',
+  TIRED: '#8a9e62',
+  SAD: '#5b3f8f',
+  DEPRESSED: '#3b3f7a',
+  ANGRY: '#c2ba3e',
 };
 
 /**
- * 날씨 색은 **스킴에 따라 갈리지 않는다.** 여섯 색 모두 중간 밝기 파스텔이라 어두운 배경에서도
- * 그대로 읽히고, 그 위에 얹히는 글자색(`weatherInk`)을 고정해 두었기 때문이다.
+ * 감정 색은 **스킴에 따라 갈리지 않는다.** 과일에서 뽑은 색이라 테마가 바뀐다고 과일이 바뀌지 않고,
+ * 그 위에 얹히는 글자색(`emotionInk`)도 고정해 두었기 때문이다.
  * 함수 모양은 유지해 호출부가 스킴 인자를 계속 넘길 수 있게 한다.
  */
-export const weatherColorsFor = (_scheme: string | null | undefined) => weather;
+export const emotionColorsFor = (_scheme: string | null | undefined) => emotion;
 
 /** 탭바 아이콘의 색. 탭마다 다른 악센트 하나씩 */
 export const tabTint = {

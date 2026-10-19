@@ -66,7 +66,7 @@ class ArchitectureTest {
      * 3. 도메인 간 직접 참조 금지 (community.domain -> diary.type).
      *
      * <p>예외 셋: 조합은 service 에서만 한다. common·llm 은 업무 도메인이 아니라 <b>기술 컨텍스트</b>라
-     * 누가 참조해도 되고, llm 자신은 도메인 어휘(Weather 등)를 계약에 담아야 해서 반대 방향도 허용한다.
+     * 누가 참조해도 되고, llm 자신은 도메인 어휘(Emotion 등)를 계약에 담아야 해서 반대 방향도 허용한다.
      * 대신 llm 이 업무 흐름을 되부르는 것은 11번이 막는다.
      */
     @ArchTest

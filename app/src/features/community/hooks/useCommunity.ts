@@ -1,21 +1,21 @@
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import type { Weather } from '@/shared/weather';
+import type { Emotion } from '@/shared/emotion';
 import { communityApi, type CommunityPost, type PostSort, type ReportReason } from '../api/communityApi';
 
 export const communityKeys = {
   all: ['community'] as const,
-  feed: (sort: PostSort, weathers: Weather[]) =>
-    [...communityKeys.all, 'feed', sort, [...weathers].sort().join(',')] as const,
+  feed: (sort: PostSort, emotions: Emotion[]) =>
+    [...communityKeys.all, 'feed', sort, [...emotions].sort().join(',')] as const,
 };
 
 type FeedPage = { items: CommunityPost[]; nextCursor: string | null };
 
 /** 08 무한 스크롤. 커서 페이징이라 offset 을 만들지 않는다. */
-export function useFeed(sort: PostSort, weathers: Weather[]) {
+export function useFeed(sort: PostSort, emotions: Emotion[]) {
   return useInfiniteQuery({
-    queryKey: communityKeys.feed(sort, weathers),
+    queryKey: communityKeys.feed(sort, emotions),
     queryFn: ({ pageParam, signal }) =>
-      communityApi.feed({ sort, weathers, cursor: pageParam ?? undefined }, signal),
+      communityApi.feed({ sort, emotions, cursor: pageParam ?? undefined }, signal),
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage: FeedPage) => lastPage.nextCursor,
     staleTime: 30_000,
@@ -26,9 +26,9 @@ export function useFeed(sort: PostSort, weathers: Weather[]) {
  * 좋아요 낙관적 업데이트. 실패하면 되돌린다. 서버는 멱등이라 연타해도 결과가 같고,
  * 여기서는 캐시만 뒤집으므로 이전 상태를 스냅샷으로 잡아 둔다(frontend-state 6장).
  */
-export function useToggleLike(sort: PostSort, weathers: Weather[]) {
+export function useToggleLike(sort: PostSort, emotions: Emotion[]) {
   const queryClient = useQueryClient();
-  const key = communityKeys.feed(sort, weathers);
+  const key = communityKeys.feed(sort, emotions);
 
   return useMutation({
     mutationFn: ({ postId, liked }: { postId: string; liked: boolean }) =>

@@ -28,9 +28,9 @@ class BadgeTest {
     @Test
     @DisplayName("지표가 다르면 값이 아무리 커도 안 걸린다")
     void metricMustMatch() {
-        Badge sunnyCollector = badge(BadgeMetric.SUNNY_RECORDS, 10);
+        Badge happyCollector = badge(BadgeMetric.HAPPY_RECORDS, 10);
 
-        assertThat(sunnyCollector.isEarnedBy(streak(999))).isFalse();
+        assertThat(happyCollector.isEarnedBy(streak(999))).isFalse();
     }
 
     @Test
@@ -40,7 +40,7 @@ class BadgeTest {
         BadgeCriteria all = new BadgeCriteria(0, 0, 0, 0, true, true, 0, 0, true);
 
         for (BadgeMetric metric :
-                new BadgeMetric[] {BadgeMetric.ALL_WEATHERS, BadgeMetric.DAWN_RECORD, BadgeMetric.PREMIUM}) {
+                new BadgeMetric[] {BadgeMetric.ALL_EMOTIONS, BadgeMetric.DAWN_RECORD, BadgeMetric.PREMIUM}) {
             assertThat(none.valueOf(metric)).isZero();
             assertThat(all.valueOf(metric)).isEqualTo(1);
             assertThat(badge(metric, 1).isEarnedBy(all)).isTrue();
@@ -55,7 +55,7 @@ class BadgeTest {
 
         assertThat(badge(BadgeMetric.SHARES, 10).isEarnedBy(criteria)).isTrue();
         assertThat(badge(BadgeMetric.TOTAL_RECORDS, 1).isEarnedBy(criteria)).isFalse();
-        assertThat(badge(BadgeMetric.ALL_WEATHERS, 1).isEarnedBy(criteria)).isFalse();
+        assertThat(badge(BadgeMetric.ALL_EMOTIONS, 1).isEarnedBy(criteria)).isFalse();
         assertThat(badge(BadgeMetric.DAWN_RECORD, 1).isEarnedBy(criteria)).isFalse();
     }
 

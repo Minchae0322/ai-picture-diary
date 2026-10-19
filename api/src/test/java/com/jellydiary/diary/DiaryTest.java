@@ -9,7 +9,7 @@ import com.jellydiary.diary.domain.Diary;
 import com.jellydiary.llm.painter.DiaryPainting;
 import com.jellydiary.diary.type.DiaryPolicy;
 import com.jellydiary.diary.type.DiaryStatus;
-import com.jellydiary.diary.type.Weather;
+import com.jellydiary.diary.type.Emotion;
 import java.time.LocalDate;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,7 +21,7 @@ class DiaryTest {
     private static final DiaryPolicy POLICY = new DiaryPolicy(500, 3, -3, 3);
 
     private Diary diary() {
-        return Diary.write(1L, DATE, "오늘 팀 회의가 잘 끝나서 마음이 가볍다", Weather.SUNNY, POLICY);
+        return Diary.write(1L, DATE, "오늘 팀 회의가 잘 끝나서 마음이 가볍다", Emotion.HAPPY, POLICY);
     }
 
     @Test
@@ -58,11 +58,11 @@ class DiaryTest {
     void doneWithoutImage() {
         Diary diary = diary();
 
-        diary.applyPainting(new DiaryPainting(Weather.SUNNY, 2, "코멘트", null), POLICY);
+        diary.applyPainting(new DiaryPainting(Emotion.HAPPY, 2, "코멘트", null), POLICY);
 
         assertThat(diary.getStatus()).isEqualTo(DiaryStatus.DONE);
         assertThat(diary.getImageUrl()).isNull();
-        assertThat(diary.getWeather()).isEqualTo(Weather.SUNNY);
+        assertThat(diary.getEmotion()).isEqualTo(Emotion.HAPPY);
     }
 
     @Test
@@ -73,12 +73,12 @@ class DiaryTest {
         assertThatThrownBy(
                         () ->
                                 diary.applyPainting(
-                                        new DiaryPainting(Weather.SUNNY, POLICY.moodMax() + 1, "c", null), POLICY))
+                                        new DiaryPainting(Emotion.HAPPY, POLICY.moodMax() + 1, "c", null), POLICY))
                 .isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(
                         () ->
                                 diary.applyPainting(
-                                        new DiaryPainting(Weather.RAIN, POLICY.moodMin() - 1, "c", null), POLICY))
+                                        new DiaryPainting(Emotion.SAD, POLICY.moodMin() - 1, "c", null), POLICY))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -94,10 +94,10 @@ class DiaryTest {
                 .isEqualTo(ErrorCode.DIARY_NOT_DONE);
 
         for (int i = 0; i < POLICY.dailyRegenerateLimit(); i++) {
-            diary.applyPainting(new DiaryPainting(Weather.SUNNY, 1, "c", "u"), POLICY);
+            diary.applyPainting(new DiaryPainting(Emotion.HAPPY, 1, "c", "u"), POLICY);
             diary.requestRegenerate(POLICY);
         }
-        diary.applyPainting(new DiaryPainting(Weather.SUNNY, 1, "c", "u"), POLICY);
+        diary.applyPainting(new DiaryPainting(Emotion.HAPPY, 1, "c", "u"), POLICY);
 
         assertThat(diary.canRegenerate(POLICY)).isFalse();
         assertThatThrownBy(() -> diary.requestRegenerate(POLICY))

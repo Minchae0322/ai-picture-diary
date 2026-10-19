@@ -4,15 +4,15 @@ package com.jellydiary.badge.type;
  * 뱃지 판정에 필요한 사실만 모은 값. 일기·커뮤니티·구독 어디서 왔는지는 여기서 알 필요가 없다 -
  * 그래서 이 도메인은 다른 도메인을 참조하지 않는다(4-1장 도메인 간 직접 참조 금지).
  *
- * @param allWeathers 날씨 6종을 전부 모았으면 true. "6"은 날씨 enum이 알고, 여기까지 오면 참/거짓이다.
+ * @param allEmotions 감정 9종을 전부 모았으면 true. "9"는 감정 enum이 알고, 여기까지 오면 참/거짓이다.
  * @param dawnRecord 방금 기록한 시각(Asia/Seoul)이 새벽이면 true.
  */
 public record BadgeCriteria(
         int totalCount,
         int streakDays,
-        int sunnyCount,
-        int rainCount,
-        boolean allWeathers,
+        int happyCount,
+        int sadCount,
+        boolean allEmotions,
         boolean dawnRecord,
         int shareCount,
         int commentCount,
@@ -28,9 +28,9 @@ public record BadgeCriteria(
         return switch (metric) {
             case TOTAL_RECORDS -> totalCount;
             case STREAK_DAYS -> streakDays;
-            case SUNNY_RECORDS -> sunnyCount;
-            case RAIN_RECORDS -> rainCount;
-            case ALL_WEATHERS -> flag(allWeathers);
+            case HAPPY_RECORDS -> happyCount;
+            case SAD_RECORDS -> sadCount;
+            case ALL_EMOTIONS -> flag(allEmotions);
             case DAWN_RECORD -> flag(dawnRecord);
             case SHARES -> shareCount;
             case COMMENTS -> commentCount;

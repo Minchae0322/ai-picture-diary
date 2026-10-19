@@ -4,7 +4,7 @@ import { Chip } from '@/shared/ui/Chip';
 import { GradientFill } from '@/shared/ui/Gradient';
 import { formatDotDate } from '@/shared/format';
 import { font, radius, space } from '@/shared/theme/tokens';
-import { useColors, useWeatherColors } from '@/shared/theme/useColors';
+import { useColors, useEmotionColors } from '@/shared/theme/useColors';
 import type { Profile } from '../api/profileApi';
 
 type Props = {
@@ -17,7 +17,7 @@ type Props = {
 /** 10 프로필 카드 + 통계 3개(prototype `.av` / `.stats`). 기록 0건이어도 0으로 표시한다. */
 export function ProfileCard({ profile, stats, onOpenBadges }: Props) {
   const colors = useColors();
-  const weatherColors = useWeatherColors();
+  const emotionColors = useEmotionColors();
 
   const items = [
     { label: '총 기록', value: stats.totalCount, suffix: '', onPress: undefined },
@@ -34,7 +34,7 @@ export function ProfileCard({ profile, stats, onOpenBadges }: Props) {
           accessibilityElementsHidden
           importantForAccessibility="no-hide-descendants"
         >
-          <GradientFill from={weatherColors.RAINBOW} to={weatherColors.SUNNY} />
+          <GradientFill from={emotionColors.SHY} to={emotionColors.HAPPY} />
         </View>
 
         <View style={styles.identity}>

@@ -1,28 +1,31 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { EmotionFace } from '@/shared/ui/EmotionFace';
 import { formatShortDate } from '@/shared/format';
 import { font, radius, space } from '@/shared/theme/tokens';
-import { useColors, useWeatherColors } from '@/shared/theme/useColors';
+import { useColors, useEmotionColors } from '@/shared/theme/useColors';
 import { GradientFill } from '@/shared/ui/Gradient';
-import { Icon } from '@/shared/ui/Icon';
 import { Label } from '@/shared/ui/Type';
-import { WEATHER_ICON, weatherLabel } from '@/shared/weather';
+import { emotionLabel } from '@/shared/emotion';
 import type { DiarySummary } from '../api/diaryTypes';
 
 /**
  * 02 최근 기록. prototype `.recent` - 세로 목록이 아니라 **가로로 늘어선 카드 3장**이다.
- * 날씨 썸네일이 주인공이라 목록 행으로 만들면 그림이 사라진다.
+ * 감정 캐릭터 썸네일이 주인공이라 목록 행으로 만들면 그림이 사라진다.
  *
  * 0건이면 섹션 자체를 숨긴다(빈 리스트 UI를 만들지 않는다).
  */
 export function RecentDiaries({
   items,
   onSelect,
+  onMore,
 }: {
   items: DiarySummary[];
   onSelect: (id: string) => void;
+  /** 더보기. 기록 전부는 05 캘린더에 있다 */
+  onMore: () => void;
 }) {
   const colors = useColors();
-  const weatherColors = useWeatherColors();
+  const emotionColors = useEmotionColors();
 
   if (items.length === 0) {
     return null;
@@ -30,14 +33,25 @@ export function RecentDiaries({
 
   return (
     <View style={styles.wrap}>
-      <Label>최근 기록</Label>
+      <View style={styles.head}>
+        <Label>최근 기록</Label>
+        <Pressable
+          onPress={onMore}
+          accessibilityRole="link"
+          accessibilityLabel="최근 기록 더보기, 캘린더로 이동"
+          hitSlop={space[2]}
+          style={({ pressed }) => [styles.more, { opacity: pressed ? 0.5 : 1 }]}
+        >
+          <Text style={[styles.moreLabel, { color: colors.textMuted }]}>더보기 ›</Text>
+        </Pressable>
+      </View>
       <View style={styles.row}>
         {items.map((item) => (
           <Pressable
             key={item.id}
             onPress={() => onSelect(item.id)}
             accessibilityRole="button"
-            accessibilityLabel={`${formatShortDate(item.entryDate)} ${weatherLabel(item.weather)} ${item.content}`}
+            accessibilityLabel={`${formatShortDate(item.entryDate)} ${emotionLabel(item.emotion)} ${item.content}`}
             style={({ pressed }) => [
               styles.cell,
               {
@@ -48,10 +62,14 @@ export function RecentDiaries({
             ]}
           >
             <View style={styles.thumb}>
-              {item.weather ? (
+              {item.emotion ? (
                 <>
-                  <GradientFill from="#ffffff" fromOpacity={0.9} to={weatherColors[item.weather]} />
-                  <Icon name={WEATHER_ICON[item.weather]} size={20} color={colors.weatherInk} />
+                  <GradientFill
+                    from={colors.faceBg}
+                    fromOpacity={0.9}
+                    to={emotionColors[item.emotion]}
+                  />
+                  <EmotionFace emotion={item.emotion} size={34} />
                 </>
               ) : null}
             </View>
@@ -70,6 +88,10 @@ export function RecentDiaries({
 
 const styles = StyleSheet.create({
   wrap: { gap: space[3] },
+  head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  /** 작은 글자라 눌리는 영역을 hitSlop 으로 넓힌다 */
+  more: { paddingVertical: space[1] },
+  moreLabel: { fontSize: font.xs, fontFamily: font.medium },
   row: { flexDirection: 'row', gap: space[3] },
   cell: {
     flex: 1,
@@ -80,15 +102,20 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     borderWidth: 1,
   },
+  /** EmotionFace 는 size 보다 커질 수 있어(EMOTION_SCALE) 상자에 여유를 둔다 */
   thumb: {
     alignSelf: 'stretch',
     height: 64,
     borderRadius: radius.md,
     overflow: 'hidden',
     alignItems: 'center',
-    justifyContent: 'flex-end',
-    paddingBottom: space[2],
+    justifyContent: 'center',
   },
   date: { fontSize: font.xs, fontFamily: font.bold },
-  content: { fontSize: font.micro, fontFamily: font.regular, alignSelf: 'stretch', textAlign: 'center' },
+  content: {
+    fontSize: font.micro,
+    fontFamily: font.regular,
+    alignSelf: 'stretch',
+    textAlign: 'center',
+  },
 });

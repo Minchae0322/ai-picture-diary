@@ -1,14 +1,14 @@
 import { useState } from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { EmotionFace } from '@/shared/ui/EmotionFace';
+import { Alert, Image, StyleSheet, Text, View } from 'react-native';
 import { Button } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
-import { Chip } from '@/shared/ui/Chip';
 import { Icon } from '@/shared/ui/Icon';
 import { Muted, Note } from '@/shared/ui/Type';
 import { formatScore } from '@/shared/format';
 import { font, leading, radius, space } from '@/shared/theme/tokens';
-import { useColors, useWeatherColors } from '@/shared/theme/useColors';
-import { WEATHER_LABEL } from '@/shared/weather';
+import { useColors } from '@/shared/theme/useColors';
+import { EMOTION_LABEL } from '@/shared/emotion';
 import { DAILY_REGENERATE_LIMIT, type DiaryDetail } from '../api/diaryTypes';
 
 type Props = {
@@ -29,6 +29,9 @@ type Props = {
  *
  * prototype 은 그림과 글을 **카드에 담지 않는다** - 그림 자체가 카드만큼 크고 라운드도 같아서
  * 카드에 넣으면 테두리가 두 겹으로 겹친다.
+ *
+ * AI 코멘트는 화면에서 뺐다. 서버는 여전히 `aiComment` 를 내려주고 저장도 한다 -
+ * 다시 보여주기로 하면 화면만 되돌리면 된다(마이그레이션이 필요 없다).
  */
 export function DiaryResult({
   diary,
@@ -41,7 +44,6 @@ export function DiaryResult({
   earnedBadges = [],
 }: Props) {
   const colors = useColors();
-  const weatherColors = useWeatherColors();
   const [imageFailed, setImageFailed] = useState(false);
   const showImage = !!diary.imageUrl && !imageFailed;
 
@@ -63,19 +65,17 @@ export function DiaryResult({
         </View>
       </View>
 
-      {diary.weather ? (
+      {diary.emotion ? (
         <View style={styles.verdict}>
-          <Chip
-            label={`${WEATHER_LABEL[diary.weather]}${
-              diary.moodScore === null ? '' : ` · 기분 ${formatScore(diary.moodScore)}`
-            }`}
-            dot={weatherColors[diary.weather]}
-          />
+          <EmotionFace emotion={diary.emotion} size={40} />
+          <Text style={[styles.emotion, { color: colors.text }]}>
+            {EMOTION_LABEL[diary.emotion]}
+            {diary.moodScore === null ? '' : ` · 기분 ${formatScore(diary.moodScore)}`}
+          </Text>
         </View>
       ) : null}
 
       <Text style={[styles.content, { color: colors.text }]}>“{diary.content}”</Text>
-      {diary.aiComment ? <Muted>AI 코멘트 · {diary.aiComment}</Muted> : null}
 
       <View style={styles.actions}>
         <Button
@@ -104,8 +104,8 @@ export function DiaryResult({
               fill
               loading={sharing}
               disabled={shared}
-              accessibilityHint={shared ? '이미 커뮤니티에 공유했어요' : '커뮤니티 피드에 올려요'}
-              onPress={onShare}
+              accessibilityHint={shared ? '이미 커뮤니티에 올렸어요' : '커뮤니티에 올려요. 올리기 전에 공개 범위를 묻습니다'}
+              onPress={() => askVisibility(onShare)}
             />
           </View>
         ) : null}
@@ -133,6 +133,23 @@ export function DiaryResult({
   );
 }
 
+/**
+ * 커뮤니티 업로드 전에 공개 범위를 묻는다.
+ *
+ * <p>올린 뒤에 바꾸게 하면 그 사이에 이미 남이 본다 - 올리기 전에 고르는 것이 순서다.
+ * 비공개 보관은 서버에 아직 없다.
+ */
+function askVisibility(onPublic: () => void) {
+  Alert.alert('커뮤니티에 올릴까요?', '공개로 올리면 피드에서 누구나 볼 수 있어요. 비공개는 나만 봅니다.', [
+    { text: '공개로 올리기', onPress: onPublic },
+    {
+      text: '비공개로 저장',
+      onPress: () => Alert.alert('비공개 저장', '비공개 보관은 서버에 아직 없어요. 다음 라운드에 붙습니다.'),
+    },
+    { text: '취소', style: 'cancel' },
+  ]);
+}
+
 const styles = StyleSheet.create({
   art: {
     aspectRatio: 1,
@@ -153,13 +170,20 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   tagText: { fontSize: font.xs, fontFamily: font.regular },
-  /** 칩은 스스로 왼쪽에 붙지만, 바깥 stack 의 가로 늘리기를 끊어 주는 줄이 필요하다 */
-  verdict: { flexDirection: 'row' },
+  /** 그림 아래 감정 한 줄. 바깥 stack 의 가로 늘리기를 끊어 주는 줄이 필요하다 */
+  verdict: { flexDirection: 'row', alignItems: 'center', gap: space[2] },
+  emotion: { fontSize: font.lg, fontFamily: font.bold },
   content: { fontSize: font.lg, lineHeight: leading(font.lg), fontFamily: font.medium },
   actions: { flexDirection: 'row', gap: space[3] },
   /** prototype `.actions .btn:last-child { flex: 0 0 76px }` */
   shareSlot: { width: 76, flexDirection: 'row' },
   badgeCard: { flexDirection: 'row', alignItems: 'center', gap: space[3], paddingVertical: space[4] },
-  medal: { width: 32, height: 32, borderRadius: radius.full, alignItems: 'center', justifyContent: 'center' },
+  medal: {
+    width: 32,
+    height: 32,
+    borderRadius: radius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   badgeLine: { flex: 1, fontSize: font.base, fontFamily: font.bold },
 });

@@ -2,12 +2,15 @@ import { StyleSheet, Text, View } from 'react-native';
 import { GradientFill } from '@/shared/ui/Gradient';
 import { Icon } from '@/shared/ui/Icon';
 import { font, radius, space } from '@/shared/theme/tokens';
-import { useColors, useWeatherColors } from '@/shared/theme/useColors';
-import { WEATHERS } from '@/shared/weather';
+import { useColors, useEmotionColors } from '@/shared/theme/useColors';
+import { EMOTIONS } from '@/shared/emotion';
 import type { Badge } from '../api/badgeApi';
 
-/** 메달 색은 날씨 6색을 돌려 쓴다(prototype `BADGE_TINT`). 뱃지마다 색을 정의하지 않는다 */
-const TINT_ORDER = [0, 1, 5, 3, 2, 4].map((index) => WEATHERS[index]);
+/**
+ * 메달 색은 감정 9색을 돌려 쓴다(prototype `BADGE_TINT`). 뱃지마다 색을 정의하지 않는다.
+ * 이웃한 칸끼리 같은 계열(빨강 셋)이 붙지 않도록 순서를 섞어 둔다 - 여기서 색은 장식일 뿐이다.
+ */
+const TINT_ORDER = [0, 5, 7, 4, 1, 6, 8, 3, 2].map((index) => EMOTIONS[index]);
 
 /**
  * 07 뱃지 그리드 3열(prototype `.badges`).
@@ -17,7 +20,7 @@ const TINT_ORDER = [0, 1, 5, 3, 2, 4].map((index) => WEATHERS[index]);
  */
 export function BadgeGrid({ badges }: { badges: Badge[] }) {
   const colors = useColors();
-  const weatherColors = useWeatherColors();
+  const emotionColors = useEmotionColors();
 
   return (
     <View style={styles.grid}>
@@ -38,7 +41,7 @@ export function BadgeGrid({ badges }: { badges: Badge[] }) {
               <GradientFill
                 from="#ffffff"
                 fromOpacity={0.9}
-                to={weatherColors[TINT_ORDER[index % TINT_ORDER.length]]}
+                to={emotionColors[TINT_ORDER[index % TINT_ORDER.length]]}
               />
             ) : (
               <Icon name="lock" size={18} color={colors.decor} />

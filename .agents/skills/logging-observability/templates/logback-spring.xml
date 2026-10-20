@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- logback-spring.xml
+     local: 사람용 한 줄 패턴 / 그 외: JSON 한 줄 (Loki)
+     구조화 인자(SLF4J addKeyValue)는 두 포맷 모두에서 필드로 나온다.
+     의존성: net.logstash.logback:logstash-logback-encoder (버전은 최신 확인) -->
+<configuration>
+    <springProperty scope="context" name="service" source="spring.application.name" defaultValue="app"/>
+    <springProperty scope="context" name="env" source="spring.profiles.active" defaultValue="local"/>
+
+    <!-- 로컬: 사람이 읽는 포맷. traceId/spanId 앞 8자리, 로거 축약, 키=값은 뒤에 -->
+    <springProfile name="local">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%d{HH:mm:ss.SSS} %5level [%.8X{traceId:-},%.8X{spanId:-}] %-40.40logger{39} : %msg %kvp%n%ex</pattern>
+            </encoder>
+        </appender>
+    </springProfile>
+
+    <!-- 운영/개발 서버: JSON 한 줄 -->
+    <springProfile name="!local">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <fieldNames>
+                    <timestamp>ts</timestamp>
+                    <version>[ignore]</version>
+                    <levelValue>[ignore]</levelValue>
+                    <logger>logger</logger>
+                    <thread>thread</thread>
+                </fieldNames>
+                <timeZone>Asia/Seoul</timeZone>
+                <timestampPattern>yyyy-MM-dd'T'HH:mm:ss.SSSXXX</timestampPattern>
+                <includeMdcKeyName>traceId</includeMdcKeyName>
+                <includeMdcKeyName>spanId</includeMdcKeyName>
+                <includeMdcKeyName>memberId</includeMdcKeyName>
+                <includeKeyValuePairs>true</includeKeyValuePairs>   <!-- addKeyValue 인자를 최상위 필드로 -->
+                <customFields>{"service":"${service}","env":"${env}"}</customFields>
+                <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+                    <maxDepthPerThrowable>30</maxDepthPerThrowable>
+                    <maxLength>8192</maxLength>
+                    <shortenedClassNameLength>40</shortenedClassNameLength>
+                    <exclude>^sun\.reflect\..*</exclude>
+                    <exclude>^java\.lang\.reflect\..*</exclude>
+                    <exclude>^org\.springframework\.(aop|cglib|web\.servlet\.FrameworkServlet)\..*</exclude>
+                    <exclude>^jakarta\.servlet\..*</exclude>
+                    <rootCauseFirst>true</rootCauseFirst>
+                </throwableConverter>
+                <!-- 최후 방어선: 카드번호/JWT 형태 마스킹. 코드에서 안 넣는 것이 규칙이고 이건 실수 1회 방어 -->
+                <jsonGeneratorDecorator class="net.logstash.logback.mask.MaskingJsonGeneratorDecorator">
+                    <defaultMask>****</defaultMask>
+                    <path>password</path>
+                    <path>*Token</path>
+                    <path>authorization</path>
+                    <value>\b\d{4}-\d{4}-\d{4}-\d{4}\b</value>
+                    <value>eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}</value>
+                </jsonGeneratorDecorator>
+            </encoder>
+        </appender>
+    </springProfile>
+
+    <!-- 소음 줄이기 -->
+    <logger name="org.apache.kafka" level="WARN"/>
+    <logger name="org.hibernate.SQL" level="INFO"/>           <!-- DEBUG는 필요할 때 Actuator /loggers 로 -->
+    <logger name="org.springframework.web" level="INFO"/>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>

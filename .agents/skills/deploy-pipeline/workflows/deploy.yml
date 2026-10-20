@@ -1,0 +1,147 @@
+# 빌드 -> 이미지 푸시 -> 환경별 배포.
+# 원칙: 한 번 빌드한 이미지를 dev -> prod로 승격한다. 환경마다 재빌드하지 않는다.
+# 스테이징이 있는 프로젝트면 options에 stg를 추가하고 Environments도 하나 더 만든다.
+# prod는 GitHub Environments의 required reviewers로 사람 승인을 받는다.
+name: Deploy
+
+on:
+  push:
+    branches: [main]              # main 머지 -> dev 자동 배포
+  workflow_dispatch:              # prod는 수동 실행
+    inputs:
+      environment:
+        description: 배포 환경
+        required: true
+        type: choice
+        options: [prod]
+      image_tag:
+        description: 배포할 이미지 태그(커밋 SHA). 비우면 현재 커밋
+        required: false
+        type: string
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false       # 배포는 취소하지 않는다
+
+permissions:
+  contents: read
+  packages: write                 # ghcr 푸시
+  id-token: write                 # 클라우드 OIDC
+
+jobs:
+  build:
+    name: 이미지 빌드
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    outputs:
+      image_tag: ${{ steps.meta.outputs.version }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=sha,format=long,prefix=      # 불변 태그. 롤백의 근거
+            type=ref,event=branch
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          # 시크릿은 build-arg가 아니라 secrets로. 레이어에 남지 않는다
+          # secrets: |
+          #   api_key=${{ secrets.BUILD_API_KEY }}
+
+      - name: 이미지 취약점 스캔
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ghcr.io/${{ github.repository }}:${{ steps.meta.outputs.version }}
+          severity: CRITICAL,HIGH
+          exit-code: '1'          # 정책에 따라 0으로 두고 리포트만 볼 수도 있다
+
+  deploy-dev:
+    name: dev 배포
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: dev                   # 승인 없음
+      url: https://dev-api.example.com
+
+    steps:
+      - uses: actions/checkout@v7
+
+      # 마이그레이션이 필요하면 배포 전에. 하위 호환 변경만 자동화한다.
+      # 회사 관행이 수동 실행이면 이 단계 대신 SQL을 아티팩트로 올리고 사람이 실행한다.
+      # - name: 마이그레이션 SQL 수집
+      #   run: mkdir -p build/migration && cp sql/patch/*.sql build/migration/ 2>/dev/null || true
+      # - uses: actions/upload-artifact@v4
+      #   with: { name: migration-sql, path: build/migration/ }
+
+      - name: 배포
+        run: |
+          echo "이미지: ghcr.io/${{ github.repository }}:${{ needs.build.outputs.image_tag }}"
+          # 배포 대상에 맞게 교체:
+          #   kubectl set image deployment/app app=<image> -n dev
+          #   aws ecs update-service ...
+          #   docker compose pull && docker compose up -d
+
+      - name: 스모크 테스트
+        run: |
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' https://dev-api.example.com/actuator/health/readiness || true)
+            [ "$code" = "200" ] && break
+            sleep 5
+          done
+          [ "$code" = "200" ] || { echo "readiness 실패"; exit 1; }
+
+  deploy-manual:
+    name: ${{ inputs.environment }} 배포
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    environment:
+      name: ${{ inputs.environment }}   # prod면 여기서 사람 승인을 기다린다
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: 이미지 태그 결정
+        id: tag
+        run: echo "value=${{ inputs.image_tag || github.sha }}" >> "$GITHUB_OUTPUT"
+
+      - name: 배포
+        run: |
+          echo "이미지: ghcr.io/${{ github.repository }}:${{ steps.tag.outputs.value }}"
+          # 재빌드하지 않는다. 이미 있는 이미지를 가리킬 뿐이다.
+
+      - name: 스모크 테스트
+        id: smoke
+        run: |
+          # 환경별 URL은 GitHub Environments 변수로
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "${{ vars.HEALTH_URL }}" || true)
+            [ "$code" = "200" ] && break
+            sleep 5
+          done
+          [ "$code" = "200" ] || exit 1
+
+      # 자동 롤백은 정책이다. 스키마 변경이 얽힌 배포는 수동 판단이 안전하다.
+      - name: 실패 시 롤백
+        if: failure() && inputs.environment != 'prod'
+        run: |
+          echo "롤백 실행"
+          # kubectl rollout undo deployment/app -n ${{ inputs.environment }}

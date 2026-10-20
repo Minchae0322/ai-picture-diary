@@ -1,0 +1,97 @@
+# PR 검증. 로컬 pre-commit/pre-push(harness)와 같은 규칙을 돌린다.
+# 액션 버전은 적용 시점에 각 리포지토리 릴리스를 확인하고, 서드파티는 커밋 SHA로 고정한다.
+name: CI
+
+on:
+  pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - '.gitignore'
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read          # 기본은 최소 권한. 필요한 job에서만 올린다
+
+jobs:
+  verify:
+    name: 검증
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '25'        # 프로젝트 Java 버전에 맞춘다
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # 1. 빠른 것부터 - 여기서 깨지면 뒤를 안 돌린다
+      - name: 포맷 검사
+        run: ./gradlew spotlessCheck --no-daemon
+
+      - name: 컴파일
+        run: ./gradlew classes testClasses --no-daemon
+
+      # 2. 단위 테스트 + ArchUnit (harness와 같은 규칙)
+      - name: 단위 테스트
+        run: ./gradlew test --no-daemon
+
+      - name: 아키텍처 규칙
+        run: ./gradlew test --tests '*ArchitectureTest*' --no-daemon
+
+      # 3. 정적 분석
+      - name: 정적 분석
+        run: ./gradlew check -x test --no-daemon
+
+      # 4. 시크릿 스캔 - pre-commit hook은 우회될 수 있다
+      - name: 시크릿 스캔
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 테스트 리포트 업로드
+        uses: actions/upload-artifact@v4
+        if: always()               # 실패해도 올린다
+        with:
+          name: test-reports
+          path: |
+            build/reports/tests/
+            build/test-results/
+
+  integration:
+    name: 통합 테스트
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: verify                  # 빠른 검증을 통과한 뒤에만
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # Testcontainers는 러너의 Docker를 그대로 쓴다 (test-writing-guide)
+      - name: 통합 테스트
+        run: ./gradlew integrationTest --no-daemon
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: integration-reports
+          path: build/reports/tests/

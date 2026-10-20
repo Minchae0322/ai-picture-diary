@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# .githooks/pre-commit
+set -e
+./gradlew -q spotlessApply
+git diff --name-only --cached -- '*.java' | xargs -r git add   # 포맷 결과를 스테이징에 반영
+./gradlew -q compileJava compileTestJava
+./gradlew -q test --tests '*ArchitectureTest'
+command -v gitleaks >/dev/null && gitleaks protect --staged --no-banner

@@ -7,7 +7,8 @@ cd app
 npm install
 npx expo install expo-router react-native-safe-area-context react-native-screens \
   expo-linking expo-constants expo-status-bar @tanstack/react-query \
-  react-native-svg @react-native-async-storage/async-storage expo-font
+  react-native-svg @react-native-async-storage/async-storage expo-font \
+  expo-secure-store expo-crypto
 npx expo install --fix
 npx expo-doctor
 npm run start
@@ -18,6 +19,9 @@ npm run start
 - `@react-native-async-storage/async-storage`: 01 온보딩 완료 플래그. 서버가 알 필요 없는 기기별 값.
   **평문이라 토큰·개인정보는 넣지 않는다**
 - `expo-font`: SUIT 서체 등록. 파일은 저장소가 들고 있다
+- `expo-secure-store` + `expo-crypto`: 게스트 식별자(ADR 2026-10-20). 기기 UUID 를 암호학적 난수로 만들어
+  키체인/KeyStore 에 둔다. **`AsyncStorage` 를 쓰지 않는 이유**는 평문이라 개인정보를 담을 수 없어서다.
+  둘 다 Expo Go 에 들어 있어 개발 빌드가 필요 없다
 
 `.env.example`을 `.env`로 복사하고 `EXPO_PUBLIC_API_BASE_URL`을 로컬 IP로 바꾼다.
 에뮬레이터가 아닌 실기기는 `localhost`가 아니라 PC의 LAN IP여야 한다.

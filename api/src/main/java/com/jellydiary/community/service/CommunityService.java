@@ -7,13 +7,13 @@ import com.jellydiary.community.domain.CommunityPost;
 import com.jellydiary.community.domain.PostLike;
 import com.jellydiary.community.domain.PostReport;
 import com.jellydiary.community.event.PostSharedEvent;
-import com.jellydiary.community.type.ReportReason;
 import com.jellydiary.community.repository.CommunityPostRepository;
 import com.jellydiary.community.repository.PostLikeRepository;
 import com.jellydiary.community.repository.PostReportRepository;
-import com.jellydiary.diary.type.DiaryStatus;
+import com.jellydiary.community.type.ReportReason;
 import com.jellydiary.diary.service.DiaryQueryService;
 import com.jellydiary.diary.service.result.DiaryDetailResult;
+import com.jellydiary.diary.type.DiaryStatus;
 import com.jellydiary.profile.service.ProfileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,10 +22,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * 04 "공유" -> 08 피드. 다른 도메인(일기·프로필)은 여기서만 조합한다 - 커뮤니티 엔티티는 둘 다 모른다
- * (ddd-spring 4-1장).
- */
+/** 04 "공유" -> 08 피드. 다른 도메인(일기·프로필)은 여기서만 조합한다 - 커뮤니티 엔티티는 둘 다 모른다 (ddd-spring 4-1장). */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -39,11 +36,26 @@ public class CommunityService {
     private final ProfileService profileService;
     private final ApplicationEventPublisher events;
 
+    /**
+     * 남에게 보이는 행동은 계정이 있어야 한다(ADR 2026-10-20). 신고와 차단의 대상이 되려면 그 사람이 누구인지 서버가 알아야 하기 때문이다.
+     *
+     * <p>앱이 먼저 로그인 시트로 막지만 서버도 막는다 - 화면이 유일한 방어선이면 방어선이 아니다. 읽기는 막지 않는다. 피드를 흐릿하게 보여 주고 로그인할 이유를
+     * 만드는 쪽이 08 의 설계다.
+     */
+    private void requireAccount(Long userId) {
+        if (profileService.isGuest(userId)) {
+            throw new BusinessException(ErrorCode.COMMON_LOGIN_REQUIRED);
+        }
+    }
+
     /** 일기를 복사해 게시한다. 그리는 중이거나 실패한 일기는 공유할 수 없다. */
     @Transactional
     public Long share(Long userId, Long diaryId) {
+        requireAccount(userId);
         DiaryDetailResult diary = diaryQueryService.findDetail(userId, diaryId);
-        if (diary.status() != DiaryStatus.DONE || diary.emotion() == null || diary.moodScore() == null) {
+        if (diary.status() != DiaryStatus.DONE
+                || diary.emotion() == null
+                || diary.moodScore() == null) {
             throw new BusinessException(ErrorCode.DIARY_NOT_DONE);
         }
         if (postRepository.existsByDiaryId(diaryId)) {
@@ -60,7 +72,8 @@ public class CommunityService {
                                 diary.content(),
                                 diary.moodScore()));
 
-        events.publishEvent(new PostSharedEvent(userId, (int) postRepository.countByUserId(userId)));
+        events.publishEvent(
+                new PostSharedEvent(userId, (int) postRepository.countByUserId(userId)));
         AppLog.event(log, "community.post_shared").with("postId", post.getId()).info("post shared");
 
         return post.getId();
@@ -69,6 +82,7 @@ public class CommunityService {
     /** 연타는 성공으로 친다 - 결과가 같기 때문이다(멱등). 중복 방지는 unique 인덱스가 한다. */
     @Transactional
     public void like(Long userId, Long postId) {
+        requireAccount(userId);
         load(postId);
         try {
             likeRepository.saveAndFlush(PostLike.of(postId, userId));
@@ -80,6 +94,7 @@ public class CommunityService {
 
     @Transactional
     public void unlike(Long userId, Long postId) {
+        requireAccount(userId);
         load(postId);
         if (likeRepository.deleteByPostIdAndUserId(postId, userId) > 0) {
             postRepository.decreaseLikeCount(postId);
@@ -88,6 +103,7 @@ public class CommunityService {
 
     @Transactional
     public void report(Long userId, Long postId, ReportReason reason, String detail) {
+        requireAccount(userId);
         load(postId);
         if (reportRepository.existsByPostIdAndUserId(postId, userId)) {
             throw new BusinessException(ErrorCode.POST_ALREADY_REPORTED);

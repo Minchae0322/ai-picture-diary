@@ -4,6 +4,7 @@ import com.jellydiary.diary.domain.Diary;
 import com.jellydiary.diary.repository.DiaryRepository;
 import com.jellydiary.diary.service.result.DiaryDetailResult;
 import com.jellydiary.diary.service.result.DiarySummaryResult;
+import com.jellydiary.profile.service.ProfileService;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -22,6 +23,7 @@ public class DiaryQueryService {
 
     private final DiaryRepository diaryRepository;
     private final DiaryService diaryService;
+    private final ProfileService profileService;
 
     public Optional<DiaryDetailResult> findToday(Long userId) {
         return diaryRepository
@@ -50,7 +52,8 @@ public class DiaryQueryService {
     }
 
     private DiaryDetailResult toDetail(Diary diary) {
-        return DiaryDetailResult.of(diary, diaryService.policy());
+        return DiaryDetailResult.of(
+                diary, diaryService.policy(), profileService.isGuest(diary.getUserId()));
     }
 
     public record Page(List<DiarySummaryResult> items, String nextCursor) {}

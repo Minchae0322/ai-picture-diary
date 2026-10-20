@@ -55,15 +55,20 @@ public class DiaryGenerationListener {
         } catch (RuntimeException e) {
             resultApplier.applyFailure(diaryId);
 
-            AppLog.event(log, "diary.paint_failed").with("diaryId", diaryId).error("diary paint failed", e);
+            AppLog.event(log, "diary.paint_failed")
+                    .with("diaryId", diaryId)
+                    .error("diary paint failed", e);
         }
     }
 
     /**
-     * 뱃지 판정은 저장 성공 직후 서버가 한다(07 화면 문서 4장). 스냅샷을 이벤트에 담아 보내므로 뱃지 도메인은
-     * 일기를 되묻지 않는다. applySuccess 가 이미 커밋된 뒤라 집계에 방금 건이 포함된다.
+     * 뱃지 판정은 저장 성공 직후 서버가 한다(07 화면 문서 4장). 스냅샷을 이벤트에 담아 보내므로 뱃지 도메인은 일기를 되묻지 않는다. applySuccess 가 이미
+     * 커밋된 뒤라 집계에 방금 건이 포함된다.
      */
     private void announceCompletion(Long diaryId) {
-        diaryRepository.findById(diaryId).map(diaryStatsService::snapshot).ifPresent(events::publishEvent);
+        diaryRepository
+                .findById(diaryId)
+                .map(diaryStatsService::snapshot)
+                .ifPresent(events::publishEvent);
     }
 }

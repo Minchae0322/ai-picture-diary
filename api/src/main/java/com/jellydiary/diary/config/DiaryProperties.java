@@ -8,8 +8,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
 /**
- * app.diary.* 설정. 빠지거나 범위를 벗어나면 기동 순간에 터진다(config-and-secrets 5장).
- * 일기의 업무 상한은 전부 여기 한 곳에 있고, 도메인에는 DiaryPolicy로 넘긴다.
+ * app.diary.* 설정. 빠지거나 범위를 벗어나면 기동 순간에 터진다(config-and-secrets 5장). 일기의 업무 상한은 전부 여기 한 곳에 있고, 도메인에는
+ * DiaryPolicy로 넘긴다.
  *
  * <p>시간대(app.timezone)는 여기 없다. 특정 도메인의 값이 아니라 Clock 빈이 통째로 물고 있다(ClockConfig).
  */
@@ -19,10 +19,13 @@ public record DiaryProperties(
         /** DB 컬럼 길이를 넘을 수 없다. 넘으면 저장 시점에 잘린다. */
         @Min(1) @Max(Diary.CONTENT_COLUMN_LENGTH) int maxContentLength,
         @Min(0) int dailyRegenerateLimit,
+        /** 로그인 전 하루 AI 생성 총 횟수(최초 1회 포함). 1 이면 다시 그리기가 없다는 뜻이다. */
+        @Min(1) int guestDailyGenerateLimit,
         int moodMin,
         int moodMax) {
 
     public DiaryPolicy policy() {
-        return new DiaryPolicy(maxContentLength, dailyRegenerateLimit, moodMin, moodMax);
+        return new DiaryPolicy(
+                maxContentLength, dailyRegenerateLimit, guestDailyGenerateLimit, moodMin, moodMax);
     }
 }

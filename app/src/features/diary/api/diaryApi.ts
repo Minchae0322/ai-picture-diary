@@ -20,7 +20,7 @@ export const diaryApi = {
   recent: (size: number, signal?: AbortSignal) =>
     requestPage<DiarySummary>(`/api/v1/diaries?size=${size}`, signal),
 
-  write: (content: string, userHint: Emotion | null) =>
+  write: (content: string, userHint: Emotion) =>
     request<DiaryCreated>('/api/v1/diaries', { method: 'POST', body: { content, userHint } }),
 
   regenerate: (id: string) =>

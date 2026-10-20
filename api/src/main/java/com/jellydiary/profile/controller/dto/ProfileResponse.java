@@ -1,11 +1,10 @@
 package com.jellydiary.profile.controller.dto;
 
-import com.jellydiary.profile.type.StoreCategory;
 import com.jellydiary.profile.service.result.ProfileResult;
 import com.jellydiary.profile.service.result.StoreItemResult;
+import com.jellydiary.profile.type.StoreCategory;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.List;
 
 public final class ProfileResponse {
 

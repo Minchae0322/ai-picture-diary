@@ -12,9 +12,19 @@ import { useBadges } from '@/features/badge/hooks/useBadges';
 import { useOverview } from '@/features/diary/hooks/useDiary';
 import { useProfile, useUpdateSettings } from '@/features/profile/hooks/useProfile';
 import { ProfileCard } from '@/features/profile/ui/ProfileCard';
+import { RequireAccount } from '@/features/auth/ui/RequireAccount';
+
+/** 로그인 벽(ADR 2026-10-20). 내용은 그대로 그리고 그 위에 시트를 올린다. */
+export default function MyScreen() {
+  return (
+    <RequireAccount feature="마이페이지" reason="프로필과 설정은 계정에 묶여 있어요. 로그인하면 기기를 바꿔도 그대로예요.">
+      <MyPage />
+    </RequireAccount>
+  );
+}
 
 /** 10 마이페이지. 통계 3종은 서버 집계를 그대로 쓴다 - 연속 일수는 02·06과 같은 값이다. */
-export default function MyScreen() {
+function MyPage() {
   const router = useRouter();
   const toast = useToast();
   const profile = useProfile();

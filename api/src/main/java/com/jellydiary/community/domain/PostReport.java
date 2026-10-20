@@ -9,7 +9,6 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -21,14 +20,13 @@ import org.hibernate.annotations.SQLRestriction;
 @Getter
 @Entity
 @Table(name = "tb_post_report")
-@SQLDelete(sql = "UPDATE tb_post_report SET deleted_at = now() WHERE id = ? AND version = ?")
+@SQLDelete(sql = "UPDATE tb_post_report SET deleted_at = now(6) WHERE id = ? AND version = ?")
 @SQLRestriction("deleted_at IS NULL")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PostReport extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_post_report")
-    @SequenceGenerator(name = "seq_post_report", sequenceName = "seq_post_report", allocationSize = 50)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)

@@ -4,10 +4,10 @@ import com.jellydiary.common.auth.LoginUser;
 import com.jellydiary.common.response.ApiResponse;
 import com.jellydiary.diary.controller.dto.DiaryRequest;
 import com.jellydiary.diary.controller.dto.DiaryResponse;
-import com.jellydiary.diary.type.StatsPeriod;
 import com.jellydiary.diary.service.DiaryQueryService;
-import com.jellydiary.diary.service.DiaryStatsService;
 import com.jellydiary.diary.service.DiaryService;
+import com.jellydiary.diary.service.DiaryStatsService;
+import com.jellydiary.diary.type.StatsPeriod;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.time.YearMonth;
@@ -49,7 +49,8 @@ public class DiaryController {
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM") YearMonth month) {
         YearMonth target = month == null ? YearMonth.from(diaryService.today()) : month;
 
-        return ApiResponse.of(DiaryResponse.Calendar.from(diaryStatsService.calendar(userId, target)));
+        return ApiResponse.of(
+                DiaryResponse.Calendar.from(diaryStatsService.calendar(userId, target)));
     }
 
     /** 06 감정 그래프. */
@@ -69,7 +70,8 @@ public class DiaryController {
     @GetMapping("/{diaryId}")
     public ApiResponse<DiaryResponse.Detail> detail(
             @LoginUser Long userId, @PathVariable Long diaryId) {
-        return ApiResponse.of(DiaryResponse.Detail.from(diaryQueryService.findDetail(userId, diaryId)));
+        return ApiResponse.of(
+                DiaryResponse.Detail.from(diaryQueryService.findDetail(userId, diaryId)));
     }
 
     /** 02/04 분기용. 오늘 기록이 없으면 data=null. */

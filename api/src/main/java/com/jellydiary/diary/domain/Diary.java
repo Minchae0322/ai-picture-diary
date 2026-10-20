@@ -14,7 +14,6 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
 import lombok.AccessLevel;
@@ -27,14 +26,13 @@ import org.hibernate.annotations.SQLRestriction;
 @Getter
 @Entity
 @Table(name = "tb_diary")
-@SQLDelete(sql = "UPDATE tb_diary SET deleted_at = now() WHERE id = ? AND version = ?")
+@SQLDelete(sql = "UPDATE tb_diary SET deleted_at = now(6) WHERE id = ? AND version = ?")
 @SQLRestriction("deleted_at IS NULL")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Diary extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_diary")
-    @SequenceGenerator(name = "seq_diary", sequenceName = "seq_diary", allocationSize = 50)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
@@ -44,15 +42,20 @@ public class Diary extends BaseEntity {
     private LocalDate entryDate;
 
     /**
-     * DDL의 varchar(500)과 같은 값. 애노테이션이 컴파일 상수를 요구해 여기 있다.
-     * 사용자에게 적용되는 업무 상한은 이 값이 아니라 app.diary.max-content-length 다.
+     * DDL의 varchar(500)과 같은 값. 애노테이션이 컴파일 상수를 요구해 여기 있다. 사용자에게 적용되는 업무 상한은 이 값이 아니라
+     * app.diary.max-content-length 다.
      */
     public static final int CONTENT_COLUMN_LENGTH = 500;
 
     @Column(nullable = false, length = CONTENT_COLUMN_LENGTH)
     private String content;
 
-    /** 02 화면의 빠른 감정 칩. 사용자가 고른 힌트이며 AI 판정을 대체하지 않는다. */
+    /**
+     * 02 화면에서 고른 오늘의 기분. <b>쓰기에 필수</b>다(ADR 2026-10-20) - 그래도 AI 판정을 대체하지는 않는다. 최종 감정은 여전히 {@link
+     * #emotion} 이고 둘은 다를 수 있다.
+     *
+     * <p>컬럼은 nullable 로 둔다. 필수가 되기 전에 쓰인 행이 남아 있고, 그 과거를 지우려고 DDL 을 바꿀 이유는 없다.
+     */
     @Enumerated(EnumType.STRING)
     @Column(length = 30)
     private Emotion userHint;
@@ -85,11 +88,20 @@ public class Diary extends BaseEntity {
     }
 
     public static Diary write(
-            Long userId, LocalDate entryDate, String content, Emotion userHint, DiaryPolicy policy) {
+            Long userId,
+            LocalDate entryDate,
+            String content,
+            Emotion userHint,
+            DiaryPolicy policy) {
         String trimmed = content == null ? "" : content.strip();
         if (!policy.allowsContent(trimmed)) {
             throw new BusinessException(
-                    ErrorCode.COMMON_INVALID_REQUEST, "본문은 1~" + policy.maxContentLength() + "자예요.");
+                    ErrorCode.COMMON_INVALID_REQUEST,
+                    "본문은 1~" + policy.maxContentLength() + "자예요.");
+        }
+        // 기분은 AI 가 그릴 방향을 정하는 입력이다. 없으면 그리지 않는다(ADR 2026-10-20)
+        if (userHint == null) {
+            throw new BusinessException(ErrorCode.DIARY_EMOTION_REQUIRED);
         }
         return new Diary(userId, entryDate, trimmed, userHint);
     }
@@ -97,8 +109,8 @@ public class Diary extends BaseEntity {
     /**
      * 생성 성공. 그림만 실패했으면 imageUrl이 null인 채로 DONE이다.
      *
-     * <p>점수 범위 위반은 <b>시스템 예외</b>다 - 사용자가 만든 상황이 아니라 AI 어댑터가 계약을 어긴 것이라
-     * ErrorCode 로 감싸지 않는다(spring-code-review: 비즈니스 예외와 시스템 예외를 구분한다).
+     * <p>점수 범위 위반은 <b>시스템 예외</b>다 - 사용자가 만든 상황이 아니라 AI 어댑터가 계약을 어긴 것이라 ErrorCode 로 감싸지
+     * 않는다(spring-code-review: 비즈니스 예외와 시스템 예외를 구분한다).
      */
     public void applyPainting(DiaryPainting painting, DiaryPolicy policy) {
         if (!policy.allowsMoodScore(painting.moodScore())) {
@@ -117,12 +129,18 @@ public class Diary extends BaseEntity {
     }
 
     /** 04 "다시 그리기". 거절 사유가 둘이고 사용자에게 다르게 보여야 해서 코드도 다르다. */
-    public void requestRegenerate(DiaryPolicy policy) {
+    /**
+     * @param guest 로그인 전이면 true. 상한이 낮고 거절 사유도 다르다(ADR 2026-10-20)
+     */
+    public void requestRegenerate(DiaryPolicy policy, boolean guest) {
         if (status == DiaryStatus.GENERATING) {
             throw new BusinessException(ErrorCode.DIARY_NOT_DONE);
         }
-        if (regenerateCount >= policy.dailyRegenerateLimit()) {
-            throw new BusinessException(ErrorCode.DIARY_REGENERATE_LIMIT);
+        if (regenerateCount >= policy.regenerateLimitFor(guest)) {
+            throw new BusinessException(
+                    guest
+                            ? ErrorCode.DIARY_GUEST_GENERATE_LIMIT
+                            : ErrorCode.DIARY_REGENERATE_LIMIT);
         }
         this.regenerateCount++;
         this.status = DiaryStatus.GENERATING;
@@ -132,7 +150,8 @@ public class Diary extends BaseEntity {
         return userId.equals(otherUserId);
     }
 
-    public boolean canRegenerate(DiaryPolicy policy) {
-        return status != DiaryStatus.GENERATING && regenerateCount < policy.dailyRegenerateLimit();
+    public boolean canRegenerate(DiaryPolicy policy, boolean guest) {
+        return status != DiaryStatus.GENERATING
+                && regenerateCount < policy.regenerateLimitFor(guest);
     }
 }

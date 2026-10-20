@@ -71,7 +71,17 @@ class DiaryControllerTest {
     @Test
     @DisplayName("DB 컬럼 길이를 넘으면 400. 업무 상한(설정)은 도메인이 따로 막는다")
     void writeRejectsOverColumnLength() throws Exception {
-        writeRequest("가".repeat(Diary.CONTENT_COLUMN_LENGTH + 1)).andExpect(status().isBadRequest());
+        writeRequest("가".repeat(Diary.CONTENT_COLUMN_LENGTH + 1))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("오늘의 기분이 빠지면 400 - 기분은 필수다")
+    void writeRejectsMissingEmotion() throws Exception {
+        writeBody("{\"content\":\"오늘은 좋았다\"}")
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.code").value("COMMON_INVALID_REQUEST"))
+                .andExpect(jsonPath("$.error.errors[0].field").value("userHint"));
     }
 
     @Test
@@ -116,10 +126,16 @@ class DiaryControllerTest {
                 .andExpect(jsonPath("$.error.code").value("DIARY_REGENERATE_LIMIT"));
     }
 
+    /** 기분은 필수라 기본으로 실어 보낸다. 빠졌을 때의 거절은 writeRejectsMissingEmotion 이 따로 본다. */
     private ResultActions writeRequest(String content) throws Exception {
-        String body = "{\"content\":\"" + content + "\"}";
+        return writeBody("{\"content\":\"" + content + "\",\"userHint\":\"HAPPY\"}");
+    }
+
+    private ResultActions writeBody(String body) throws Exception {
         return mockMvc.perform(
-                asUser(post("/api/v1/diaries")).contentType(MediaType.APPLICATION_JSON).content(body));
+                asUser(post("/api/v1/diaries"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body));
     }
 
     private MockHttpServletRequestBuilder asUser(MockHttpServletRequestBuilder request) {

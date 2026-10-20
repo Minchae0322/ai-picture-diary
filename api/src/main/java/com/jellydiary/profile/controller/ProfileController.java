@@ -5,7 +5,6 @@ import com.jellydiary.common.response.ApiResponse;
 import com.jellydiary.profile.controller.dto.ProfileRequest;
 import com.jellydiary.profile.controller.dto.ProfileResponse;
 import com.jellydiary.profile.service.ProfileService;
-import com.jellydiary.profile.type.StoreItem;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -47,12 +46,15 @@ public class ProfileController {
     @GetMapping("/store/items")
     public ApiResponse<List<ProfileResponse.StoreItem>> storeItems(@LoginUser Long userId) {
         return ApiResponse.of(
-                profileService.storeItems(userId).stream().map(ProfileResponse.StoreItem::from).toList());
+                profileService.storeItems(userId).stream()
+                        .map(ProfileResponse.StoreItem::from)
+                        .toList());
     }
 
     /** 무료 항목은 즉시 적용, Plus 항목은 422 STORE_ITEM_LOCKED. 구독 유도 시트는 앱이 띄운다. */
     @PostMapping("/store/items/{code}/select")
-    public ApiResponse<ProfileResponse.Me> select(@LoginUser Long userId, @PathVariable String code) {
+    public ApiResponse<ProfileResponse.Me> select(
+            @LoginUser Long userId, @PathVariable String code) {
         return ApiResponse.of(ProfileResponse.Me.from(profileService.select(userId, code)));
     }
 }

@@ -5,8 +5,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.jellydiary.common.config.JpaConfig;
 import com.jellydiary.diary.domain.Diary;
-import com.jellydiary.diary.type.DiaryPolicy;
 import com.jellydiary.diary.repository.DiaryRepository;
+import com.jellydiary.diary.type.DiaryPolicy;
 import com.jellydiary.diary.type.Emotion;
 import java.time.LocalDate;
 import java.util.List;
@@ -22,7 +22,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Limit;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
-import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -44,10 +44,10 @@ class DiaryRepositoryTest {
 
     private static final Long USER = 1L;
     private static final Long OTHER_USER = 2L;
-    private static final DiaryPolicy POLICY = new DiaryPolicy(500, 3, -3, 3);
+    private static final DiaryPolicy POLICY = new DiaryPolicy(500, 3, 2, -3, 3);
 
     @Container @ServiceConnection
-    static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16-alpine");
+    static final MySQLContainer<?> MYSQL = new MySQLContainer<>("mysql:8.4");
 
     @Autowired DiaryRepository diaryRepository;
 

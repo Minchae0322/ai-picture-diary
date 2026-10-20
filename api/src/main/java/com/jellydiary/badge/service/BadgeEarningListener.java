@@ -9,11 +9,9 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 /**
- * 다른 도메인의 사건을 뱃지 판정 조건으로 번역한다. 이 클래스가 유일한 번역 지점이라, 뱃지 도메인 자체는
- * 일기도 커뮤니티도 모른다(ddd-spring 7장).
+ * 다른 도메인의 사건을 뱃지 판정 조건으로 번역한다. 이 클래스가 유일한 번역 지점이라, 뱃지 도메인 자체는 일기도 커뮤니티도 모른다(ddd-spring 7장).
  *
- * <p>PREMIUM("구독 시작")은 결제가 아직 없어 영원히 잠겨 있다. 구독이 붙으면 여기에 리스너를 하나 더 단다
- * (09 화면 문서 7장).
+ * <p>PREMIUM("구독 시작")은 결제가 아직 없어 영원히 잠겨 있다. 구독이 붙으면 여기에 리스너를 하나 더 단다 (09 화면 문서 7장).
  */
 @Component
 @RequiredArgsConstructor

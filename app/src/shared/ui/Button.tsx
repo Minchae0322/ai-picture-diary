@@ -28,7 +28,13 @@ type Props = {
   disabled?: boolean;
   loading?: boolean;
   variant?: Variant;
-  /** 가로로 늘어나 남는 공간을 나눠 갖는다(04 액션 3개의 `.actions .btn { flex: 1 }`) */
+  /**
+   * 가로로 늘어나 남는 공간을 나눠 갖는다(04 액션 3개의 `.actions .btn { flex: 1 }`).
+   *
+   * **세로로 쌓은 칸에는 주지 않는다** - `flex: 1` 이라 높이를 나눠 갖는다.
+   * 로그인 시트에서 실제로 버튼 둘이 높이 0 으로 찌그러졌다. 세로 스택에서 가로를 채우는 일은
+   * 부모의 stretch 가 한다.
+   */
   fill?: boolean;
   accessibilityHint?: string;
 };

@@ -20,8 +20,11 @@ spring:
 app:
   timezone: Asia/Seoul            # "오늘"의 경계
   diary:
-    max-content-length: 500       # 업무 상한. DB 컬럼 길이(500) 이하여야 한다
+    # 업무 상한. DB 컬럼 길이(500) 이하여야 한다. 200 으로 내린 근거는 ADR 2026-10-20 기분-선택-필수와-본문-200자
+    max-content-length: 200
     daily-regenerate-limit: 3     # 재생성 상한 (llm-integration 4장)
+    # 로그인 전 하루 AI 생성 총 횟수(최초 1회 + 다시 그리기 1회). 일기 건수는 로그인 여부와 무관하게 하루 1건이다
+    guest-daily-generate-limit: 2 # ADR 2026-10-20 게스트 모드
     mood-min: -3                  # 기분 점수 범위. 06 그래프 축과 같은 값
     mood-max: 3
   profile:

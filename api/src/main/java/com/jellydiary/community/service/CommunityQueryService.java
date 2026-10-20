@@ -41,7 +41,8 @@ public class CommunityQueryService {
     private final DiaryQueryService diaryQueryService;
     private final Clock clock;
 
-    public Page findFeed(Long userId, PostSort sort, List<String> emotions, String cursor, int size) {
+    public Page findFeed(
+            Long userId, PostSort sort, List<String> emotions, String cursor, int size) {
         int limit = Math.min(Math.max(size, 1), MAX_SIZE);
         List<String> filter = emotionFilter(emotions);
         PageRequest page = PageRequest.ofSize(limit + 1);
@@ -73,11 +74,13 @@ public class CommunityQueryService {
     /**
      * 상위 구간에 다른 감정을 섞는다(feed-ranking 4장). 재배열일 뿐이라 페이지의 글 목록은 그대로다.
      *
-     * <p>사용자가 감정을 직접 골랐으면 섞지 않는다 - "비 오는 글만 보여 줘"에 맑음을 끼워 넣는 것은
-     * 다양성이 아니라 요청 무시다.
+     * <p>사용자가 감정을 직접 골랐으면 섞지 않는다 - "비 오는 글만 보여 줘"에 맑음을 끼워 넣는 것은 다양성이 아니라 요청 무시다.
      */
     private List<CommunityPost> diversify(
-            PostSort sort, Optional<FeedTaste> taste, List<String> requested, List<CommunityPost> items) {
+            PostSort sort,
+            Optional<FeedTaste> taste,
+            List<String> requested,
+            List<CommunityPost> items) {
         boolean pickedEmotion = requested != null && !requested.isEmpty();
         if (sort != PostSort.RECOMMENDED || pickedEmotion || taste.isEmpty()) {
             return items;
@@ -112,7 +115,10 @@ public class CommunityQueryService {
                 switch (sort) {
                     case RECOMMENDED ->
                             taste.orElseThrow()
-                                    .score(last.getEmotion(), last.getMoodScore(), last.getCreatedAt());
+                                    .score(
+                                            last.getEmotion(),
+                                            last.getMoodScore(),
+                                            last.getCreatedAt());
                     case POPULAR -> last.getLikeCount();
                     case LATEST -> 0;
                 };
@@ -177,6 +183,8 @@ public class CommunityQueryService {
                 .toList();
     }
 
-    /** @param appliedSort 실제로 적용된 정렬. 추천을 요청했는데 재료가 없으면 LATEST 가 돌아온다. */
+    /**
+     * @param appliedSort 실제로 적용된 정렬. 추천을 요청했는데 재료가 없으면 LATEST 가 돌아온다.
+     */
     public record Page(List<CommunityPostResult> items, String nextCursor, PostSort appliedSort) {}
 }

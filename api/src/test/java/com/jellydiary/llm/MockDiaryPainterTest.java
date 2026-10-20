@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 class MockDiaryPainterTest {
 
     private static final LlmProperties LLM = new LlmProperties("mock", Duration.ZERO);
-    private static final DiaryProperties DIARY = new DiaryProperties(500, 3, -3, 3);
+    private static final DiaryProperties DIARY = new DiaryProperties(500, 3, 2, -3, 3);
 
     private final MockDiaryPainter painter = new MockDiaryPainter(LLM, DIARY);
 

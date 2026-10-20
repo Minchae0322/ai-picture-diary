@@ -8,8 +8,8 @@ import com.jellydiary.diary.repository.DiaryRepository;
 import com.jellydiary.diary.service.result.DiaryCalendarResult;
 import com.jellydiary.diary.service.result.DiaryOverviewResult;
 import com.jellydiary.diary.service.result.DiaryStatsResult;
-import com.jellydiary.diary.type.StatsPeriod;
 import com.jellydiary.diary.type.Emotion;
+import com.jellydiary.diary.type.StatsPeriod;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -25,8 +25,8 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * 05 캘린더 · 06 그래프 · 02/10 누적 지표의 집계. 세 화면이 같은 수치를 보여야 하므로 계산을 여기 모은다.
  *
- * <p>새 테이블 없이 tb_diary 를 기간으로 잘라 읽는다. 하루 1건이라 한 달 31행 · 1년 365행이 상한이고
- * 그 정도는 집계 테이블을 만들 이유가 되지 않는다(ponytail: 느려지면 그때 일별 집계 테이블).
+ * <p>새 테이블 없이 tb_diary 를 기간으로 잘라 읽는다. 하루 1건이라 한 달 31행 · 1년 365행이 상한이고 그 정도는 집계 테이블을 만들 이유가 되지
+ * 않는다(ponytail: 느려지면 그때 일별 집계 테이블).
  */
 @Service
 @RequiredArgsConstructor
@@ -52,7 +52,8 @@ public class DiaryStatsService {
     public int streak(Long userId) {
         LocalDate today = diaryService.today();
         return StreakCalculator.count(
-                diaryRepository.findEntryDatesFrom(userId, today.minusDays(STREAK_WINDOW_DAYS)), today);
+                diaryRepository.findEntryDatesFrom(userId, today.minusDays(STREAK_WINDOW_DAYS)),
+                today);
     }
 
     public DiaryCalendarResult calendar(Long userId, YearMonth month) {
@@ -80,7 +81,10 @@ public class DiaryStatsService {
 
         List<DiaryStatsResult.Point> points =
                 diaries.stream()
-                        .map(diary -> new DiaryStatsResult.Point(diary.getEntryDate(), diary.getMoodScore()))
+                        .map(
+                                diary ->
+                                        new DiaryStatsResult.Point(
+                                                diary.getEntryDate(), diary.getMoodScore()))
                         .toList();
         Diary best =
                 diaries.stream().max(Comparator.comparingInt(Diary::getMoodScore)).orElse(null);

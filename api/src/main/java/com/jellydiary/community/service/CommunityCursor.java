@@ -7,11 +7,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 /**
- * 불투명 커서. 정렬 축마다 키가 달라 정렬을 커서 안에 넣는다 - 정렬을 바꾸면 커서도 무효라는 사실이
- * 값에 드러난다(feed-ranking 2장).
+ * 불투명 커서. 정렬 축마다 키가 달라 정렬을 커서 안에 넣는다 - 정렬을 바꾸면 커서도 무효라는 사실이 값에 드러난다(feed-ranking 2장).
  *
- * <p>형식: {@code <정렬>:<랭크>:<id>}. 랭크는 POPULAR면 좋아요 수, RECOMMENDED면 추천 점수,
- * LATEST면 쓰지 않는다. 랭크만으로는 동점이 많아 <b>뒤에 항상 id</b>가 붙는다.
+ * <p>형식: {@code <정렬>:<랭크>:<id>}. 랭크는 POPULAR면 좋아요 수, RECOMMENDED면 추천 점수, LATEST면 쓰지 않는다. 랭크만으로는 동점이
+ * 많아 <b>뒤에 항상 id</b>가 붙는다.
  */
 public final class CommunityCursor {
 
@@ -50,6 +49,16 @@ public final class CommunityCursor {
         }
     }
 
-    /** @param rank 정렬 1차 키(좋아요 수 또는 추천 점수). LATEST에서는 의미 없다. */
+    private static String decodeRaw(String cursor) {
+        try {
+            return new String(Base64.getUrlDecoder().decode(cursor), StandardCharsets.UTF_8);
+        } catch (IllegalArgumentException e) {
+            throw new BusinessException(ErrorCode.COMMON_INVALID_CURSOR);
+        }
+    }
+
+    /**
+     * @param rank 정렬 1차 키(좋아요 수 또는 추천 점수). LATEST에서는 의미 없다.
+     */
     public record Position(int rank, long id) {}
 }

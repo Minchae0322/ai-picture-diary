@@ -4,9 +4,9 @@ import com.jellydiary.common.auth.LoginUser;
 import com.jellydiary.common.response.ApiResponse;
 import com.jellydiary.community.controller.dto.CommunityRequest;
 import com.jellydiary.community.controller.dto.CommunityResponse;
-import com.jellydiary.community.type.PostSort;
 import com.jellydiary.community.service.CommunityQueryService;
 import com.jellydiary.community.service.CommunityService;
+import com.jellydiary.community.type.PostSort;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
@@ -31,8 +31,8 @@ public class CommunityController {
     private final CommunityQueryService communityQueryService;
 
     /**
-     * 08 피드. 정렬 1개(RECOMMENDED/POPULAR/LATEST) + 감정 다중(08 화면 문서 4장).
-     * 추천을 요청했는데 오늘 기록이 없으면 <b>최신순으로 떨어진다</b>(feed-ranking 5장).
+     * 08 피드. 정렬 1개(RECOMMENDED/POPULAR/LATEST) + 감정 다중(08 화면 문서 4장). 추천을 요청했는데 오늘 기록이 없으면 <b>최신순으로
+     * 떨어진다</b>(feed-ranking 5장).
      */
     @GetMapping
     public ApiResponse<List<CommunityResponse.Post>> feed(
@@ -45,7 +45,8 @@ public class CommunityController {
                 communityQueryService.findFeed(userId, sort, emotion, cursor, size);
 
         return ApiResponse.cursor(
-                page.items().stream().map(CommunityResponse.Post::from).toList(), page.nextCursor());
+                page.items().stream().map(CommunityResponse.Post::from).toList(),
+                page.nextCursor());
     }
 
     /** 04 "공유" -> 게시. */

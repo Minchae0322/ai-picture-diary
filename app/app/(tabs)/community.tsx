@@ -16,13 +16,23 @@ import { useToday } from '@/features/diary/hooks/useDiary';
 import { FeedFilters } from '@/features/community/ui/FeedFilters';
 import { PostCard } from '@/features/community/ui/PostCard';
 import { ReportSheet } from '@/features/community/ui/ReportSheet';
+import { RequireAccount } from '@/features/auth/ui/RequireAccount';
+
+/** 로그인 벽(ADR 2026-10-20). 내용은 그대로 그리고 그 위에 시트를 올린다. */
+export default function CommunityScreen() {
+  return (
+    <RequireAccount feature="커뮤니티" reason="다른 사람의 기록을 보고 내 그림을 올리는 자리예요. 신고와 차단도 계정이 있어야 동작해요.">
+      <CommunityFeed />
+    </RequireAccount>
+  );
+}
 
 /**
  * 08 커뮤니티. 무한 스크롤이라 Screen(ScrollView) 대신 FlatList 가 스크롤을 갖는다 -
  * ScrollView 안에 목록을 넣으면 가상화가 죽는다(expo-app-conventions 5장).
  * 배경·글로우만 `Backdrop` 으로 따로 깐다.
  */
-export default function CommunityScreen() {
+function CommunityFeed() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();

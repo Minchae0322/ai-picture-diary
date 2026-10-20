@@ -28,5 +28,6 @@ public final class BadgeResponse {
         }
     }
 
-    public record Badge(String code, String name, String condition, boolean earned, Instant earnedAt) {}
+    public record Badge(
+            String code, String name, String condition, boolean earned, Instant earnedAt) {}
 }

@@ -9,10 +9,7 @@ import java.util.function.Function;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-/**
- * 상위 10개 중 2개는 다른 감정. 이 규칙이 <b>커서를 깨지 않는지</b>가 핵심이라
- * "원소 집합이 그대로인가"를 매 경우 확인한다.
- */
+/** 상위 10개 중 2개는 다른 감정. 이 규칙이 <b>커서를 깨지 않는지</b>가 핵심이라 "원소 집합이 그대로인가"를 매 경우 확인한다. */
 class FeedDiversityTest {
 
     private static final String SAD = "SAD";
@@ -41,7 +38,8 @@ class FeedDiversityTest {
         feed.set(10, HAPPY);
         feed.set(11, HAPPY);
 
-        List<String> mixed = FeedDiversity.mix(feed, emotion -> emotion.startsWith(SAD) ? SAD : HAPPY, SAD);
+        List<String> mixed =
+                FeedDiversity.mix(feed, emotion -> emotion.startsWith(SAD) ? SAD : HAPPY, SAD);
 
         assertThat(mixed.getFirst()).isEqualTo("RAIN_FIRST");
     }

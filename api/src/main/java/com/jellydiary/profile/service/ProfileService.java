@@ -41,6 +41,17 @@ public class ProfileService {
         return toResult(load(userId));
     }
 
+    /**
+     * 게스트인가. 로그인 벽과 하루 AI 생성 상한이 이 답으로 갈린다(ADR 2026-10-20).
+     *
+     * <p><b>없으면 게스트로 본다.</b> 프로필이 아직 없다는 것은 아무 화면도 열어 보지 않았다는 뜻이고, 계정이 없는 쪽이 사실에 가깝다. 여기서 프로필을 만들지
+     * 않는 이유는 이 메서드가 읽기 전용 경로 (일기 조회)에서도 불리기 때문이다 - 만들려 들면 "Connection is read-only" 로 터진다.
+     */
+    public boolean isGuest(Long userId) {
+        return userId == null
+                || profileRepository.findByUserId(userId).map(Profile::isGuest).orElse(true);
+    }
+
     @Transactional
     public ProfileResult updateSettings(
             Long userId,
@@ -65,10 +76,9 @@ public class ProfileService {
     /**
      * 09 테마·캐릭터 목록. 잠금 여부는 서버가 구독 상태를 보고 정한다 - 클라이언트 플래그를 믿지 않는다.
      *
-     * <p>읽기처럼 보이지만 <b>읽기 전용이 아니다</b>. {@link #load(Long)} 가 프로필이 없으면 만들기 때문이다. 클래스의
-     * {@code readOnly = true} 를 그대로 물려받으면 처음 보는 사용자가 09 를 먼저 열었을 때 INSERT 가
-     * "Connection is read-only" 로 터진다 - 10 을 먼저 열어 본 사람에게는 안 보여서 더 늦게 발견된다. 첫 조회
-     * 생성이 회원가입으로 옮겨 가면 이 덮어쓰기도 같이 사라진다.
+     * <p>읽기처럼 보이지만 <b>읽기 전용이 아니다</b>. {@link #load(Long)} 가 프로필이 없으면 만들기 때문이다. 클래스의 {@code readOnly
+     * = true} 를 그대로 물려받으면 처음 보는 사용자가 09 를 먼저 열었을 때 INSERT 가 "Connection is read-only" 로 터진다 - 10 을
+     * 먼저 열어 본 사람에게는 안 보여서 더 늦게 발견된다. 첫 조회 생성이 회원가입으로 옮겨 가면 이 덮어쓰기도 같이 사라진다.
      */
     @Transactional
     public List<StoreItemResult> storeItems(Long userId) {

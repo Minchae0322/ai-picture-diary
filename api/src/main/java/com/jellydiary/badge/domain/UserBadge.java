@@ -6,7 +6,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import lombok.AccessLevel;
@@ -19,14 +18,13 @@ import org.hibernate.annotations.SQLRestriction;
 @Getter
 @Entity
 @Table(name = "tb_user_badge")
-@SQLDelete(sql = "UPDATE tb_user_badge SET deleted_at = now() WHERE id = ? AND version = ?")
+@SQLDelete(sql = "UPDATE tb_user_badge SET deleted_at = now(6) WHERE id = ? AND version = ?")
 @SQLRestriction("deleted_at IS NULL")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserBadge extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_user_badge")
-    @SequenceGenerator(name = "seq_user_badge", sequenceName = "seq_user_badge", allocationSize = 50)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)

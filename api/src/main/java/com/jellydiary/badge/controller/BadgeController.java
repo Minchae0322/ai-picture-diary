@@ -19,6 +19,7 @@ public class BadgeController {
     /** 07 뱃지 컬렉션. 획득/미획득을 한 번에 내려 목록이 비는 일이 없다. */
     @GetMapping
     public ApiResponse<BadgeResponse.Collection> collection(@LoginUser Long userId) {
-        return ApiResponse.of(BadgeResponse.Collection.from(badgeQueryService.findCollection(userId)));
+        return ApiResponse.of(
+                BadgeResponse.Collection.from(badgeQueryService.findCollection(userId)));
     }
 }

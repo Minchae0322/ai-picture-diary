@@ -5,10 +5,11 @@ import com.jellydiary.common.error.ErrorCode;
 import com.jellydiary.common.logging.AppLog;
 import com.jellydiary.diary.config.DiaryProperties;
 import com.jellydiary.diary.domain.Diary;
-import com.jellydiary.diary.type.DiaryPolicy;
 import com.jellydiary.diary.event.DiaryGeneratedRequestedEvent;
 import com.jellydiary.diary.repository.DiaryRepository;
+import com.jellydiary.diary.type.DiaryPolicy;
 import com.jellydiary.diary.type.Emotion;
+import com.jellydiary.profile.service.ProfileService;
 import java.time.Clock;
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
@@ -21,8 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * 일기 쓰기와 다시 그리기. 조율만 하고 규칙은 Diary가 가진다(ddd-spring 5장).
  *
- * <p>트랜잭션 경계는 <b>일기 1건 저장까지</b>다. AI 호출과 결과 반영은 커밋 밖에서 일어나며, 생성이 실패해도 기록은 남는다.
- * 경계를 이렇게 가정한 근거와 나머지 질문표는 docs/domain/diary/일기생성-비즈니스로직.md.
+ * <p>트랜잭션 경계는 <b>일기 1건 저장까지</b>다. AI 호출과 결과 반영은 커밋 밖에서 일어나며, 생성이 실패해도 기록은 남는다. 경계를 이렇게 가정한 근거와 나머지
+ * 질문표는 docs/domain/diary/일기생성-비즈니스로직.md.
  */
 @Slf4j
 @Service
@@ -34,6 +35,9 @@ public class DiaryService {
     private final ApplicationEventPublisher events;
     private final DiaryProperties properties;
     private final Clock clock;
+
+    /** 상한이 로그인 여부로 갈린다. 도메인끼리 직접 보지 않고 service 에서 조합한다(ArchUnit 3번). */
+    private final ProfileService profileService;
 
     @Transactional
     public Long write(Long userId, String content, Emotion userHint) {
@@ -51,7 +55,7 @@ public class DiaryService {
     @Transactional
     public void regenerate(Long userId, Long diaryId) {
         Diary diary = load(userId, diaryId);
-        diary.requestRegenerate(policy());
+        diary.requestRegenerate(policy(), profileService.isGuest(userId));
 
         requestPainting(diary, "diary.regenerate_requested");
     }
@@ -74,8 +78,8 @@ public class DiaryService {
     }
 
     /**
-     * 존재 검사와 저장 사이의 경쟁 상태는 부분 unique 인덱스가 막는다. 여기서 flush 해야 그 위반을
-     * '오늘은 이미 기록했어요'로 바꿀 수 있다 - 커밋 시점까지 미루면 이 메서드 밖에서 터진다.
+     * 존재 검사와 저장 사이의 경쟁 상태는 부분 unique 인덱스가 막는다. 여기서 flush 해야 그 위반을 '오늘은 이미 기록했어요'로 바꿀 수 있다 - 커밋 시점까지
+     * 미루면 이 메서드 밖에서 터진다.
      */
     private Diary save(Diary diary) {
         try {

@@ -13,8 +13,7 @@ class WordCounterTest {
     @Test
     @DisplayName("많이 나온 순으로 자른다")
     void ordersByFrequency() {
-        List<WordCounter.WordCount> words =
-                WordCounter.top(List.of("회의 회의 산책", "회의 산책", "피곤"), 2);
+        List<WordCounter.WordCount> words = WordCounter.top(List.of("회의 회의 산책", "회의 산책", "피곤"), 2);
 
         assertThat(words).extracting(WordCounter.WordCount::word).containsExactly("회의", "산책");
         assertThat(words.getFirst().count()).isEqualTo(3);

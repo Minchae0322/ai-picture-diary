@@ -1,9 +1,9 @@
 # AI 감정 날씨일기 (젤리 다이어리)
 
-하루 한 줄을 쓰면 AI가 감정을 날씨로 판정하고 그림으로 그려 주는 모바일 일기 앱.
+하루 한 줄을 쓰면 AI가 감정을 9종으로 판정하고 그림(과일 캐릭터)으로 그려 주는 모바일 일기 앱.
 
 ```
-api/   Spring Boot 3.5 / Java 21 / PostgreSQL
+api/   Spring Boot 3.5 / Java 21 / MySQL 8.0
 app/   Expo SDK 56 / React Native / TypeScript
 sql/   마이그레이션 SQL (실행은 사람이)
 docs/  화면·API·DB 문서
@@ -18,13 +18,13 @@ AI는 규칙 기반 대역(`MockDiaryPainter`)이며 실제 모델은 다음 라
 
 ```bash
 # 1. DB 준비 (사람이 실행)
-psql -f sql/patch/2026-09-21-diary-테이블-추가.sql
+mysql -u jelly -p jellydiary < sql/patch/2026-09-21-diary-테이블-추가.sql
 
 # 2. 백엔드
 cd api
 gradle wrapper            # 최초 1회 (wrapper 미포함)
 ./gradlew test
-DB_URL=jdbc:postgresql://localhost:5432/jellydiary DB_USERNAME=jelly DB_PASSWORD=jelly ./gradlew bootRun
+DB_URL=jdbc:mysql://localhost:3306/jellydiary DB_USERNAME=jelly DB_PASSWORD=jelly ./gradlew bootRun
 
 # 3. 앱 (app/INSTALL.md 참고)
 cd ../app && npm install && npx expo install --fix && npm run start

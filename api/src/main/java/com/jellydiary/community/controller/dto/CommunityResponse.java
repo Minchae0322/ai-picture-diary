@@ -8,8 +8,8 @@ public final class CommunityResponse {
     private CommunityResponse() {}
 
     /**
-     * 08 피드 카드. emotion 는 문자열이다 - 커뮤니티는 일기 도메인을 참조하지 않는다. 값 목록은
-     * docs/api 명세와 앱의 Emotion 타입이 같이 관리한다.
+     * 08 피드 카드. emotion 는 문자열이다 - 커뮤니티는 일기 도메인을 참조하지 않는다. 값 목록은 docs/api 명세와 앱의 Emotion 타입이 같이
+     * 관리한다.
      */
     public record Post(
             String id,

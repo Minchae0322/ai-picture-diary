@@ -8,14 +8,14 @@ import org.slf4j.MDC;
 public record Meta(String traceId, String nextCursor, Boolean hasNext) {
 
     public static Meta now() {
-        return new Meta(traceId(), null, null);
+        return new Meta(currentTraceId(), null, null);
     }
 
     public static Meta cursor(String nextCursor) {
-        return new Meta(traceId(), nextCursor, nextCursor != null);
+        return new Meta(currentTraceId(), nextCursor, nextCursor != null);
     }
 
-    private static String traceId() {
+    private static String currentTraceId() {
         return MDC.get("traceId");
     }
 }

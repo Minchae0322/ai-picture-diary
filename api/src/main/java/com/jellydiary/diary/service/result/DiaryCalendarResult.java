@@ -5,10 +5,7 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
 
-/**
- * 05 감정 캘린더. 월 집계는 서버가 계산해서 내려준다 - 클라이언트가 다시 세면 06 그래프와 값이 갈린다
- * (05 화면 문서 6장).
- */
+/** 05 감정 캘린더. 월 집계는 서버가 계산해서 내려준다 - 클라이언트가 다시 세면 06 그래프와 값이 갈린다 (05 화면 문서 6장). */
 public record DiaryCalendarResult(
         YearMonth month, List<Day> days, List<EmotionDays> summary, int recordedDays) {
 

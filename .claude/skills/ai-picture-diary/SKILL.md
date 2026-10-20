@@ -10,12 +10,12 @@ description: "이 저장소에서 코드·스키마·문서를 쓰거나 고치�
 
 ## 1. 제품이 무엇인가
 
-하루에 한 줄을 쓰면 AI가 그 문장의 감정을 읽어 **감정 9종으로 판정하고 그림으로 그려 주는** 모바일 일기 앱. 쌓인 감정은 캘린더와 그래프가 되고, 연속 기록은 젤리 뱃지가 된다. 핵심 화면은 홈이다 - 빈 그림 자리 하나와 "오늘 어땠나요?" 입력창 하나, 그 아래 최근 3일의 감정.
+하루에 한 줄을 쓰면 AI가 그 문장의 감정을 읽어 **감정 9종으로 판정하고 그림으로 그려 주는** 모바일 일기 앱. 쌓인 감정은 캘린더와 그래프가 되고, 연속 기록은 젤리 뱃지가 된다. 핵심 화면은 홈이다 - 빈 그림 자리 하나, 오늘의 기분을 고르는 칩 한 줄(필수), 공책 한 장, 그 아래 최근 3일의 감정.
 
 - 저장소 구성: 모노레포. `api/`(Spring Boot 백엔드) + `app/`(Expo 모바일)
 - 시안: Figma `AI 감정 날씨일기 - Web App Sketch`, 10화면(+11 로그인). 인덱스는 9장.
   **시안 이름에 "날씨"가 남아 있지만 제품은 감정 9종이다**(2026-10-19 전환). 레이아웃만 시안이 진실이다
-- 도메인 4개: `diary`(01~06) · `badge`(07) · `community`(08) · `profile`(09·10)
+- 도메인 5개: `diary`(01~06) · `badge`(07) · `community`(08) · `profile`(09·10) · `account`(게스트 계정. 로그인 벽의 기준)
 
 ## 2. 도메인 어휘
 
@@ -23,9 +23,9 @@ description: "이 저장소에서 코드·스키마·문서를 쓰거나 고치�
 |---|---|---|
 | 일기 | 하루치 기록 1건. 본문 + AI 판정 + 그림 | `Diary` / `tb_diary` |
 | 감정 | 하루의 판정 결과. 9종 고정, 과일 캐릭터로 그린다 | `Emotion` |
-| 감정 세기 | 02 에서 빠른 감정을 고른 뒤 묻는 -2 ~ +2. 감정마다 고를 수 있는 쪽이 다르다 | `EmotionGauge` / `allowsLevel()` |
+| 감정 세기 | 02 에서 기분을 고른 뒤 묻는 -2 ~ +2(선택). 감정마다 고를 수 있는 쪽이 다르다 | `EmotionGauge` / `allowsLevel()` |
 | 기분 점수 | -3 ~ +3 정수. 그래프의 Y축 | `Diary.moodScore` |
-| 빠른 감정 칩 | 02 화면에서 사용자가 고르는 힌트. AI 판정을 대체하지 않는다 | `Diary.userHint` |
+| 오늘의 기분 | 02 에서 사용자가 고르는 값. **쓰기에 필수**지만 AI 판정을 대체하지는 않는다 | `Diary.userHint` |
 | 그리기 | 감정 분석 + 이미지 생성의 한 묶음 | `DiaryPainter.paint()` |
 | 다시 그리기 | 같은 본문으로 재생성. 하루 상한 있음 | `Diary.requestRegenerate()` |
 | 연속 기록 | 끊기지 않고 기록한 일수. 뱃지의 기준 | `StreakCalculator.count()` - 계산은 여기 한 곳뿐 |
@@ -50,8 +50,13 @@ description: "이 저장소에서 코드·스키마·문서를 쓰거나 고치�
 - **감정별 렌더 배율(`EMOTION_SCALE`)과 극성(`POLARITY`)은 앱과 `docs/screen/prototype.html` 양쪽에 있다.
   한쪽만 고치지 않는다.**
 - **기분 점수는 -3 ~ +3 정수.** 04 표시, 06 그래프 축, DB check 제약이 같은 범위다.
-- **본문은 1~500자.** 초과는 400 `COMMON_INVALID_REQUEST`.
-- **위 수치(500자, 3회, -3~+3)의 출처는 설정 한 곳**(`app.diary.*`)이다. 도메인에는 `DiaryPolicy`로 넘어가며 코드에 상수로 박지 않는다(`config-and-secrets` 4-1장). 예외는 DB 컬럼 길이 `Diary.CONTENT_COLUMN_LENGTH`(스키마 상수, DDL과 같은 값).
+- **본문은 1~200자.** 초과는 400 `COMMON_INVALID_REQUEST`.
+  500자에서 내렸다(ADR `docs/adr/2026-10-20-기분-선택-필수와-본문-200자.md`). **DB 컬럼은 여전히 varchar(500)**이다 -
+  업무 상한과 컬럼 길이는 다른 값이고 내린 것은 업무 상한뿐이라 마이그레이션이 없다.
+- **오늘의 기분(`userHint`)은 쓰기의 필수 입력이다.** 없으면 400 `DIARY_EMOTION_REQUIRED`.
+  **그래도 AI 판정을 대체하지 않는다** - 결과의 `emotion` 은 서버가 정하고 `userHint` 와 다를 수 있다.
+  칼럼은 nullable 그대로다(필수가 되기 전 행이 남아 있다). 같은 ADR.
+- **위 수치(200자, 3회, -3~+3)의 출처는 설정 한 곳**(`app.diary.*`)이다. 도메인에는 `DiaryPolicy`로 넘어가며 코드에 상수로 박지 않는다(`config-and-secrets` 4-1장). 예외는 DB 컬럼 길이 `Diary.CONTENT_COLUMN_LENGTH`(스키마 상수, DDL과 같은 값).
 - **그림 생성만 실패하면 일기는 `DONE`이다**(`imageUrl`이 null). 텍스트 결과만으로 04 화면을 보여준다. `FAILED`는 감정 분석까지 실패했을 때뿐이다.
 - **AI 생성은 트랜잭션 밖, 커밋 후 비동기.** 자동 재시도는 하지 않는다 - 호출마다 비용이 든다.
 - **다시 그리기는 하루 3회**(`app.diary.daily-regenerate-limit`). 상한 판단은 도메인(`Diary`)이 한다.
@@ -72,7 +77,8 @@ description: "이 저장소에서 코드·스키마·문서를 쓰거나 고치�
 | UI 표현 | **손그림(색연필).** 선은 `SketchBorder`, 모서리는 비대칭 | `hand-drawn-ui` 스킬 · `docs/design/components.html` |
 | 감정 표현 | 감정 9종 과일 캐릭터(PNG 자산). 날씨 6종에서 전환 | 은유를 한 겹 덜어냈고 6칸이 좁았다 |
 | AI | 현재 `MockDiaryPainter`(규칙 기반). `app.ai.provider`로 교체 | 실모델은 다음 라운드 |
-| 인증 | **없음.** `X-User-Id` 헤더 임시 | 핵심 루프 먼저. `spring-auth`는 다음 |
+| 인증 | **게스트 모드 + 인증 미구현.** 기기 1대 = 사용자 1명, `X-User-Id` 헤더는 그대로 | ADR `docs/adr/2026-10-20-로그인-없이-쓰는-게스트-모드.md` |
+| 로그인 벽 | 07·08·09·10 네 곳. 시트로 띄우고 탭은 열어 둔다 | 같은 ADR. 02~06 핵심 루프는 로그인 없이 연다 |
 
 바꾸려면 ADR을 먼저 쓴다.
 
@@ -242,6 +248,10 @@ com.jellydiary
 - 없는 경로 호출이 404가 아니라 500 `COMMON_INTERNAL_ERROR`로 나간다 (`GlobalExceptionHandler`가 `NoResourceFoundException`을 안 잡음). 미수정.
 - 통합 테스트(`DiaryRepositoryTest`)는 Docker가 있어야 돈다: `./gradlew integrationTest`.
 - 인증 없음(`X-User-Id` 임시). 붙는 순간 `common/auth/CurrentUser*`는 삭제 대상이고, `ProfileService`의 첫 조회 자동 생성도 회원가입으로 옮긴다.
+- **2026-10-20 게스트 모드를 넣었다**(ADR). 기기 UUID -> `tb_guest_device` -> 사용자 번호.
+  07·08·09·10 은 로그인 시트가 막고, **인증이 없어 시트에 "그냥 둘러보기"라는 임시 통로가 있다** -
+  인증이 붙는 날 그 버튼과 `AccountProvider.bypass` 를 함께 지운다.
+  `sql/patch/2026-10-20-게스트-기기-테이블.sql` 은 **아직 실행 전**이라 백엔드가 기동하지 않는다.
 - **2026-10-14 DB를 PostgreSQL -> MySQL 8.0 으로 바꿨다**(`docs/adr/2026-10-14-DB를-MySQL로.md`).
   `sql/patch/*.sql` 4개를 제자리에서 다시 썼고(아직 어디에도 실행 전), ID 생성은 시퀀스 -> `AUTO_INCREMENT`,
   부분 인덱스는 `alive` 생성 컬럼으로 대체했다. **`ddl-auto: validate` 와 DDL 실행은 아직 검증되지 않았다** -

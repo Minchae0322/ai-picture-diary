@@ -9,8 +9,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * 추천 점수 규칙. 이 점수는 정렬(SQL)과 커서(자바) 양쪽에 쓰이므로 경계를 못 박아 둔다.
- * SQL 표현식과 이 계산이 같은 답을 내는지는 DB가 필요해 통합 테스트가 본다.
+ * 추천 점수 규칙. 이 점수는 정렬(SQL)과 커서(자바) 양쪽에 쓰이므로 경계를 못 박아 둔다. SQL 표현식과 이 계산이 같은 답을 내는지는 DB가 필요해 통합 테스트가
+ * 본다.
  */
 class FeedTasteTest {
 
@@ -50,7 +50,10 @@ class FeedTasteTest {
     @DisplayName("전부 맞으면 만점, 하나도 안 맞으면 0점")
     void bounds() {
         FeedTaste taste = FeedTaste.of("SAD", -2, NOW);
-        int max = FeedTaste.EMOTION_MATCH_POINTS + FeedTaste.MOOD_NEAR_POINTS + FeedTaste.FRESH_POINTS;
+        int max =
+                FeedTaste.EMOTION_MATCH_POINTS
+                        + FeedTaste.MOOD_NEAR_POINTS
+                        + FeedTaste.FRESH_POINTS;
 
         assertThat(taste.score("SAD", -2, NOW)).isEqualTo(max);
         assertThat(taste.score("HAPPY", 3, NOW.minus(Duration.ofDays(10)))).isZero();
@@ -60,7 +63,10 @@ class FeedTasteTest {
     @DisplayName("점수는 0~4 밖으로 나가지 않는다 - 커서에 싣는 값이라 범위가 고정이어야 한다")
     void scoreStaysInRange() {
         FeedTaste taste = FeedTaste.of("SAD", 0, NOW);
-        int max = FeedTaste.EMOTION_MATCH_POINTS + FeedTaste.MOOD_NEAR_POINTS + FeedTaste.FRESH_POINTS;
+        int max =
+                FeedTaste.EMOTION_MATCH_POINTS
+                        + FeedTaste.MOOD_NEAR_POINTS
+                        + FeedTaste.FRESH_POINTS;
 
         for (String emotion : new String[] {"SAD", "HAPPY"}) {
             for (int mood = -3; mood <= 3; mood++) {

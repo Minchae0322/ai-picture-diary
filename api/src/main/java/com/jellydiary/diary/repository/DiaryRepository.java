@@ -26,8 +26,8 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
     long countByUserId(Long userId);
 
     /**
-     * 연속 기록 계산용 날짜만. 본문·이미지를 끌어오지 않는다.
-     * ponytail: 조회 창을 잘라 쓴다(DiaryStatsService.STREAK_WINDOW_DAYS). 그보다 긴 연속은 그 값을 늘린다.
+     * 연속 기록 계산용 날짜만. 본문·이미지를 끌어오지 않는다. ponytail: 조회 창을 잘라 쓴다(DiaryStatsService.STREAK_WINDOW_DAYS).
+     * 그보다 긴 연속은 그 값을 늘린다.
      */
     @Query("select d.entryDate from Diary d where d.userId = :userId and d.entryDate >= :from")
     List<LocalDate> findEntryDatesFrom(@Param("userId") Long userId, @Param("from") LocalDate from);
@@ -35,6 +35,6 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
     /** 뱃지 판정용. 감정 9종을 각각 세지 않고 한 번에 묶어 온다. */
     @Query(
             "select new com.jellydiary.diary.repository.EmotionCount(d.emotion, count(d))"
-                + " from Diary d where d.userId = :userId and d.emotion is not null group by d.emotion")
+                    + " from Diary d where d.userId = :userId and d.emotion is not null group by d.emotion")
     List<EmotionCount> countByEmotion(@Param("userId") Long userId);
 }

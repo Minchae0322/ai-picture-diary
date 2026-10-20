@@ -7,12 +7,22 @@ import { ErrorRetry, Skeleton } from '@/shared/ui/StateBlock';
 import { useBadges } from '@/features/badge/hooks/useBadges';
 import type { BadgeCollection } from '@/features/badge/api/badgeApi';
 import { BadgeGrid } from '@/features/badge/ui/BadgeGrid';
+import { RequireAccount } from '@/features/auth/ui/RequireAccount';
+
+/** 로그인 벽(ADR 2026-10-20). 내용은 그대로 그리고 그 위에 시트를 올린다. */
+export default function BadgesScreen() {
+  return (
+    <RequireAccount feature="뱃지" reason="모은 뱃지는 계정에 쌓여요. 지금 쓴 기록은 로그인해도 그대로 이어집니다.">
+      <BadgeCollection />
+    </RequireAccount>
+  );
+}
 
 /**
  * 07 뱃지 컬렉션. 시안의 "12 / 40개"에서 40은 28개가 아직 정의되지 않아 쓸 수 없다 -
  * 서버가 지금 정의한 개수를 내려준다(07 화면 문서 7장).
  */
-export default function BadgesScreen() {
+function BadgeCollection() {
   const router = useRouter();
   const badges = useBadges();
   const data = badges.data;

@@ -525,7 +525,7 @@
         <mxCell id="st1-t" value="2. 트랜잭션 시작" style="text;html=1;align=left;verticalAlign=middle;resizable=0;fontSize=12;fontColor=#6a5518;fontFamily=Helvetica;fontStyle=1;" vertex="1" parent="1">
           <mxGeometry x="460" y="275" width="232" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="st1-s" value="본문 1~500자 검사 · 오늘(Asia/Seoul) 판정" style="text;html=1;align=left;verticalAlign=middle;resizable=0;fontSize=10;fontColor=#555555;fontFamily=Helvetica;" vertex="1" parent="1">
+        <mxCell id="st1-s" value="본문 1~200자 · 오늘의 기분 필수 · 오늘(Asia/Seoul) 판정" style="text;html=1;align=left;verticalAlign=middle;resizable=0;fontSize=10;fontColor=#555555;fontFamily=Helvetica;" vertex="1" parent="1">
           <mxGeometry x="460" y="297" width="232" height="34" as="geometry" />
         </mxCell>
         <mxCell id="st2" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=1.5;arcSize=12;" vertex="1" parent="1">

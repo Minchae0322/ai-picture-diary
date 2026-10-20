@@ -1,9 +1,10 @@
 # 2026-09-22 뱃지·커뮤니티·프로필 테이블 추가
 
 > 2026-09-22 · DB 변경 · SQL `sql/patch/2026-09-22-badge-community-profile-테이블-추가.sql`
+> 2026-10-14 **MySQL 8.0** 으로 다시 썼다 - 아직 실행 전이라 SQL 파일을 제자리에서 고쳤다 (ADR [DB를 MySQL로](../adr/2026-10-14-DB를-MySQL로.md))
 
 ## 무엇을
-화면 05~10 구현에 필요한 테이블 5개와 시퀀스 5개 추가.
+화면 05~10 구현에 필요한 테이블 5개 추가.
 
 | 테이블 | 화면 | 담는 것 |
 |---|---|---|
@@ -37,14 +38,16 @@
 
 | 이름 | 종류 | 의미 |
 |---|---|---|
-| `ux_user_badge_user_id_badge_type` | unique(부분) | 같은 뱃지 두 번 지급 금지. 동시 이벤트의 멱등성을 DB가 보장 |
-| `ux_community_post_diary_id` | unique(부분) | 같은 일기 두 번 공유 금지 |
-| `ix_community_post_id_desc` | index(부분) | 최신 정렬 커서 |
-| `ix_community_post_like_count_id_desc` | index(부분) | 인기 정렬 커서 (like_count DESC, id DESC) |
+| `ux_user_badge_user_id_badge_type` | unique(+alive) | 같은 뱃지 두 번 지급 금지. 동시 이벤트의 멱등성을 DB가 보장 |
+| `ux_community_post_diary_id` | unique(+alive) | 같은 일기 두 번 공유 금지 |
+| `ix_community_post_id_desc` | index | 최신 정렬 커서 |
+| `ix_community_post_like_count_id_desc` | index | 인기 정렬 커서 (like_count DESC, id DESC) |
 | `ck_community_post_like_count` | check | 좋아요 수 음수 금지 |
-| `ux_post_like_post_id_user_id` | unique(부분) | 좋아요 연타·중복 방지 |
-| `ux_post_report_post_id_user_id` | unique(부분) | 같은 글 반복 신고 방지 |
-| `ux_profile_user_id` | unique(부분) | 사용자당 프로필 1개 |
+| `ux_post_like_post_id_user_id` | unique(+alive) | 좋아요 연타·중복 방지 |
+| `ux_post_report_post_id_user_id` | unique(+alive) | 같은 글 반복 신고 방지 |
+| `ux_profile_user_id` | unique(+alive) | 사용자당 프로필 1개 |
+
+`unique(+alive)` 는 MySQL 에 부분 인덱스가 없어 쓰는 수단이다. `alive` 는 살아 있는 행에서 1, 삭제된 행에서 NULL 인 생성 컬럼이고, MySQL 은 NULL 을 중복으로 보지 않는다(ADR 참고).
 
 날씨 필터는 값이 6종뿐이라 선택도가 낮다. 인덱스에 넣지 않고 정렬 키만 인덱스로 받았다.
 

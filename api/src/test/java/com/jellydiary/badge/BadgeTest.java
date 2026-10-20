@@ -10,8 +10,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * 뱃지는 조건 경계가 전부다. 정의는 tb_badge 에서 오지만 판정식(지표 값 >= 임계값)은 코드라
- * 여기서 못 박는다. 시안의 숫자가 맞는지는 sql/patch 의 seed 가, 판정 방식은 이 테스트가 지킨다.
+ * 뱃지는 조건 경계가 전부다. 정의는 tb_badge 에서 오지만 판정식(지표 값 >= 임계값)은 코드라 여기서 못 박는다. 시안의 숫자가 맞는지는 sql/patch 의
+ * seed 가, 판정 방식은 이 테스트가 지킨다.
  */
 class BadgeTest {
 
@@ -40,7 +40,9 @@ class BadgeTest {
         BadgeCriteria all = new BadgeCriteria(0, 0, 0, 0, true, true, 0, 0, true);
 
         for (BadgeMetric metric :
-                new BadgeMetric[] {BadgeMetric.ALL_EMOTIONS, BadgeMetric.DAWN_RECORD, BadgeMetric.PREMIUM}) {
+                new BadgeMetric[] {
+                    BadgeMetric.ALL_EMOTIONS, BadgeMetric.DAWN_RECORD, BadgeMetric.PREMIUM
+                }) {
             assertThat(none.valueOf(metric)).isZero();
             assertThat(all.valueOf(metric)).isEqualTo(1);
             assertThat(badge(metric, 1).isEarnedBy(all)).isTrue();

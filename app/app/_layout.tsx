@@ -7,6 +7,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ApiError } from '@/shared/api/ApiError';
 import { FONT_ASSETS } from '@/shared/theme/tokens';
 import { ToastProvider } from '@/shared/ui/Toast';
+import { AccountProvider } from '@/features/auth/AccountProvider';
+import { AccountGate } from '@/features/auth/ui/AccountGate';
 
 /** 제공자는 이 파일 한 곳. 순서가 의존 방향이다(expo-app-conventions 6장). */
 export default function RootLayout() {
@@ -38,7 +40,12 @@ export default function RootLayout() {
       <QueryClientProvider client={queryClient}>
         <ToastProvider>
           <StatusBar style="auto" />
-          <Stack screenOptions={{ headerShown: false }} />
+          {/* 사용자 번호가 먼저다. 그것이 없으면 모든 요청이 401 이다(ADR 2026-10-20) */}
+          <AccountProvider>
+            <AccountGate>
+              <Stack screenOptions={{ headerShown: false }} />
+            </AccountGate>
+          </AccountProvider>
         </ToastProvider>
       </QueryClientProvider>
     </SafeAreaProvider>

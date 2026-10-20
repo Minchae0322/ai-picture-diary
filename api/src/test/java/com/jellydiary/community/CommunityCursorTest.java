@@ -4,8 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.jellydiary.common.error.BusinessException;
-import com.jellydiary.community.type.PostSort;
 import com.jellydiary.community.service.CommunityCursor;
+import com.jellydiary.community.type.PostSort;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -51,7 +51,8 @@ class CommunityCursorTest {
     @DisplayName("추천 커서는 점수와 id를 같이 싣는다 - 점수만으로는 동점이 많다")
     void recommendedCursorCarriesScoreAndId() {
         CommunityCursor.Position position =
-                CommunityCursor.decode(PostSort.RECOMMENDED, CommunityCursor.encode(PostSort.RECOMMENDED, 3, 42L));
+                CommunityCursor.decode(
+                        PostSort.RECOMMENDED, CommunityCursor.encode(PostSort.RECOMMENDED, 3, 42L));
 
         assertThat(position.rank()).isEqualTo(3);
         assertThat(position.id()).isEqualTo(42L);

@@ -13,8 +13,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * 요청 종료 1줄(logging-observability 5장). 시작 로그는 남기지 않는다. 헬스체크는 제외.
- * traceId가 없는 경우(트레이싱 미구성)에도 MDC에 하나는 있도록 보장한다 - api-design의 meta.traceId가 이 값을 쓴다.
+ * 요청 종료 1줄(logging-observability 5장). 시작 로그는 남기지 않는다. 헬스체크는 제외. traceId가 없는 경우(트레이싱 미구성)에도 MDC에 하나는
+ * 있도록 보장한다 - api-design의 meta.traceId가 이 값을 쓴다.
  */
 @Slf4j
 @Component

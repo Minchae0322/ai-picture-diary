@@ -48,7 +48,8 @@ class BadgeEarningListenerTest {
 
     private BadgeCriteria capture() {
         ArgumentCaptor<BadgeCriteria> captor = ArgumentCaptor.forClass(BadgeCriteria.class);
-        verify(badgeService, org.mockito.Mockito.atLeastOnce()).evaluate(anyLong(), captor.capture());
+        verify(badgeService, org.mockito.Mockito.atLeastOnce())
+                .evaluate(anyLong(), captor.capture());
         return captor.getValue();
     }
 

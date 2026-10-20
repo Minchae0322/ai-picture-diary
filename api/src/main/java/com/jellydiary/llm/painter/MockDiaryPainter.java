@@ -14,8 +14,8 @@ import org.springframework.stereotype.Component;
 /**
  * 실제 모델을 붙이기 전의 대역. 키워드로 감정을 고르고 감정이 점수와 코멘트를 결정한다.
  *
- * <p>ponytail: 규칙 기반 대역이다. 실모델은 llm-integration 절차대로 이 폴더(diary/port/llm)에 구현체를 더하고 app.llm.provider 로
- * 갈아끼운다. 이 클래스는 그때도 오프라인·테스트용으로 남는다.
+ * <p>ponytail: 규칙 기반 대역이다. 실모델은 llm-integration 절차대로 이 폴더(diary/port/llm)에 구현체를 더하고
+ * app.llm.provider 로 갈아끼운다. 이 클래스는 그때도 오프라인·테스트용으로 남는다.
  */
 @Slf4j
 @Component
@@ -30,8 +30,14 @@ public class MockDiaryPainter implements DiaryPainter {
      */
     private static final List<Rule> RULES =
             List.of(
-                    new Rule(Emotion.ENERGETIC, 3, List.of("최고", "완벽", "대박", "꿈같", "벅차", "신나", "들뜨")),
-                    new Rule(Emotion.HAPPY, 2, List.of("합격", "기쁘", "좋았", "행복", "즐거", "성공", "잘 끝", "맛있", "칭찬")),
+                    new Rule(
+                            Emotion.ENERGETIC,
+                            3,
+                            List.of("최고", "완벽", "대박", "꿈같", "벅차", "신나", "들뜨")),
+                    new Rule(
+                            Emotion.HAPPY,
+                            2,
+                            List.of("합격", "기쁘", "좋았", "행복", "즐거", "성공", "잘 끝", "맛있", "칭찬")),
                     new Rule(Emotion.SHY, 2, List.of("설레", "두근", "부끄", "고백", "떨리", "사랑")),
                     new Rule(Emotion.DEPRESSED, -3, List.of("우울", "무기력", "의미없", "캄캄", "바닥")),
                     new Rule(Emotion.ANGRY, -2, List.of("화가", "화났", "짜증", "억울", "분하", "열받")),
@@ -59,7 +65,11 @@ public class MockDiaryPainter implements DiaryPainter {
         // 대역의 점수표가 설정 범위를 벗어나지 않게 자른다
         int score = Math.clamp(rule.score(), policy.moodMin(), policy.moodMax());
         DiaryPainting painting =
-                new DiaryPainting(rule.emotion(), score, comment(rule.emotion()), imageUrl(rule.emotion(), content));
+                new DiaryPainting(
+                        rule.emotion(),
+                        score,
+                        comment(rule.emotion()),
+                        imageUrl(rule.emotion(), content));
 
         // 본문은 남기지 않는다. 길이만(logging-observability 6장)
         AppLog.event(log, "ai.call.done")
@@ -106,7 +116,10 @@ public class MockDiaryPainter implements DiaryPainter {
 
     /** 대역용 더미 이미지. 실제 구현은 생성한 그림을 스토리지에 올리고 그 URL을 준다(file-upload-storage). */
     private String imageUrl(Emotion emotion, String content) {
-        return "https://picsum.photos/seed/" + emotion.name().toLowerCase() + content.length() + "/600/600";
+        return "https://picsum.photos/seed/"
+                + emotion.name().toLowerCase()
+                + content.length()
+                + "/600/600";
     }
 
     private void sleep() {

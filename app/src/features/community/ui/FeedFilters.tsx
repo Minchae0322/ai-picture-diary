@@ -42,6 +42,7 @@ export function FeedFilters({ sort, emotions, onChangeSort, onToggleEmotion }: P
         <Chip
           key={emotion}
           label={EMOTION_LABEL[emotion]}
+          emotion={emotion}
           selected={emotions.includes(emotion)}
           onPress={() => onToggleEmotion(emotion)}
           accessibilityLabel={`${EMOTION_LABEL[emotion]} 기록만 보기`}

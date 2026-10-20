@@ -1,12 +1,12 @@
 package com.jellydiary.diary.controller.dto;
 
-import com.jellydiary.diary.type.DiaryStatus;
-import com.jellydiary.diary.type.Emotion;
-import com.jellydiary.diary.service.result.DiaryDetailResult;
 import com.jellydiary.diary.service.result.DiaryCalendarResult;
+import com.jellydiary.diary.service.result.DiaryDetailResult;
 import com.jellydiary.diary.service.result.DiaryOverviewResult;
 import com.jellydiary.diary.service.result.DiaryStatsResult;
 import com.jellydiary.diary.service.result.DiarySummaryResult;
+import com.jellydiary.diary.type.DiaryStatus;
+import com.jellydiary.diary.type.Emotion;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -45,7 +45,10 @@ public final class DiaryResponse {
 
         public static Summary from(DiarySummaryResult result) {
             return new Summary(
-                    String.valueOf(result.id()), result.entryDate(), result.emotion(), result.content());
+                    String.valueOf(result.id()),
+                    result.entryDate(),
+                    result.emotion(),
+                    result.content());
         }
     }
 

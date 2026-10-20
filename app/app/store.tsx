@@ -15,6 +15,7 @@ import { useColors } from '@/shared/theme/useColors';
 import type { StoreCategory, StoreItem } from '@/features/profile/api/profileApi';
 import { useSelectItem, useStoreItems } from '@/features/profile/hooks/useProfile';
 import { StoreGrid } from '@/features/profile/ui/StoreGrid';
+import { RequireAccount } from '@/features/auth/ui/RequireAccount';
 
 /**
  * 09 꾸미기. 시안의 카테고리 탭 4개 중 배경·폰트는 항목이 없어 **칩을 눌러도 빈 안내만** 나온다
@@ -28,7 +29,16 @@ const CATEGORIES: { value: StoreCategory | 'BACKGROUND' | 'FONT'; label: string 
   { value: 'FONT', label: '폰트' },
 ];
 
+/** 로그인 벽(ADR 2026-10-20). 내용은 그대로 그리고 그 위에 시트를 올린다. */
 export default function StoreScreen() {
+  return (
+    <RequireAccount feature="상점" reason="고른 테마와 구독은 계정에 저장돼요. 계정이 없으면 복원할 길이 없어요.">
+      <StorePage />
+    </RequireAccount>
+  );
+}
+
+function StorePage() {
   const colors = useColors();
   const router = useRouter();
   const toast = useToast();

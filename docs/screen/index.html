@@ -40,8 +40,13 @@
   --highlight:#7c5445;
   --hl-text:#faf4dc;   /* 배경 바닐라와 같은 값. 다크에서도 그대로 쓴다 */
 
-  --w-sunny:#e5b877; --w-partly:#dcc9a6; --w-cloudy:#b6bfc8;
-  --w-rain:#8fa9c8; --w-snow:#cfe0ee; --w-rainbow:#c79ab4;
+  /* 감정 9색. prototype.html 과 같은 값이다 - 한쪽만 고치지 않는다.
+     과일에서 뽑은 색이라 빨강이 셋이다. 색은 장식이고 뜻은 캐릭터 그림이 나른다 */
+  --e-HAPPY:#e3564f; --e-ENERGETIC:#d33b57; --e-SOSO:#dd4a3c;
+  --e-SHY:#eda7ae; --e-EMBARRASSED:#e08a3c; --e-TIRED:#8a9e62;
+  --e-SAD:#5b3f8f; --e-DEPRESSED:#3b3f7a; --e-ANGRY:#c2ba3e;
+  /* 캐릭터가 얹히는 면. 과일 색을 깔면 같은 계열이라 캐릭터가 묻힌다 */
+  --face-bg:#fffdf6;
   --t-home:#5b9bc4; --t-cal:#e5b877; --t-graph:#a99ac7; --t-comm:#8fbfae; --t-my:#c79ab4;
 
   --r-xl:34px; --r-lg:24px; --r-md:16px; --r-sm:10px; --r-full:999px;
@@ -94,7 +99,7 @@ button.ctl[aria-pressed="true"] { background: var(--page-fg); color: var(--page-
 
 .notice {
   margin: 20px 24px 0; padding: 14px 18px;
-  border:1px solid var(--page-line); border-left:4px solid var(--w-sunny);
+  border:1px solid var(--page-line); border-left:4px solid var(--e-HAPPY);
   border-radius:12px; background: var(--page-card); font-size:13px; line-height:1.6;
 }
 .notice b { font-weight:800; }
@@ -305,7 +310,10 @@ figcaption a { color: inherit; }
   flex:1; display:flex; flex-direction:column; align-items:center; gap:8px;
   padding:12px 8px; border-radius:22px; border:1px solid var(--border); background: var(--surface);
 }
-.thumb { width:100%; height:64px; border-radius:var(--r-md); display:grid; place-items:end center; padding-bottom:6px; font-size:18px; }
+.thumb { width:100%; height:64px; border-radius:var(--r-md); display:grid; place-items:center; }
+/* 자산은 잉크 경계로 잘려 긴 변이 캔버스를 채운다. 세로로 긴 캐릭터가 작아 보이는 것은
+   감정별 배율(아래 SCALE)이 메운다 - 상자에 그만큼 여유를 둔다 */
+.face { object-fit:contain; }
 .recent b { font-size:12px; }
 .recent small { font-size:10px; color: var(--muted); }
 
@@ -327,7 +335,7 @@ figcaption a { color: inherit; }
 .grid7 { display:grid; grid-template-columns:repeat(7,1fr); row-gap:8px; }
 .grid7 > b { text-align:center; font-size:12px; font-weight:500; color: var(--subtle); }
 .cell { display:flex; flex-direction:column; align-items:center; gap:6px; padding:4px 0; }
-.cell i { width:32px; height:32px; border-radius:50%; display:grid; place-items:center; font-size:15px; }
+.cell i { width:32px; height:32px; border-radius:50%; display:grid; place-items:center; background:var(--face-bg); }
 .cell i.empty { border:1.5px solid var(--border-strong); }
 .cell i.today { border:2px solid var(--primary); }
 .cell span { font-size:13px; color: var(--muted); }
@@ -335,7 +343,7 @@ figcaption a { color: inherit; }
 .sum { display:flex; gap:12px; }
 .sum > div { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; }
 .sum .top { display:flex; align-items:center; gap:6px; font-size:14px; font-weight:700; }
-.sum .top i { width:10px; height:10px; border-radius:50%; }
+.sum .top i { display:grid; place-items:center; }
 .sum small { font-size:12px; color: var(--muted); }
 
 .seg { display:inline-flex; padding:4px; gap:0; border-radius:var(--r-full); border:1.5px solid var(--border); background: var(--surface); }
@@ -350,14 +358,14 @@ figcaption a { color: inherit; }
 
 .badges { display:grid; grid-template-columns:repeat(3,1fr); row-gap:16px; }
 .badges > div { display:flex; flex-direction:column; align-items:center; gap:6px; }
-.medal { width:46px; height:46px; border-radius:50%; display:grid; place-items:center; font-size:16px; }
+.medal { width:46px; height:46px; border-radius:50%; display:grid; place-items:center; font-size:16px; background:var(--face-bg); }
 .medal.lock { border:1.5px dashed var(--border-strong); }
 .badges b { font-size:14px; font-weight:700; }
 .badges small { font-size:12px; color: var(--muted); }
 
 .feed { display:flex; flex-direction:column; gap:16px; }
 .feed .card { gap:16px; }
-/* 닉네임 첫 글자. 배경인 날씨 색이 테마 불변이라 글자색도 고정이다(날씨 6색 최악 5.19:1) */
+/* 닉네임 첫 글자. 배경인 감정 색이 테마 불변이라 글자색도 고정이다 */
 .avatar { width:36px; height:36px; border-radius:50%; display:grid; place-items:center;
   font-size:18px; font-weight:700; color:#253544; }
 .feed .who b { display:block; font-size:14px; font-weight:700; }
@@ -391,7 +399,7 @@ figcaption a { color: inherit; }
 .chars i.lock { border:1.5px dashed var(--border-strong); }
 .chars small { font-size:12px; color: var(--muted); }
 
-.profile .av { width:64px; height:64px; border-radius:50%; background: linear-gradient(180deg, var(--w-rainbow), var(--w-sunny)); }
+.profile .av { width:64px; height:64px; border-radius:50%; background: linear-gradient(180deg, var(--e-SHY), var(--e-HAPPY)); }
 .profile b { font-size:20px; font-weight:700; }
 .stats { display:flex; }
 .stats > div { flex:1; display:flex; align-items:baseline; gap:6px; }
@@ -473,12 +481,12 @@ figcaption a { color: inherit; }
           <h2 style="margin:4px 0 0;font-size:24px;font-weight:700">안녕하세요, 승희님</h2>
         </div>
         <span class="chip" style="background:rgba(255,196,107,.28);border-color:rgba(255,196,107,.55);font-weight:700">
-          <i class="dot" style="background:var(--w-sunny)"></i>14일 연속
+          <i class="dot" style="background:var(--e-HAPPY)"></i>14일 연속
         </span>
       </div>
 
       <div class="card">
-        <h3 class="h2">아직 오늘의 날씨가 없어요</h3>
+        <h3 class="h2">아직 오늘의 기분이 없어요</h3>
         <p class="muted" style="margin-top:-8px">한 줄 기록하면 AI가 오늘을 그려줍니다</p>
         <div class="canvas"><b>?</b><span class="subtle">AI 그림 영역</span></div>
         <div class="input"><span>오늘 어땠나요?</span><span class="btn sm">기록</span></div>
@@ -487,19 +495,20 @@ figcaption a { color: inherit; }
       <div>
         <h3 class="h3">빠른 감정 선택</h3>
         <div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap">
-          <span class="chip" style="background:rgba(255,196,107,.28);border-color:rgba(255,196,107,.55)"><i class="dot" style="background:var(--w-sunny)"></i>맑음</span>
-          <span class="chip" style="background:rgba(255,217,166,.28);border-color:rgba(255,217,166,.55)"><i class="dot" style="background:var(--w-partly)"></i>구름조금</span>
-          <span class="chip" style="background:rgba(201,186,195,.28);border-color:rgba(201,186,195,.55)"><i class="dot" style="background:var(--w-cloudy)"></i>흐림</span>
-          <span class="chip" style="background:rgba(169,188,232,.28);border-color:rgba(169,188,232,.55)"><i class="dot" style="background:var(--w-rain)"></i>비</span>
+          <!-- 앱에서는 9종이 가로로 스크롤된다. 여기서는 앞 네 칸만 보여 준다 -->
+          <span class="chip"><img class="face" src="images/emotions/happy.png" alt="" width="21" height="21">행복한</span>
+          <span class="chip"><img class="face" src="images/emotions/energetic.png" alt="" width="21" height="21">활기찬</span>
+          <span class="chip"><img class="face" src="images/emotions/soso.png" alt="" width="20" height="20">무난한</span>
+          <span class="chip"><img class="face" src="images/emotions/tired.png" alt="" width="21" height="21">피곤한</span>
         </div>
       </div>
 
       <div>
         <h3 class="h3">최근 기록</h3>
         <div class="recent" style="margin-top:12px">
-          <div><span class="thumb" style="background:linear-gradient(180deg,rgba(255,255,255,.9),var(--w-sunny))">☀️</span><b>8/23</b><small>햇살 가득</small></div>
-          <div><span class="thumb" style="background:linear-gradient(180deg,rgba(255,255,255,.9),var(--w-rain))">🌧️</span><b>8/22</b><small>비 오는 날</small></div>
-          <div><span class="thumb" style="background:linear-gradient(180deg,rgba(255,255,255,.9),var(--w-rainbow))">🌈</span><b>8/21</b><small>설레는 밤</small></div>
+          <div><span class="thumb" style="background:linear-gradient(180deg,var(--face-bg),var(--e-HAPPY))"><img class="face" src="images/emotions/happy.png" alt="" width="36" height="36"></span><b>8/23</b><small>발표가 잘 끝났다</small></div>
+          <div><span class="thumb" style="background:linear-gradient(180deg,var(--face-bg),var(--e-SAD))"><img class="face" src="images/emotions/sad.png" alt="" width="42" height="42"></span><b>8/22</b><small>종일 가라앉았다</small></div>
+          <div><span class="thumb" style="background:linear-gradient(180deg,var(--face-bg),var(--e-SHY))"><img class="face" src="images/emotions/shy.png" alt="" width="34" height="34"></span><b>8/21</b><small>설레는 밤</small></div>
         </div>
       </div>
     </div>
@@ -529,7 +538,7 @@ figcaption a { color: inherit; }
         </div>
       </div>
       <div class="card" style="opacity:.5">
-        <h3 class="h2">아직 오늘의 날씨가 없어요</h3>
+        <h3 class="h2">아직 오늘의 기분이 없어요</h3>
         <div class="canvas"><b>?</b><span class="subtle">AI 그림 영역</span></div>
       </div>
     </div>
@@ -567,15 +576,15 @@ figcaption a { color: inherit; }
     <div class="body" style="gap:20px">
       <p class="muted" style="font-weight:500">← 2026.08.24</p>
       <div class="art">
-        <i style="left:12%;top:18%;width:33%;aspect-ratio:1;background:var(--w-sunny)"></i>
+        <i style="left:12%;top:18%;width:33%;aspect-ratio:1;background:var(--e-HAPPY)"></i>
         <i style="left:45%;top:12%;width:26%;aspect-ratio:1;background:var(--accent-soft)"></i>
-        <i style="left:33%;top:51%;width:21%;aspect-ratio:1;background:var(--w-partly)"></i>
-        <i style="left:64%;top:45%;width:18%;aspect-ratio:1;background:var(--w-rainbow)"></i>
+        <i style="left:33%;top:51%;width:21%;aspect-ratio:1;background:var(--e-SHY)"></i>
+        <i style="left:64%;top:45%;width:18%;aspect-ratio:1;background:var(--e-ENERGETIC)"></i>
         <i style="left:18%;top:64%;width:14%;aspect-ratio:1;background:var(--primary)"></i>
         <span class="aitag">AI generated</span>
       </div>
       <span class="chip" style="padding:8px 16px 8px 14px;background:var(--surface);border:1.5px solid var(--border);font-size:14px;font-weight:700">
-        <i class="dot" style="width:14px;height:14px;background:var(--w-sunny)"></i>맑음 · 기분 +2
+        <img class="face" src="images/emotions/happy.png" alt="" width="26" height="26">행복한 · 기분 +2
       </span>
       <p style="margin:0;font-size:17px;font-weight:500">“오늘 팀 회의가 잘 끝나서 마음이 가볍다”</p>
       <p class="muted" style="margin-top:-8px">AI 코멘트 · 성취감이 느껴지는 하루였네요. 이런 날은 오래 기억돼요.</p>
@@ -621,10 +630,10 @@ figcaption a { color: inherit; }
       <div class="card">
         <h3 class="h2">이번 달 요약</h3>
         <div class="sum">
-          <div><span class="top"><i style="background:var(--w-sunny)"></i>12일</span><small>맑음</small></div>
-          <div><span class="top"><i style="background:var(--w-cloudy)"></i>6일</span><small>흐림</small></div>
-          <div><span class="top"><i style="background:var(--w-rain)"></i>4일</span><small>비</small></div>
-          <div><span class="top"><i style="background:var(--w-rainbow)"></i>2일</span><small>무지개</small></div>
+          <div><span class="top"><i><img class="face" src="images/emotions/happy.png" alt="" width="19" height="19"></i>12일</span><small>행복한</small></div>
+          <div><span class="top"><i><img class="face" src="images/emotions/tired.png" alt="" width="19" height="19"></i>6일</span><small>피곤한</small></div>
+          <div><span class="top"><i><img class="face" src="images/emotions/sad.png" alt="" width="23" height="23"></i>4일</span><small>슬픈</small></div>
+          <div><span class="top"><i><img class="face" src="images/emotions/shy.png" alt="" width="19" height="19"></i>2일</span><small>부끄러운</small></div>
         </div>
       </div>
     </div>
@@ -637,7 +646,7 @@ figcaption a { color: inherit; }
     </div>
   </div>
   <figcaption>
-    <span class="num">05</span> 감정 캘린더 <span class="subtle">(셀에 날씨 글리프 추가)</span>
+    <span class="num">05</span> 감정 캘린더 <span class="subtle">(셀에 감정 캐릭터 추가)</span>
     <div class="links"><a href="05-calendar.md">문서</a> · <code>app/app/(tabs)/calendar.tsx</code></div>
   </figcaption>
 </figure>
@@ -674,9 +683,9 @@ figcaption a { color: inherit; }
         <p class="subtle" style="margin-top:-4px">기록이 없는 날은 선을 끊는다. 0으로 채우지 않는다</p>
       </div>
       <div class="kpi">
-        <div class="card lg"><i style="background:var(--w-sunny)"></i><b>+1.2</b><small>평균 기분</small></div>
-        <div class="card lg"><i style="background:var(--w-rainbow)"></i><b>19</b><small>최고의 날</small></div>
-        <div class="card lg"><i style="background:var(--w-rain)"></i><b>14일</b><small>연속 기록</small></div>
+        <div class="card lg"><i style="background:var(--e-HAPPY)"></i><b>+1.2</b><small>평균 기분</small></div>
+        <div class="card lg"><i style="background:var(--e-ENERGETIC)"></i><b>19</b><small>최고의 날</small></div>
+        <div class="card lg"><i style="background:var(--e-TIRED)"></i><b>14일</b><small>연속 기록</small></div>
       </div>
       <div class="card">
         <h3 class="h2">자주 쓴 말</h3>
@@ -711,11 +720,11 @@ figcaption a { color: inherit; }
       </div>
       <div class="bar" style="height:10px;border-radius:5px"><i style="width:30%"></i></div>
       <div class="badges">
-        <div><span class="medal" style="background:linear-gradient(180deg,rgba(255,255,255,.9),var(--w-sunny))"></span><b>첫 기록</b><small>1일</small></div>
-        <div><span class="medal" style="background:linear-gradient(180deg,rgba(255,255,255,.9),var(--w-partly))"></span><b>젤리 7</b><small>7일 연속</small></div>
-        <div><span class="medal" style="background:linear-gradient(180deg,rgba(255,255,255,.9),var(--w-rainbow))"></span><b>젤리 14</b><small>14일 연속</small></div>
-        <div><span class="medal" style="background:linear-gradient(180deg,rgba(255,255,255,.9),var(--w-rain))"></span><b>맑음 수집가</b><small>맑음 10회</small></div>
-        <div><span class="medal" style="background:linear-gradient(180deg,rgba(255,255,255,.9),var(--w-cloudy))"></span><b>비 오는 날</b><small>비 5회</small></div>
+        <div><span class="medal" style="background:linear-gradient(180deg,var(--face-bg),var(--e-HAPPY))"></span><b>첫 기록</b><small>1일</small></div>
+        <div><span class="medal" style="background:linear-gradient(180deg,var(--face-bg),var(--e-TIRED))"></span><b>젤리 7</b><small>7일 연속</small></div>
+        <div><span class="medal" style="background:linear-gradient(180deg,var(--face-bg),var(--e-DEPRESSED))"></span><b>젤리 14</b><small>14일 연속</small></div>
+        <div><span class="medal" style="background:linear-gradient(180deg,var(--face-bg),var(--e-HAPPY))"></span><b>행복 수집가</b><small>행복한 날 10회</small></div>
+        <div><span class="medal" style="background:linear-gradient(180deg,var(--face-bg),var(--e-SAD))"></span><b>슬픈 날</b><small>슬픈 날 5회</small></div>
         <div><span class="medal lock">🔒</span><b>무지개 30</b><small>30일 연속</small></div>
         <div><span class="medal lock">🔒</span><b>사계절</b><small>365일</small></div>
         <div><span class="medal lock">🔒</span><b>감정 탐험가</b><small>6종 전부</small></div>
@@ -737,22 +746,22 @@ figcaption a { color: inherit; }
   <div class="phone">
     <div class="status"><span class="time">9:41</span><span class="icons"></span></div>
     <div class="body g20">
-      <h2 class="h1">오늘의 날씨 피드</h2>
+      <h2 class="h1">오늘의 감정 피드</h2>
       <div class="row" style="gap:8px;flex-wrap:wrap">
         <span class="chip on">인기</span><span class="chip">최신</span>
-        <span class="chip"><i class="dot" style="background:var(--w-sunny)"></i>맑음</span>
-        <span class="chip"><i class="dot" style="background:var(--w-rain)"></i>비</span>
+        <span class="chip"><img class="face" src="images/emotions/happy.png" alt="" width="18" height="18">행복한</span>
+        <span class="chip"><img class="face" src="images/emotions/sad.png" alt="" width="18" height="18">슬픈</span>
       </div>
       <div class="feed">
         <div class="card lg">
           <div class="row">
-            <span class="avatar" style="background:var(--w-rain)">복</span>
+            <span class="avatar" style="background:var(--e-SAD)">복</span>
             <span class="who" style="flex:1"><b>복숭아젤리</b><small>2시간 전</small></span>
-            <span class="chip" style="padding:5px 12px 5px 8px"><i class="dot" style="width:10px;height:10px;background:var(--w-rain)"></i>비</span>
+            <span class="chip" style="padding:5px 12px 5px 8px"><img class="face" src="images/emotions/sad.png" alt="" width="18" height="18">슬픈</span>
             <span class="muted" style="font-size:20px;line-height:1">···</span>
           </div>
           <div class="post">
-            <span class="thumb" style="background:linear-gradient(180deg,rgba(255,255,255,.9),var(--w-rain))">🌧️</span>
+            <span class="thumb" style="background:linear-gradient(180deg,var(--face-bg),var(--e-SAD))"><img class="face" src="images/emotions/sad.png" alt="" width="54" height="54"></span>
             <span class="txt">
               <span style="font-size:14px">비 오는 날 창가에서 커피 한 잔</span>
               <span class="react"><span style="color:var(--primary)">♥ 128</span><span>💬 14</span><span>↗ 공유</span></span>
@@ -761,15 +770,15 @@ figcaption a { color: inherit; }
         </div>
         <div class="card lg">
           <div class="row">
-            <span class="avatar" style="background:var(--w-sunny)">해</span>
+            <span class="avatar" style="background:var(--e-HAPPY)">해</span>
             <span class="who" style="flex:1"><b>해바라기</b><small>5시간 전</small></span>
-            <span class="chip" style="padding:5px 12px 5px 8px"><i class="dot" style="width:10px;height:10px;background:var(--w-sunny)"></i>맑음</span>
+            <span class="chip" style="padding:5px 12px 5px 8px"><img class="face" src="images/emotions/happy.png" alt="" width="18" height="18">행복한</span>
             <span class="muted" style="font-size:20px;line-height:1">···</span>
           </div>
           <div class="post">
-            <span class="thumb" style="background:linear-gradient(180deg,rgba(255,255,255,.9),var(--w-sunny))">☀️</span>
+            <span class="thumb" style="background:linear-gradient(180deg,var(--face-bg),var(--e-HAPPY))"><img class="face" src="images/emotions/happy.png" alt="" width="47" height="47"></span>
             <span class="txt">
-              <span style="font-size:14px">드디어 이직 합격! 오늘은 무조건 맑음</span>
+              <span style="font-size:14px">드디어 이직 합격! 오늘은 무조건 행복</span>
               <span class="react"><span>♥ 342</span><span>💬 56</span><span>↗ 공유</span></span>
             </span>
           </div>
@@ -894,20 +903,26 @@ figcaption a { color: inherit; }
 <script>
 // 05 캘린더 격자. 2026-08-01은 토요일이라 앞에 6칸이 빈다
 (function () {
-  const weather = ['sunny','partly','cloudy','rain','snow','rainbow'];
-  const glyph = { sunny:'☀️', partly:'⛅', cloudy:'☁️', rain:'🌧️', snow:'❄️', rainbow:'🌈' };
+  const EMOTIONS = ['HAPPY','ENERGETIC','SOSO','SHY','EMBARRASSED','TIRED','SAD','DEPRESSED','ANGRY'];
+  // prototype.html 의 SCALE 과 같은 값이다. 한쪽만 고치지 않는다
+  const SCALE = { HAPPY:1.07, ENERGETIC:1.05, SOSO:1.00, SHY:1.01, EMBARRASSED:1.18,
+                  TIRED:1.07, SAD:1.23, DEPRESSED:1.02, ANGRY:1.05 };
+  const face = (e, px) => {
+    const n = Math.round(px * SCALE[e]);
+    return '<img class="face" src="images/emotions/' + e.toLowerCase() + '.png" alt="" width="' + n + '" height="' + n + '">';
+  };
   const grid = document.getElementById('cal-05');
   if (!grid) return;
   let html = '';
   for (let i = 0; i < 6; i += 1) html += '<span></span>';
   for (let day = 1; day <= 31; day += 1) {
     const skip = (day + 8) % 4 === 0;                 // 무기록일
-    const w = weather[(day * 7 + 3) % weather.length];
+    const e = EMOTIONS[(day * 7 + 3) % EMOTIONS.length];
     const today = day === 24;
     const future = day > 24;
     const dot = skip
       ? '<i class="empty' + (today ? ' today' : '') + '"></i>'
-      : '<i class="' + (today ? 'today' : '') + '" style="background:var(--w-' + w + ')">' + glyph[w] + '</i>';
+      : '<i class="' + (today ? 'today' : '') + '">' + face(e, 26) + '</i>';
     html += '<span class="cell" style="opacity:' + (future ? .35 : 1) + '">' + dot +
             '<span' + (today ? ' style="color:var(--primary);font-weight:700"' : '') + '>' + day + '</span></span>';
   }

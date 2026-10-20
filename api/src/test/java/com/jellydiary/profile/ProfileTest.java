@@ -20,6 +20,30 @@ class ProfileTest {
     private static final ProfilePolicy POLICY = new ProfilePolicy(30, "수채화");
 
     @Test
+    @DisplayName("프로필은 게스트로 시작한다 - 아무것도 묻지 않고 만들어지기 때문이다")
+    void startsAsGuest() {
+        assertThat(newProfile().isGuest()).isTrue();
+    }
+
+    @Test
+    @DisplayName("로그인하면 권한만 올라간다. 사용자 번호도 꾸미기도 그대로다")
+    void promoteKeepsEverythingElse() {
+        Profile profile = newProfile();
+        profile.select(StoreItem.MINT_SODA);
+        Long userId = profile.getUserId();
+
+        profile.promote();
+
+        assertThat(profile.isGuest()).isFalse();
+        assertThat(profile.getUserId()).isEqualTo(userId);
+        assertThat(profile.getThemeCode()).isEqualTo(StoreItem.MINT_SODA.name());
+
+        // 두 번 불려도 안전해야 한다 - 로그인 성공 자리가 재시도될 수 있다
+        profile.promote();
+        assertThat(profile.isGuest()).isFalse();
+    }
+
+    @Test
     @DisplayName("무료 테마는 바로 적용된다")
     void selectsFreeTheme() {
         Profile profile = newProfile();
@@ -81,7 +105,8 @@ class ProfileTest {
     @Test
     @DisplayName("가입 시 그림 스타일은 설정에서 온다 - 엔티티에 박지 않는다")
     void defaultAiStyleComesFromPolicy() {
-        Profile profile = Profile.start(1L, LocalDate.of(2026, 3, 2), "말랑한 젤리곰", new ProfilePolicy(30, "펜화"));
+        Profile profile =
+                Profile.start(1L, LocalDate.of(2026, 3, 2), "말랑한 젤리곰", new ProfilePolicy(30, "펜화"));
 
         assertThat(profile.getAiStyle()).isEqualTo("펜화");
     }
@@ -89,7 +114,8 @@ class ProfileTest {
     @Test
     @DisplayName("기본 닉네임은 어떤 조합이든 컬럼에 들어간다 - 넘치면 가입이 터진다")
     void generatedNicknameFitsColumn() {
-        assertThat(NicknameGenerator.longestLength()).isLessThanOrEqualTo(Profile.NICKNAME_COLUMN_LENGTH);
+        assertThat(NicknameGenerator.longestLength())
+                .isLessThanOrEqualTo(Profile.NICKNAME_COLUMN_LENGTH);
     }
 
     private Profile newProfile() {

@@ -17,8 +17,7 @@ public class AsyncConfig {
      */
     @Bean("aiExecutor")
     TaskExecutor aiExecutor(ThreadPoolTaskExecutorBuilder builder) {
-        return builder
-                .corePoolSize(2)
+        return builder.corePoolSize(2)
                 .maxPoolSize(4)
                 .queueCapacity(50)
                 .threadNamePrefix("ai-")

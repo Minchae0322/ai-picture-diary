@@ -22,7 +22,7 @@ export function MonthSummary({ summary }: { summary: { emotion: Emotion; days: n
         >
           {/* 색은 뜻을 나르지 않는다(emotion.ts) - 점 대신 캐릭터가 어떤 감정인지 말한다 */}
           <View style={styles.top}>
-            <EmotionFace emotion={item.emotion} size={18} />
+            <EmotionFace emotion={item.emotion} size={26} />
             <Text style={[styles.days, { color: colors.text }]}>{item.days}일</Text>
           </View>
           <Text style={[styles.label, { color: colors.textMuted }]}>

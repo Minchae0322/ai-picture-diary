@@ -65,8 +65,11 @@ export type DiaryOverview = { totalCount: number; streakDays: number };
 export const MOOD_MIN = -3;
 export const MOOD_MAX = 3;
 
-/** 본문 길이 상한. 서버 app.diary.max-content-length 와 같은 값이어야 한다(02 입력). */
-export const MAX_CONTENT_LENGTH = 500;
+/**
+ * 본문 길이 상한. 서버 app.diary.max-content-length 와 같은 값이어야 한다(02 입력).
+ * 500 에서 200 으로 내렸다 - ADR 2026-10-20 기분-선택-필수와-본문-200자.
+ */
+export const MAX_CONTENT_LENGTH = 200;
 
 /**
  * 다시 그리기 하루 상한. 서버 app.diary.daily-regenerate-limit 와 같은 값이어야 한다(04 안내 문구).
@@ -74,6 +77,10 @@ export const MAX_CONTENT_LENGTH = 500;
  */
 export const DAILY_REGENERATE_LIMIT = 3;
 
-/** 02 빠른 감정 칩 (시안 기준 4종) */
-/** 빠른 감정 선택. 아홉 종을 다 두고 가로로 민다 - 넷만 두면 나머지를 고를 길이 없다 */
+/**
+ * 02 오늘의 기분. 아홉 종을 다 두고 가로로 민다 - 넷만 두면 나머지를 고를 길이 없다.
+ *
+ * **고르는 것은 필수다**(ADR 2026-10-20). 그래도 AI 판정을 대체하지는 않는다 -
+ * 결과 화면의 감정은 서버가 정한 `DiaryDetail.emotion` 이고 고른 값과 다를 수 있다.
+ */
 export const QUICK_EMOTIONS: Emotion[] = EMOTIONS;

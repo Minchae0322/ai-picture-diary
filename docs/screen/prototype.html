@@ -458,6 +458,74 @@ button.chip:hover { border-color: var(--primary); }
 
 .login .terms { margin: 0; font-size: 11px; line-height: 1.5; color: var(--subtle); text-align: center; }
 
+/* 02 기록 전. **설계 제약은 하나 - 공책과 "오늘 그리기"가 스크롤 없이 보일 것.**
+   쓰라고 만든 화면인데 쓰는 자리를 찾으러 스크롤해야 하면 그 화면은 실패한 것이다.
+   .pad 의 기본 간격 24 를 그대로 쓰면 덩이 사이 세 틈에서만 24 가 새어 공책이 접힌 선 밑으로 내려간다 */
+.write { display: flex; flex-direction: column; gap: 16px; }
+
+/* 누운 그림 자리. 150 짜리 정사각 액자는 "앞으로 생길 것"의 자리인데 아직 아무것도 없는 동안
+   화면의 절반을 먹어 정작 할 일(고르기·쓰기)을 밀어냈다. 가로로 눕혀 94 로 줄이면
+   점선과 캐릭터가 남아 "여기에 그림이 생긴다"는 말은 그대로 한다 */
+.slot {
+  display: flex; align-items: center; gap: 16px; padding: 16px;
+  border-radius: var(--r-lg);
+  border: 2px dashed color-mix(in srgb, var(--accent-soft) 35%, transparent);
+  background: var(--surface);
+}
+.slot .mark { flex: none; opacity: .35; line-height: 0; }
+.slot .txt { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.slot .txt b { font-size: 14px; font-weight: 700; }
+.slot .txt p { margin: 0; font-size: 13px; line-height: 1.45; color: var(--muted); }
+
+/* 쓰는 자리는 알약 입력창이 아니라 **공책 한 장**이다(hand-drawn-ui).
+   200자는 한 줄이 아니라 몇 줄이고, 몇 줄을 받는 자리는 줄이 그어진 종이로 보여야 한다.
+
+   **괘선 간격과 글줄 높이가 같은 값(--line)이라야** 글자가 줄 위에 앉는다.
+   둘이 어긋나면 글자가 선을 가로질러 떠다녀 공책이 아니라 줄무늬 상자가 된다.
+   RN 쪽은 같은 일을 NotePaper + SketchLine 으로 한다(거기는 선도 손으로 긋는다). */
+.note {
+  --line: 28px; --pad: 16px;
+  position: relative; padding: var(--pad) 20px; background: var(--surface-solid);
+  /* 네 귀가 같으면 컴퍼스로 그린 것이다 */
+  border: 1.5px solid var(--border-strong); border-radius: 20px 14px 22px 16px;
+  background-image: repeating-linear-gradient(
+    to bottom, transparent 0, transparent calc(var(--line) - 1px),
+    var(--rule) calc(var(--line) - 1px), var(--rule) var(--line));
+  background-position: 0 var(--pad); background-size: 100% 100%;
+  background-origin: content-box; background-repeat: repeat;
+  /* 두 값인 이유: 앞은 괘선(이미지 레이어), 뒤는 바탕색이다.
+     하나만 주면 바탕색까지 content-box 로 잘려 패딩 자리가 뚫린다 */
+  background-clip: content-box, border-box;
+}
+.note textarea {
+  display: block; width: 100%; border: 0; background: none; resize: none; padding: 0; margin: 0;
+  font: inherit; font-size: 15px; line-height: var(--line); color: var(--text);
+  height: calc(var(--line) * 4); field-sizing: content; max-height: calc(var(--line) * 7);
+}
+.note textarea:focus { outline: none; }
+.note textarea::placeholder { color: var(--subtle); }
+/* 위쪽 귀에 붙인 마스킹 테이프. 밑이 비쳐야 테이프다 */
+.note::after {
+  content: ""; position: absolute; top: -10px; right: 18px; width: 78px; height: 22px;
+  background: #E8D5B5; opacity: .78; transform: rotate(-7deg);
+  border-radius: 2px 3px 2px 3px;
+}
+
+/* 단계 머리. 번호 동그라미 + 이름 + 오른쪽 보조(필수 / 고른 감정 / 글자 수).
+   비활성 버튼은 이유를 말하지 않으면 고장으로 읽힌다 - 무엇이 남았는지 여기가 먼저 말한다 */
+.steph { display: flex; align-items: center; gap: 8px; }
+.steph .mark {
+  flex: none; width: 24px; height: 24px; border-radius: 50%;
+  border: 1.5px solid var(--border); display: grid; place-items: center;
+  font-size: 12px; font-weight: 700; color: var(--muted);
+}
+.steph.done .mark { border-color: var(--primary); color: var(--primary); }
+.steph .h3 { flex: 1; }
+.steph .aux { font-size: 12px; color: var(--muted); }
+.steph .aux.req { color: var(--primary); font-weight: 700; }
+.steph .aux.warn { color: var(--warning, #8a6a1f); }
+.steph .aux.over { color: var(--danger, #b0434e); font-weight: 700; }
+
 .composer {
   display: flex; align-items: flex-end; gap: 10px; min-height: 46px;
   padding: 6px 6px 6px 18px; border-radius: var(--r-full);
@@ -858,7 +926,7 @@ const allows = (emotion, level) => {
 /** 빠른 감정 선택. 아홉 종을 다 두고 가로로 민다 - 넷만 두면 나머지를 고를 길이 없다 */
 const QUICK = EMOTIONS;
 const MOOD_MIN = -3, MOOD_MAX = 3;
-const MAX_LENGTH = 500, COUNTER_FROM = 450, REGEN_LIMIT = 3;
+const MAX_LENGTH = 200, WARN_FROM = 180, REGEN_LIMIT = 3;
 
 const ec = (e) => `var(--e-${e})`;
 /**
@@ -1168,25 +1236,60 @@ function viewHome() {
   ${tabbar('home')}`;
 }
 
+/**
+ * 02 기록 전. **세 덩이를 위에서 아래로** 쌓는다 - 아직 안 그린 그림 자리, 1 오늘의 기분,
+ * 2 오늘 한 줄. 그림 자리가 맨 위인 이유는 받을 결과물이 무엇인지 먼저 보여야
+ * 두 단계를 채울 이유가 생기기 때문이다.
+ *
+ * 기분은 **필수**다(ADR 2026-10-20). 고르지 않으면 서버가 거절하므로 화면이 먼저 막되,
+ * 버튼만 흐리게 두지 않고 무엇이 비었는지 글로 말한다.
+ */
 function composerBlock() {
-  const ready = S.draft.trim().length > 0;
+  const written = S.draft.trim().length > 0;
+  const ready = written && !!S.hint;
+  const missing = !S.hint ? '오늘의 기분을 먼저 골라 주세요' : !written ? '오늘 한 줄을 써 주세요' : '';
   return `
-  <div class="card">
-    <h3 class="h2">아직 오늘의 기분이 없어요</h3>
-    <p class="mut" style="margin-top:-8px">한 줄 기록하면 AI가 오늘을 그려줍니다</p>
-    <div class="canvas"><b>?</b><p class="sub">AI 그림 영역</p></div>
-    <div class="composer">
-      <label class="sr-only" for="draft" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">오늘의 한 줄 기록</label>
-      <textarea id="draft" rows="1" maxlength="${MAX_LENGTH}" placeholder="오늘 어땠나요?">${esc(S.draft)}</textarea>
-      <button class="btn sm" id="send" data-act="write"${ready ? '' : ' disabled'}>기록</button>
+  <div class="write">
+    <!-- 아직 아무것도 없는 그림 자리. 점선과 연한 캐릭터가 "여기에 생긴다"를 말한다.
+         고른 기분의 캐릭터로 바꾸지 않는다 - 최종 감정은 AI 가 정하고 내 선택과 다를 수 있다 -->
+    <div class="slot">
+      <span class="mark">${face('SOSO', 56)}</span>
+      <div class="txt">
+        <b>아직 오늘의 그림이 없어요</b>
+        <p>기분을 고르고 한 줄 쓰면 여기에 AI 그림이 나타나요</p>
+      </div>
     </div>
-    ${S.draft.length >= COUNTER_FROM ? `<p class="mut" style="align-self:flex-end">${S.draft.length} / ${MAX_LENGTH}</p>` : ''}
-  </div>
   <div class="stack">
-    <h3 class="h3">빠른 감정 선택</h3>
+    ${stepHead('1', '오늘의 기분', !!S.hint,
+      S.hint ? `<span class="aux">${LABEL[S.hint]}</span>` : '<span class="aux req">필수</span>')}
     <div class="hchips">${QUICK.map((e) => chip(LABEL[e], { emotion: e, on: S.hint === e, act:'hint', v:e })).join('')}</div>
     ${S.hint ? gauge(S.hint) : ''}
+  </div>
+  <div class="stack">
+    ${stepHead('2', '오늘 한 줄', written, `<span class="aux" id="counter">${counterText()}</span>`)}
+    <div class="note">
+      <label for="draft" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">오늘의 한 줄 기록</label>
+      <textarea id="draft" rows="4" maxlength="${MAX_LENGTH}" placeholder="오늘 어땠나요?">${esc(S.draft)}</textarea>
+    </div>
+  </div>
+  <div class="stack" style="gap:8px">
+    <button class="btn xl" id="send" data-act="write"${ready ? '' : ' disabled'}>오늘 그리기</button>
+    ${missing ? `<p class="mut" id="missing" style="text-align:center">${missing}</p>` : ''}
+  </div>
   </div>`;
+}
+
+function stepHead(step, title, done, aux) {
+  return `<div class="steph${done ? ' done' : ''}">
+    <span class="mark">${done ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5.2 12.6l4.3 4.4L19 6.8"/></svg>' : step}</span>
+    <h3 class="h3">${title}</h3>
+    ${aux}
+  </div>`;
+}
+
+/** 글자 수. 0자일 때는 비운다 - 빈 종이 옆의 "0 / 200"은 시험지다 */
+function counterText() {
+  return S.draft.length === 0 ? '' : `${S.draft.length} / ${MAX_LENGTH}`;
 }
 
 function generatingOverlay(text) {
@@ -1716,7 +1819,8 @@ function renderAll() {
    ========================================================================= */
 function startGenerating() {
   const text = S.draft.trim();
-  if (!text) return;
+  // 기분은 필수다(ADR 2026-10-20). 서버가 DIARY_EMOTION_REQUIRED 로 거절하는 자리를 화면이 먼저 막는다
+  if (!text || !S.hint) return;
   S.diary = { content: text, hint: S.hint, hintLevel: S.hintLevel, status: 'GENERATING', regen: 0, seed: 0 };
   S.draft = ''; S.hint = null; S.hintLevel = 0;
   render();
@@ -1937,9 +2041,18 @@ phone.addEventListener('input', (e) => {
   }
   if (e.target.id !== 'draft') return;
   S.draft = e.target.value;
+  // 글자마다 render() 하면 캐럿이 날아간다. 바뀌는 조각만 직접 고친다
   const send = document.getElementById('send');
-  if (send) send.disabled = S.draft.trim().length === 0;
-  if (S.draft.length >= COUNTER_FROM) render();
+  if (send) send.disabled = !(S.draft.trim().length > 0 && S.hint);
+  const counter = document.getElementById('counter');
+  if (counter) {
+    counter.textContent = counterText();
+    counter.className = 'aux' + (S.draft.length >= MAX_LENGTH ? ' over' : S.draft.length >= WARN_FROM ? ' warn' : '');
+  }
+  const head = counter && counter.closest('.steph');
+  if (head) head.classList.toggle('done', S.draft.trim().length > 0);
+  const missing = document.getElementById('missing');
+  if (missing) missing.textContent = !S.hint ? '오늘의 기분을 먼저 골라 주세요' : S.draft.trim().length === 0 ? '오늘 한 줄을 써 주세요' : '';
 });
 
 phone.addEventListener('keydown', (e) => {

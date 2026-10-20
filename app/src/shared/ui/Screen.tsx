@@ -49,6 +49,20 @@ export function Screen({
       {scroll ? (
         <ScrollView
           contentContainerStyle={styles.grow}
+          /*
+            키보드가 올라온 화면에서 세 가지가 깨진다. 셋 다 여기서 막는다 -
+            글을 받는 화면(02)이 생기면서 셋 다 실제로 걸렸다.
+
+            1. `automaticallyAdjustKeyboardInsets` 없으면 키보드가 입력창을 덮고 끝이다.
+               쓰는 중에 내가 쓴 글이 안 보인다
+            2. `keyboardShouldPersistTaps` 없으면 키보드가 떠 있을 때의 **첫 탭이 먹힌다** -
+               감정 칩이나 "오늘 그리기"를 누르면 키보드만 닫히고 아무 일도 안 일어난다.
+               사용자는 버튼이 고장 났다고 읽는다
+            3. 손가락으로 쓸어내려 닫는 것(`interactive`)은 iOS 사용자가 몸으로 아는 동작이다
+          */
+          automaticallyAdjustKeyboardInsets
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
           refreshControl={
             onRefresh ? <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} /> : undefined
           }

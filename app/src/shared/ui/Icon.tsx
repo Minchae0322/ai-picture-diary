@@ -231,6 +231,20 @@ const ICONS = {
       <Circle cx={14} cy={13} r={0.9} fill={s} />
     </>
   ),
+  /**
+   * 체크. 자로 잰 "V" 가 아니라 **연필로 그은 것처럼** 두 획의 길이가 다르고 끝이 살짝 올라간다
+   * (`hand-drawn-ui` 1장). 02 의 단계 표시가 쓴다.
+   */
+  check: (s: string) => (
+    <Path
+      d="M5.2 12.6l4.3 4.4L19 6.8"
+      stroke={s}
+      strokeWidth={1.8}
+      fill="none"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  ),
 } as const;
 
 export type IconName = keyof typeof ICONS;

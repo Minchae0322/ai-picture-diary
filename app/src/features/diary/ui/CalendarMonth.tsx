@@ -70,7 +70,7 @@ export function CalendarMonth({ month, days, today, onSelect }: Props) {
                   },
                 ]}
               >
-                {cell.emotion ? <EmotionFace emotion={cell.emotion} size={26} /> : null}
+                {cell.emotion ? <EmotionFace emotion={cell.emotion} size={30} /> : null}
               </View>
               <Text
                 style={[
@@ -115,9 +115,10 @@ const styles = StyleSheet.create({
     fontFamily: font.regular,
   },
   cell: { flexBasis: `${100 / 7}%`, alignItems: 'center', paddingVertical: space[1], gap: 6 },
+  /** prototype `.cell i` - 40px 안에 캐릭터 30 */
   mark: {
-    width: 32,
-    height: 32,
+    width: 40,
+    height: 40,
     borderRadius: radius.full,
     alignItems: 'center',
     justifyContent: 'center',

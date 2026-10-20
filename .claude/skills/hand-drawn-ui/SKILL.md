@@ -1,6 +1,6 @@
 ---
 name: hand-drawn-ui
-description: 화면을 "손으로 그린 것"처럼 만들 때 자동 적용. 색연필·연필·사인펜으로 그린 선, 노트 종이 바닥, 테이프로 붙인 쪽지, 삐뚤한 모서리를 UI 자체로 쓴다. "손그림", "스케치", "색연필", "손으로 그린 느낌", "노트 느낌", "sketch UI", "rough.js", "doodle", "hand drawn" 요청이나, 기존 화면이 "너무 디지털이라 차갑다"는 말이 나올 때 트리거. 선의 성질(떨림·겹쳐 긋기·채우기), 색연필 팔레트, 컴포넌트(구현 6종 + 설계 15종)의 모양과 수치, React Native 에서 Rough.js 없이 같은 선을 만드는 법을 담는다. 토큰 계층과 프리셋 교체 절차는 `design-system`, 원칙은 `ui-fundamentals`.
+description: 화면을 "손으로 그린 것"처럼 만들 때 자동 적용. 색연필·연필·사인펜으로 그린 선, 노트 종이 바닥, 테이프로 붙인 쪽지, 삐뚤한 모서리를 UI 자체로 쓴다. "손그림", "스케치", "색연필", "손으로 그린 느낌", "노트 느낌", "sketch UI", "rough.js", "doodle", "hand drawn" 요청이나, 기존 화면이 "너무 디지털이라 차갑다"는 말이 나올 때 트리거. 선의 성질(떨림·겹쳐 긋기·채우기), 색연필 팔레트, 컴포넌트(구현 8종 + 설계 13종)의 모양과 수치, React Native 에서 Rough.js 없이 같은 선을 만드는 법을 담는다. 토큰 계층과 프리셋 교체 절차는 `design-system`, 원칙은 `ui-fundamentals`.
 ---
 
 # 손으로 그린 UI (hand-drawn-ui)
@@ -113,20 +113,28 @@ SketchUI 의 형광 변형(`#fde047` 노랑 / `#c084fc` 보라 / `#86efac` 초�
 | `SketchButton.tsx` | 버튼 | 채우기 6종, 변형 10종, **3D 두께**(옆면 85도·바닥 -35도), 눌림(roughness 1.4->1.9, 간격 5->0.75), 비활성 |
 | `SketchBadge.tsx` | 뱃지 | 모양 4종(사각·둥근사각·타원·원), 변형 10종, 테두리만(transparent) |
 | `Tape.tsx` | 마스킹 테이프 | 가장자리 3종(smooth·torn·side-torn), 변형 8종, 기울기·불투명도 |
+| `SketchLine.tsx` | 선 한 줄 | 물결 밑줄·구분선. 폭 자동 측정, 진폭·주기·떨림, 겹쳐 긋기 |
+| `NotePaper.tsx` | 공책 한 장 | 색연필 괘선(`SketchLine`) + 손그림 테두리 + 테이프. 쓰는 자리 |
 
 - `Card.tsx` 가 `SketchBorder` 를 쓴다 - 앱의 모든 카드가 손그림 테두리다.
 - 실제로 그려진 모습은 앱의 `/sketch-gallery` 화면에서 본다.
 
 ### 아직 안 만든 것 (설계만. 쓰려면 먼저 만들어야 한다)
 
-바탕 `Paper` `NotebookBackground` `DoodleGridBackground` · 틀 `Separator` `SectionTitle` ·
+바탕 `Paper` `DoodleGridBackground` · 틀 `SectionTitle` ·
 행동 `Toggle` `Checkbox` `Combobox` · 알림 `Toast` `Alert` `Tooltip` `HoverCard` ·
 조각 `Avatar` `Loader` `Calendar`
 
 수치와 만드는 법은 `reference.md`, 코드 틀은 `components.md` 에 있다. **거기 있는 것은 설계지 구현이 아니다.**
 
 - **`Tape` 가 이 체계의 숨은 주역이다.** 카드 모서리에 붙이면 "종이를 붙여 둔 화면"이 된다.
+- **`NotePaper` 의 함정은 간격이다.** 괘선 간격과 글줄 높이(`lineHeight`)가 같은 값이 아니면
+  글자가 선 위에 앉지 않고 선을 가로질러 떠다닌다 - 공책이 아니라 줄무늬 상자가 된다.
+  그래서 그 값을 컴포넌트 안에 숨기지 않고 호출부와 나눠 갖는다. 쓰인 예: 02 홈(`DiaryComposer`).
 - **`Loader` 는 빙글 도는 원을 쓰지 않는다.** 끄적이는 선, 차오르는 빗금이 이 체계의 기다림이다.
+  공용 `Loader` 는 아직 없지만 **그렇게 만든 예가 하나 있다**:
+  `app/src/features/diary/ui/DrawingBoard.tsx`(03 생성 중). 색연필이 액자 안의 그림을 칠해 나간다 -
+  덮개와 연필이 같은 값으로 움직이고, 덮개 경계는 9도 눕혀 손이 쓸고 간 자리로 보이게 했다.
 
 ## 6. React Native 에서
 

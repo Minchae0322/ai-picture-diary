@@ -1,5 +1,6 @@
+import { useEffect, useState } from 'react';
 import { Redirect, useRouter } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { ApiError } from '@/shared/api/ApiError';
 import { formatFullDate } from '@/shared/format';
 import { Screen } from '@/shared/ui/Screen';
@@ -43,6 +44,22 @@ export default function HomeScreen() {
   const regenerate = useRegenerateDiary();
   const share = useSharePost();
 
+  const diary = today.data ?? null;
+  const generating = diary?.status === 'GENERATING';
+
+  /**
+   * 03 오버레이를 접었는가. 접으면 딤이 걷히고 02 흐름 안에 "그리는 중" 띠만 남는다 -
+   * 기다림을 강제하지 않으면서 무엇이 진행 중인지는 계속 보인다(03 화면 문서 2장).
+   */
+  const [minimized, setMinimized] = useState(false);
+
+  // 다음 기록의 03 은 다시 오버레이로 시작한다. 한 번 접은 것이 영구 설정이 되면 안 된다
+  useEffect(() => {
+    if (!generating) {
+      setMinimized(false);
+    }
+  }, [generating]);
+
   // 온보딩 여부를 알기 전에 홈을 그리면 온보딩이 깜빡였다 사라진다
   if (onboarding === 'unknown') {
     return (
@@ -55,8 +72,6 @@ export default function HomeScreen() {
     return <Redirect href="/onboarding" />;
   }
 
-  const diary = today.data ?? null;
-  const generating = diary?.status === 'GENERATING';
   const newBadges = diary ? earnedOn(badges.data?.badges ?? [], diary.entryDate) : [];
 
   return (
@@ -95,7 +110,10 @@ export default function HomeScreen() {
           />
         ) : diary.status === 'FAILED' ? (
           <FailedBlock onRetry={() => regenerate.mutate(diary.id)} pending={regenerate.isPending} />
-        ) : generating ? null : (
+        ) : generating ? (
+          // 접었을 때만 자리를 채운다. 오버레이가 떠 있는 동안은 뒤가 비어 있어야 딤이 깔끔하다
+          minimized ? <GeneratingCard content={diary.content} variant="strip" /> : null
+        ) : (
           <DiaryResult
             diary={diary}
             regenerating={regenerate.isPending}
@@ -119,9 +137,22 @@ export default function HomeScreen() {
 
       {/* 03 은 02 위에 덮는 딤 오버레이다(03 화면 문서 3장). 탭바는 덮지 않아 다른 탭으로 나갈 수 있다 -
           생성은 서버가 계속하고, 돌아오면 04 가 기다린다(같은 문서 2장의 "허용"). */}
-      {generating && diary ? (
-        <View style={[styles.overlay, { backgroundColor: colors.scrim }]}>
-          <GeneratingCard content={diary.content} />
+      {generating && diary && !minimized ? (
+        <View style={styles.overlay} pointerEvents="box-none">
+          {/* 딤을 눌러도 접힌다. 버튼을 찾지 않아도 빠져나갈 수 있어야 한다.
+              카드를 감싸지 않고 뒤에 깔아야 카드 안의 글자와 버튼이 그대로 읽힌다 */}
+          <Pressable
+            style={[StyleSheet.absoluteFill, { backgroundColor: colors.scrim }]}
+            onPress={() => setMinimized(true)}
+            accessibilityRole="button"
+            accessibilityLabel="나중에 보기"
+            accessibilityHint="그리는 것은 계속되고, 다 되면 홈에 나타나요"
+          />
+          <GeneratingCard
+            content={diary.content}
+            onMinimize={() => setMinimized(true)}
+            onCheck={() => today.refetch()}
+          />
         </View>
       ) : null}
     </View>

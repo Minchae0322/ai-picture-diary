@@ -2,7 +2,9 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SketchBadge } from '@/shared/ui/SketchBadge';
 import { SketchButton } from '@/shared/ui/SketchButton';
+import { SketchLine } from '@/shared/ui/SketchLine';
 import { Tape } from '@/shared/ui/Tape';
+import { DrawingBoard } from '@/features/diary/ui/DrawingBoard';
 import { font, space } from '@/shared/theme/tokens';
 import { useColors } from '@/shared/theme/useColors';
 
@@ -93,6 +95,19 @@ export default function SketchGallery() {
                 </View>
             </Section>
 
+            <Section title="Line - 물결 밑줄과 구분선" colors={colors}>
+                <SketchLine color={colors.primary} seed={19} sway={2.4} wavelength={54} />
+                <SketchLine color={colors.border} seed={41} sway={0.6} strokeWidth={1.6} />
+                <SketchLine color={colors.accentSoft} seed={73} sway={4} wavelength={30} height={14} />
+            </Section>
+
+            <Section title="기다림 - 03 의 그림 자리" colors={colors}>
+                <DrawingBoard />
+                <Text style={[styles.note, { color: colors.textSubtle }]}>
+                    색연필이 왕복한다. 비율 막대가 아니라 되고 있다는 것만 말한다
+                </Text>
+            </Section>
+
             <Section title="Tape - 가장자리 3종" colors={colors}>
                 <View style={[styles.tapeBed, { backgroundColor: colors.surfaceSolid }]}>
                     <Tape variant="kraft" tapeStyle="smooth" style={{ top: 14, left: 16 }} />
@@ -133,4 +148,5 @@ const styles = StyleSheet.create({
     row: { flexDirection: 'row', gap: space[3], alignItems: 'center', flexWrap: 'wrap' },
     tapeBed: { height: 170, borderRadius: 18, overflow: 'hidden' },
     tapeNote: { position: 'absolute', bottom: 10, left: 18, fontSize: font.xs, fontFamily: font.regular },
+    note: { fontSize: font.xs, fontFamily: font.regular },
 });

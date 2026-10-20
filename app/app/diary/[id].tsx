@@ -31,7 +31,7 @@ export default function DiaryDetailScreen() {
       ) : diary.isError ? (
         <ErrorRetry error={diary.error} onRetry={() => diary.refetch()} />
       ) : diary.data.status === 'GENERATING' ? (
-        <GeneratingCard content={diary.data.content} />
+        <GeneratingCard content={diary.data.content} onCheck={() => diary.refetch()} />
       ) : (
         <DiaryResult
           diary={diary.data}

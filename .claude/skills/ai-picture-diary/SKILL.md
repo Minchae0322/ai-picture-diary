@@ -79,6 +79,7 @@ description: "이 저장소에서 코드·스키마·문서를 쓰거나 고치�
 | AI | 현재 `MockDiaryPainter`(규칙 기반). `app.ai.provider`로 교체 | 실모델은 다음 라운드 |
 | 인증 | **게스트 모드 + 인증 미구현.** 기기 1대 = 사용자 1명, `X-User-Id` 헤더는 그대로 | ADR `docs/adr/2026-10-20-로그인-없이-쓰는-게스트-모드.md` |
 | 로그인 벽 | 07·08·09·10 네 곳. 시트로 띄우고 탭은 열어 둔다 | 같은 ADR. 02~06 핵심 루프는 로그인 없이 연다 |
+| 로컬 DB | AI 가 `sql/patch/*.sql` 을 직접 실행한다. 운영·스테이징은 금지 | ADR `docs/adr/2026-10-24-로컬-DB-실행-허용.md` |
 
 바꾸려면 ADR을 먼저 쓴다.
 
@@ -181,7 +182,9 @@ com.jellydiary
 
 ## 5. 절대 하지 말 것
 
-- 어떤 환경이든 DB 접속·SQL 실행. 스키마 변경은 `sql/patch/` + `docs/db/` 문서로만
+- **운영·스테이징 DB 접속·SQL 실행.** 로컬만 예외다(ADR `docs/adr/2026-10-24-로컬-DB-실행-허용.md`):
+  `localhost` · `jellydiary` · `jelly` 계정 · `sql/patch/*.sql` 실행과 읽기 쿼리까지.
+  그 자리에서 지어낸 DDL/DML 은 로컬에서도 금지 - 스키마의 진실은 `sql/patch/` 파일이다
 - 커밋에 시크릿 - `.env`, `*.jks`, `*.p8`, 서비스 계정 JSON
 - `EXPO_PUBLIC_*`에 비밀값 넣기 (번들에 평문으로 박힌다)
 - 상한 없이 AI 호출 붙이기 (호출 수·토큰·재생성 횟수)
@@ -221,7 +224,8 @@ com.jellydiary
 | 문서 기반 답변, 임베딩, 벡터 검색 | `rag-pipeline` |
 | 화면/컴포넌트, 여백·라운드·색, 반응형 | `ui-fundamentals` |
 | 디자인 토큰, 테마, 다크 모드 | `design-system` |
-| 손그림·색연필 느낌, 스케치 테두리, 종이 바탕 | `hand-drawn-ui` |
+| 손그림·색연필 느낌, 스케치 테두리 | `hand-drawn-ui` |
+| 화면 바탕, 종이 질감, 결·노이즈, 격자를 깔까 하는 생각 | `paper-background` |
 | 컴포넌트/훅/타입, 프론트 폴더 구조 | `frontend-architecture` |
 | 상태 위치, 스토어, 서버 데이터 캐시/무효화 | `frontend-state` |
 | 프론트 API 호출, 토큰 갱신, 에러 처리 | `frontend-api-client` |

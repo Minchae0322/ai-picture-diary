@@ -1,6 +1,6 @@
 ---
 name: hand-drawn-ui
-description: 화면을 "손으로 그린 것"처럼 만들 때 자동 적용. 색연필·연필·사인펜으로 그린 선, 노트 종이 바닥, 테이프로 붙인 쪽지, 삐뚤한 모서리를 UI 자체로 쓴다. "손그림", "스케치", "색연필", "손으로 그린 느낌", "노트 느낌", "sketch UI", "rough.js", "doodle", "hand drawn" 요청이나, 기존 화면이 "너무 디지털이라 차갑다"는 말이 나올 때 트리거. 선의 성질(떨림·겹쳐 긋기·채우기), 색연필 팔레트, 컴포넌트(구현 8종 + 설계 13종)의 모양과 수치, React Native 에서 Rough.js 없이 같은 선을 만드는 법을 담는다. 토큰 계층과 프리셋 교체 절차는 `design-system`, 원칙은 `ui-fundamentals`.
+description: 화면을 "손으로 그린 것"처럼 만들 때 자동 적용. 색연필·연필·사인펜으로 그린 선, 테이프로 붙인 쪽지, 삐뚤한 모서리를 UI 자체로 쓴다. 화면 **바탕**은 `paper-background` 가 담당한다. "손그림", "스케치", "색연필", "손으로 그린 느낌", "노트 느낌", "sketch UI", "rough.js", "doodle", "hand drawn" 요청이나, 기존 화면이 "너무 디지털이라 차갑다"는 말이 나올 때 트리거. 선의 성질(떨림·겹쳐 긋기·채우기), 색연필 팔레트, 컴포넌트(구현 9종 + 설계 12종)의 모양과 수치, React Native 에서 Rough.js 없이 같은 선을 만드는 법을 담는다. 토큰 계층과 프리셋 교체 절차는 `design-system`, 원칙은 `ui-fundamentals`.
 ---
 
 # 손으로 그린 UI (hand-drawn-ui)
@@ -115,13 +115,18 @@ SketchUI 의 형광 변형(`#fde047` 노랑 / `#c084fc` 보라 / `#86efac` 초�
 | `Tape.tsx` | 마스킹 테이프 | 가장자리 3종(smooth·torn·side-torn), 변형 8종, 기울기·불투명도 |
 | `SketchLine.tsx` | 선 한 줄 | 물결 밑줄·구분선. 폭 자동 측정, 진폭·주기·떨림, 겹쳐 긋기 |
 | `NotePaper.tsx` | 공책 한 장 | 색연필 괘선(`SketchLine`) + 손그림 테두리 + 테이프. 쓰는 자리 |
+| `PaperGrain.tsx` | 화면 바탕의 결 | 점 1400 개를 모듈 로드 때 한 번만 계산, 겹 불투명도 9% |
 
 - `Card.tsx` 가 `SketchBorder` 를 쓴다 - 앱의 모든 카드가 손그림 테두리다.
+- **바탕(`PaperGrain`)의 규칙은 이 스킬이 아니라 `paper-background` 에 있다.**
+  겹의 순서, 농도, 대비를 다시 재는 법이 거기다. 특히 **바탕에는 전면 모눈을 깔지 않는다** -
+  바탕이 조용해야 `SketchBorder` 의 떨림이 비로소 "손"으로 읽힌다. 반듯한 선과 떨리는 선이
+  화면에 동시에 깔리면 어느 쪽이 손인지 알 수 없다(`paper-background` 1~2장).
 - 실제로 그려진 모습은 앱의 `/sketch-gallery` 화면에서 본다.
 
 ### 아직 안 만든 것 (설계만. 쓰려면 먼저 만들어야 한다)
 
-바탕 `Paper` `DoodleGridBackground` · 틀 `SectionTitle` ·
+바탕 `Paper` · 틀 `SectionTitle` · 꾸밈 `DoodleOverlay` ·
 행동 `Toggle` `Checkbox` `Combobox` · 알림 `Toast` `Alert` `Tooltip` `HoverCard` ·
 조각 `Avatar` `Loader` `Calendar`
 
@@ -167,6 +172,7 @@ Rough.js 는 Canvas/SVG DOM 을 쓰므로 RN 에서 그대로 돌지 않는다. 
 
 | 작업 | 스킬 |
 |---|---|
+| 화면 바탕(종이 질감, 결, 노이즈)의 겹과 수치 | `paper-background` |
 | 토큰 계층, 프리셋 교체 절차, 다크 모드 | `design-system` (이 스킬은 그 프리셋 하나에 해당한다) |
 | 중첩 라운드, 대비 계산, 터치 타깃 | `ui-fundamentals` |
 | RN 제약(폰트 굵기, 안전 영역, SVG) | `expo-app-conventions` |

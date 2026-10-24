@@ -58,7 +58,8 @@
 |---|---|
 | `ui-fundamentals` | 여백·라운드·대비·상태 5종·반응형 원칙 |
 | `design-system` | 토큰, 테마, 다크 모드, 프리셋 |
-| `hand-drawn-ui` | 손그림·색연필 UI. 선의 떨림, 종이 바탕, 컴포넌트 20종 |
+| `hand-drawn-ui` | 손그림·색연필 UI. 선의 떨림, 컴포넌트 20종 |
+| `paper-background` | 종이 바탕. 색·결·빛의 겹과 수치 |
 | `figma-workflow` | 시안 읽기·그리기, Code Connect |
 
 ## 모바일

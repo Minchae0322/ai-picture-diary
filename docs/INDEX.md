@@ -11,14 +11,14 @@
 | `domain/community/피드공유-비즈니스로직.md` | `api/src/main/java/com/jellydiary/community/**` | 커뮤니티, 피드, 공유, 좋아요, 신고, 커서 페이징 |
 | `domain/profile/프로필꾸미기-비즈니스로직.md` | `api/src/main/java/com/jellydiary/profile/**` | 프로필, 닉네임, 테마, 캐릭터, 구독, 설정 |
 | `feature/온보딩.md` | `app/app/onboarding.tsx`, `app/src/features/onboarding/**` | 기능 소개, 첫 실행, 슬라이드 |
-| `feature/오늘-한줄-기록.md` | `api/src/main/java/com/jellydiary/diary/**`, `app/src/features/diary/ui/Diary{Composer,Result}.tsx`, `app/src/features/diary/ui/{GeneratingCard,EmotionGauge}.tsx`, `app/src/shared/{emotion.ts,ui/EmotionFace.tsx,ui/NotePaper.tsx}` | 기능 소개, 한 줄 기록, 오늘의 기분(필수), 200자, 다시 그리기 |
+| `feature/오늘-한줄-기록.md` | `api/src/main/java/com/jellydiary/diary/**`, `app/src/features/diary/ui/Diary{Composer,Result}.tsx`, `app/src/features/diary/ui/GeneratingCard.tsx`, `app/src/shared/{emotion.ts,ui/EmotionFace.tsx,ui/NotePaper.tsx}` | 기능 소개, 한 줄 기록, 오늘의 기분(필수), 200자, 다시 그리기 |
 | `feature/감정-캘린더와-그래프.md` | `app/app/(tabs)/{calendar,graph}.tsx`, `app/src/features/diary/ui/{CalendarMonth,MonthSummary,MoodChart,KpiRow,StreakBadge}.tsx` | 기능 소개, 캘린더, 그래프, 연속 기록 |
 | `feature/뱃지-컬렉션.md` | `app/app/badges.tsx`, `app/src/features/badge/**` | 기능 소개, 뱃지 |
 | `feature/커뮤니티-피드.md` | `app/app/(tabs)/community.tsx`, `app/src/features/community/**` | 기능 소개, 피드, 공유, 신고 |
 | `feature/프로필과-꾸미기.md` | `app/app/{store,(tabs)/my}.tsx`, `app/src/features/profile/**` | 기능 소개, 마이페이지, 테마, 구독 |
 | `guide/개발-가이드.md` | `api/src/main/java/com/jellydiary/common/**`, `api/src/main/resources/**`, `app/src/shared/**`, `.githooks/**` | 응답 봉투, ErrorCode, 인증 임시 헤더, traceId, AppLog, 토큰, 하네스 |
 | `screen/01-onboarding.md` | `app/app/onboarding.tsx`, `app/src/features/onboarding/useOnboarding.ts` | 온보딩, 첫 실행, 슬라이드 |
-| `screen/02-home.md` | `app/app/(tabs)/index.tsx`, `app/src/features/diary/ui/DiaryComposer.tsx`, `app/src/features/diary/ui/EmotionGauge.tsx`, `app/src/features/diary/ui/RecentDiaries.tsx`, `app/src/features/diary/ui/StreakBadge.tsx`, `app/src/shared/ui/NotePaper.tsx` | 홈, 한 줄 기록, 오늘의 기분(필수), 감정 세기, 공책, 200자, 최근 기록, 연속 배지 |
+| `screen/02-home.md` | `app/app/(tabs)/index.tsx`, `app/src/features/diary/ui/{DiaryComposer,DiarySheet,StylePreview}.tsx`, `app/src/features/diary/ui/StreakBadge.tsx` | 홈, 그림일기 종이, 한 줄 기록, 오늘의 기분, 그림체, 200자 |
 | `screen/03-generating.md` | `app/src/features/diary/ui/GeneratingCard.tsx`, `app/src/features/diary/ui/DrawingBoard.tsx`, `app/src/features/diary/hooks/useDiary.ts` | 생성 중, 폴링, 대기 화면, 그림 자리 |
 | `screen/04-result.md` | `app/src/features/diary/ui/DiaryResult.tsx`, `app/app/diary/[id].tsx` | 결과, AI 이미지, 다시 그리기, 공유, AI generated |
 | `screen/05-calendar.md` | `app/app/(tabs)/calendar.tsx`, `app/src/features/diary/ui/CalendarMonth.tsx`, `app/src/features/diary/ui/MonthSummary.tsx` | 캘린더, 월 집계, 감정 그리드 |

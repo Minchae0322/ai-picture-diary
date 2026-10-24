@@ -69,6 +69,8 @@ CHANGELOG.md는 코드 변경 기록, 이 보드는 **현행 문서 동기화 �
 
 | 2026-10-24 | 신규: ADR `로컬-DB-실행-허용`·`바탕을-연노랑-종이로` · 갱신: `docs/db/` 7개 실행 기록, 바탕 토큰(`paper`/`paperDeep`/`glow`), `GuestDevice`, `DiaryQueryService`·`DiaryRepository`, `CLAUDE.md`, 프로젝트 스킬 | (미커밋) |
 
+| 2026-10-25 | 신규: `DiarySheet`·`StylePreview`, `DELETE /api/v1/diaries/{id}`, 손글씨 서체 · 갱신: `screen/02`, `api/일기-API-명세`, ADR `2026-10-20-기분-선택-필수`, `INDEX`, 프로젝트 스킬 · 삭제: `EmotionGauge.tsx` | (미커밋) |
+
 ## 할 일
 
 ### 막는 것 (배포 전 필수)

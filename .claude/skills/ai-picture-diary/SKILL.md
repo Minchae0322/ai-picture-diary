@@ -23,7 +23,6 @@ description: "이 저장소에서 코드·스키마·문서를 쓰거나 고치�
 |---|---|---|
 | 일기 | 하루치 기록 1건. 본문 + AI 판정 + 그림 | `Diary` / `tb_diary` |
 | 감정 | 하루의 판정 결과. 9종 고정, 과일 캐릭터로 그린다 | `Emotion` |
-| 감정 세기 | 02 에서 기분을 고른 뒤 묻는 -2 ~ +2(선택). 감정마다 고를 수 있는 쪽이 다르다 | `EmotionGauge` / `allowsLevel()` |
 | 기분 점수 | -3 ~ +3 정수. 그래프의 Y축 | `Diary.moodScore` |
 | 오늘의 기분 | 02 에서 사용자가 고르는 값. **쓰기에 필수**지만 AI 판정을 대체하지는 않는다 | `Diary.userHint` |
 | 그리기 | 감정 분석 + 이미지 생성의 한 묶음 | `DiaryPainter.paint()` |
@@ -252,6 +251,10 @@ com.jellydiary
 - 없는 경로 호출이 404가 아니라 500 `COMMON_INTERNAL_ERROR`로 나간다 (`GlobalExceptionHandler`가 `NoResourceFoundException`을 안 잡음). 미수정.
 - 통합 테스트(`DiaryRepositoryTest`)는 Docker가 있어야 돈다: `./gradlew integrationTest`.
 - 인증 없음(`X-User-Id` 임시). 붙는 순간 `common/auth/CurrentUser*`는 삭제 대상이고, `ProfileService`의 첫 조회 자동 생성도 회원가입으로 옮긴다.
+- **2026-10-25 02·04 를 그림일기 한 장으로 다시 짰다.** `DiarySheet`(머리 띠 - 그림칸 - 기분 줄 - 글칸)를
+  02 와 04 가 같이 쓴다. **감정 세기(`EmotionGauge`)는 걷어냈다** - API 에 받을 필드가 없어
+  고르고 나면 버려지는 값이었다. 종이 안쪽만 손글씨 서체다(`font.hand`).
+  **기분은 기본값(`HAPPY`)이 골라져 있고 해제되지 않는다** - ADR 2026-10-20 과 어긋나는 지점이다.
 - **2026-10-20 게스트 모드를 넣었다**(ADR). 기기 UUID -> `tb_guest_device` -> 사용자 번호.
   07·08·09·10 은 로그인 시트가 막고, **인증이 없어 시트에 "그냥 둘러보기"라는 임시 통로가 있다** -
   인증이 붙는 날 그 버튼과 `AccountProvider.bypass` 를 함께 지운다.
@@ -262,7 +265,7 @@ com.jellydiary
   MySQL 8.0 이나 Docker(`./gradlew integrationTest`)가 필요하다. `./gradlew test` 74건은 통과.
 - **2026-10-19 날씨 6종을 감정 9종 과일 캐릭터로 바꿨다**(`feat/emotion-fruit` 머지).
   `Weather` -> `Emotion`, `shared/weather.ts` -> `shared/emotion.ts`, 캐릭터 PNG 9장,
-  02 에 감정 세기 게이지(`EmotionGauge`)와 11 로그인 화면이 붙었다.
+  02 에 11 로그인 화면이 붙었다. (감정 세기 게이지는 2026-10-25 에 걷어냈다 - 아래 참고)
   전환 SQL(`sql/patch/2026-10-05-날씨-감정-전환.sql`)은 **아직 실행 전**이다.
 - **배포를 막는 것**: 커뮤니티 신고 처리 도구·차단 없음, 계정 삭제 없음, 구독 복원 동선 없음 (`app-store-release`).
 - 댓글·구독 결제 도메인 없음. 뱃지 `FIRST_COMMENT`·`PREMIUM`은 그래서 영구 잠김이다.

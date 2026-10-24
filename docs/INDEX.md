@@ -33,5 +33,6 @@
 | `db/2026-10-20-게스트-기기-테이블.md` | `sql/patch/2026-10-20-게스트-기기-테이블.sql` | tb_guest_device |
 | `db/2026-10-20-프로필-게스트-권한.md` | `sql/patch/2026-10-20-프로필-게스트-권한.sql` | tb_profile.role, 게스트 권한 |
 | `design/components.html` | `app/src/shared/ui/**`, `app/src/shared/theme/tokens.ts` | 손그림, 색연필, 스케치 테두리, 컴포넌트 목록, 색 팔레트, 종이 질감 |
+| `.claude/skills/paper-background/SKILL.md` | `app/src/shared/ui/PaperGrain.tsx`, `app/src/shared/ui/Screen.tsx` | 종이 바탕, 결, 노이즈, 질감, 격자, 바탕 세 겹 |
 | `시스템구성도.drawio` | `api/src/main/java/com/jellydiary/**`, `app/src/**`, `.githooks/**`, `api/src/main/resources/application.yml` | 시스템 구성도, 아키텍처, 런타임 경계, 생성 시퀀스, 의존 방향, 미구축 |
-| `screen/README.md` | `app/app/(tabs)/_layout.tsx`, `app/app/_layout.tsx` | 탭바, 화면 목록, 탐색 구조, 라우트 |
+| `screen/README.md` | `app/app/(tabs)/_layout.tsx`, `app/app/_layout.tsx`, `app/src/shared/ui/Screen.tsx` | 탭바, 화면 목록, 탐색 구조, 라우트, 바탕 세 겹 |

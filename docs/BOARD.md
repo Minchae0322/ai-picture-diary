@@ -64,14 +64,21 @@ CHANGELOG.md는 코드 변경 기록, 이 보드는 **현행 문서 동기화 �
 | 2026-09-22 | 갱신: 프로필 기본값을 `app.profile.*`로 이전 - `domain/profile/`, API 명세, `feature/프로필과-꾸미기.md` | (미커밋) |
 | 2026-09-22 | 신규: `api/2026-09-22-화면05-10-API-명세.md`, `db/2026-09-22-badge-community-profile-테이블-추가.md` | (미커밋) |
 
+| 2026-10-25 | 갱신: 바탕에서 전면 모눈 제거(세 겹) - `paper-background`, `Screen`·`PaperGrain`, 토큰(`grid`/`gridOpacity` 삭제), `screen/README`, `screen/01`, `design/components.html`, `screen/prototype.html`, `hand-drawn-ui`, `CLAUDE.md` · 삭제: `app/src/shared/ui/PaperGrid.tsx` · 적용: 11 로그인·견본 화면에도 `Backdrop` | (미커밋) |
+| 2026-10-24 | 신규: 스킬 `paper-background` · 갱신: `screen/README`(바탕 겹), `design/components.html`, `screen/prototype.html`, `hand-drawn-ui`, `CLAUDE.md`, 토큰(`grainOpacity`) | (미커밋) |
+
+| 2026-10-24 | 신규: ADR `로컬-DB-실행-허용`·`바탕을-연노랑-종이로` · 갱신: `docs/db/` 7개 실행 기록, 바탕 토큰(`paper`/`paperDeep`/`glow`), `GuestDevice`, `DiaryQueryService`·`DiaryRepository`, `CLAUDE.md`, 프로젝트 스킬 | (미커밋) |
+
 ## 할 일
 
 ### 막는 것 (배포 전 필수)
-- [ ] **`sql/patch/2026-10-20-게스트-기기-테이블.sql`, `sql/patch/2026-10-20-프로필-게스트-권한.sql` 실행 (사람이).**
-      이것 없이는 백엔드가 기동하지 않는다(`ddl-auto: validate`). 로컬에서 `ddl-auto=update` 로 띄운 적이 있으면
-      하이버네이트가 만든 테이블·컬럼을 먼저 떨어뜨린다 - 모양이 다르다(각 `docs/db/` 문서 "먼저 확인할 것")
-- [ ] `sql/patch/*.sql` **5개**를 순서대로 실행 (사람이) 후 각 `docs/db/` 문서의 실행 기록 채우기. **뱃지 마스터는 badge-community-profile 다음, 감정 전환은 맨 마지막**
-- [ ] **MySQL 8.0 에서 DDL 실행 + `ddl-auto: validate` 기동 확인.** 2026-10-14 전환 이후 아직 어떤 DB에도 올라간 적이 없다. Docker 가 있으면 `./gradlew integrationTest` 로도 확인된다
+- [x] ~~`sql/patch/*.sql` **7개** 순서대로 실행 + 각 `docs/db/` 실행 기록 채우기~~ **2026-10-24 완료 (local)**
+- [x] ~~MySQL 8.0 에서 DDL 실행 + `ddl-auto: validate` 기동 확인~~ **2026-10-24 완료.**
+      Docker `mysql:8.0` 컨테이너(3307). 로컬 Homebrew MySQL(3306)은 건드리지 않았다.
+      **이 과정에서 버그 둘이 나왔다** - `GuestDevice.deviceHash` 의 char/varchar 불일치(기동 실패),
+      커서 페이징 첫 장의 `LocalDate.MAX`(MySQL DATE 상한 초과). 둘 다 고쳤다(CHANGELOG)
+- [ ] **dev/prod 에 패치 7개 실행 (사람이).** local 만 끝났다. 운영·스테이징은 AI 가 하지 않는다
+      (ADR `docs/adr/2026-10-24-로컬-DB-실행-허용.md`)
 - [ ] 08 신고 처리 도구와 차단 (`app-store-release`)
 - [ ] 10 계정 삭제 (두 스토어 필수) - 인증 도입과 함께
 - [ ] 09 구독 복원(Restore) 동선 - iOS 심사 필수

@@ -36,7 +36,16 @@ public class GuestDevice extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = HASH_COLUMN_LENGTH)
+    /*
+      columnDefinition 이 없으면 하이버네이트가 varchar(64) 를 기대해 ddl-auto: validate 가 깨진다.
+      DDL 은 길이가 고정이라 일부러 char 를 골랐으므로(패치 파일 주석) 엔티티가 그쪽에 맞춘다 -
+      스키마의 진실은 sql/patch 파일이다(ADR 2026-10-24-로컬-DB-실행-허용).
+      패치를 한 번도 실행한 적이 없어 2026-10-24 에 처음 띄워 볼 때까지 드러나지 않았다.
+    */
+    @Column(
+            nullable = false,
+            length = HASH_COLUMN_LENGTH,
+            columnDefinition = "char(" + HASH_COLUMN_LENGTH + ")")
     private String deviceHash;
 
     private GuestDevice(String deviceHash) {

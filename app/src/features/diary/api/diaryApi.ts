@@ -23,6 +23,9 @@ export const diaryApi = {
   write: (content: string, userHint: Emotion) =>
     request<DiaryCreated>('/api/v1/diaries', { method: 'POST', body: { content, userHint } }),
 
+  /** 04 "다시 그리기" - 오늘 기록을 지우고 02 빈 종이로 돌아간다 */
+  remove: (id: string) => request<void>(`/api/v1/diaries/${id}`, { method: 'DELETE' }),
+
   regenerate: (id: string) =>
     request<DiaryCreated>(`/api/v1/diaries/${id}/regenerate`, { method: 'POST' }),
 

@@ -120,6 +120,22 @@ export function useWriteDiary() {
   });
 }
 
+/**
+ * 04 "다시 그리기". **지우고 02 로 돌아간다** - 같은 글로 그림만 바꾸는 것이 아니라
+ * 글·기분·그림체를 처음부터 다시 정한다.
+ *
+ * <p>이미 쓴 AI 생성 횟수는 서버가 다음 기록으로 이어 준다 - 지우기를 반복해도 하루 상한은 그대로다.
+ */
+export function useDeleteDiary() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => diaryApi.remove(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: diaryKeys.all });
+    },
+  });
+}
+
 export function useRegenerateDiary() {
   const queryClient = useQueryClient();
   return useMutation({

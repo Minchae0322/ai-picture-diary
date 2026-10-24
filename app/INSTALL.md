@@ -28,7 +28,11 @@ npm run start
 
 ## 서체
 
-서체는 **SUIT(수트)** 하나로 통일한다. 파일은 `app/assets/fonts/` 에 저장소가 들고 있다
+서체는 **둘**이다. 기본은 **SUIT(수트)**, 그림일기 종이 안쪽만 손글씨
+**그리운X국한박 사랑스러운**(`GriunXHangeul_SarangSeuReoUn-Rg.ttf`,
+https://noonnu.cc/font_page/1896, 상업적 이용·앱 내장 허용, **파일 수정·재판매 금지**).
+수정 금지라 woff2 를 ttf 로 변환하지 않고 **공식 ttf 를 그대로** 받아 둔다.
+아래 설명은 SUIT 기준이다. 파일은 `app/assets/fonts/` 에 저장소가 들고 있다
 (SIL Open Font License 1.1, https://github.com/sunn-us/SUIT).
 
 **굵기마다 파일이 따로 등록된다.** RN은 커스텀 폰트에서 `fontWeight` 로 굵기를 합성하지 못하므로

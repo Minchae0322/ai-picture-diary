@@ -25,8 +25,11 @@
 
 :root {
   /* ---- 앱 토큰 (라이트) ---- */
-    --sky-50:#faf4dc; --sky-100:#faf4dc; --sky-200:#faf4dc;
-  --glow: rgba(255,251,236,.85);
+  /* 바탕 연노랑 (2026-10-24, ADR 바탕을-연노랑-종이로).
+     세 값이 앱의 bgTop -> bgBottom 그라디언트(0 / 0.55 / 1)와 같은 자리다.
+     한때 이 파일만 바닐라 #faf4dc 로 남아 토큰과 갈라져 있었다 - 이번에 다시 맞췄다 */
+  --sky-50:#FEF8E5; --sky-100:#F9F2D8; --sky-200:#F9F2D8;
+  --glow: rgba(255,253,244,.85);
   --text:#253544; --muted:#4e6375; --subtle:#5b6e7f; --decor:#a8bccd;
   --primary:#3f6d8e; --primary-pressed:#325a77; --primary-fg:#ffffff; --accent-soft:#5b9bc4;
   --primary-shadow: rgba(63,109,142,.32);
@@ -163,23 +166,41 @@ button { font: inherit; color: inherit; cursor: pointer; }
   color: var(--text); box-shadow: 0 22px 50px rgba(0,0,0,.18);
   display: flex; flex-direction: column;
   transition: background .3s ease;
+
+  /* 바탕 겹의 재료. **모눈은 없다**(2026-10-25) - 전면 격자를 깔면 바탕이 조용하지 않아
+     그 위에 손으로 그린 선이 먼저 읽히지 않는다. 질감은 결 한 겹이 전부다 */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23g)' opacity='.09'/%3E%3C/svg%3E");
 }
+/* 바탕 세 겹을 아래에서 위로: 색(.phone 배경) - 결 - 빛 (paper-background 1장).
+   앱 쪽은 Backdrop 이 같은 순서로 쌓는다 - 결의 9% 를 한쪽만 고치지 않는다.
+
+   쌓임 순서를 z-index 로 못 박는다. 안 박으면 ::after 가 DOM 순서상 자식보다 뒤라
+   결이 내용 **위에** 올라간다 */
+.phone::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  /* 결의 9% 는 CSS opacity 가 아니라 SVG 안에 넣는다 - 빛(::before)과 농도를 따로 쥐려면
+     요소 opacity 를 비워 둬야 한다 */
+  background-image: var(--grain);
+  background-size: 160px 160px;
+}
+/* 빛은 바탕 겹의 **맨 위**다. 종이에 빛이 비치면 거친 면도 같이 하얗게 뜬다 */
 .phone::before {
   content: ""; position: absolute; right: -170px; top: -160px; width: 420px; height: 420px;
-  border-radius: 50%; pointer-events: none;
+  border-radius: 50%; pointer-events: none; z-index: 1;
   background: radial-gradient(circle, var(--glow) 0%, transparent 70%);
 }
-.status { position: relative; display: flex; justify-content: space-between; align-items: center; padding: 18px 28px 0; flex: none; }
+/* 내용은 세 겹 전부보다 위 */
+.status { position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: center; padding: 18px 28px 0; flex: none; }
 .status b { font-size: 14px; font-weight: 700; }
 .status i { width: 58px; height: 12px; border-radius: 4px; background: color-mix(in srgb, var(--text) 35%, transparent); }
 
-.view { position: relative; flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; }
+.view { position: relative; z-index: 2; flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; }
 .view::-webkit-scrollbar { width: 0; }
 .pad { display: flex; flex-direction: column; gap: 24px; padding: 20px 28px 32px; }
 .pad.g20 { padding-left: 20px; padding-right: 20px; }
 
 /* 탭바 */
-.tabbar { position: relative; flex: none; display: flex; padding: 14px 0 24px; background: var(--surface); border-top: 1px solid var(--border); box-shadow: var(--shadow-up); }
+.tabbar { position: relative; z-index: 2; flex: none; display: flex; padding: 14px 0 24px; background: var(--surface); border-top: 1px solid var(--border); box-shadow: var(--shadow-up); }
 .tabbar button { flex: 1; border: 0; background: none; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 0; min-height: 44px; }
 .tabbar i { width: 24px; height: 24px; border-radius: 50%; display: block; transition: opacity .2s ease; }
 .tabbar span { font-size: 10px; line-height: 1.2; color: var(--subtle); }

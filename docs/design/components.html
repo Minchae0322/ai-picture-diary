@@ -141,10 +141,6 @@ pre .c{color:#A09888}
 .bg-paper{background:var(--paper)}
 .bg-note{background:var(--paper);
   background-image:repeating-linear-gradient(0deg,transparent,transparent 23px,rgba(59,59,59,.09) 23px,rgba(59,59,59,.09) 24px)}
-.bg-grid{background:var(--paper);
-  background-image:linear-gradient(rgba(59,59,59,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(59,59,59,.07) 1px,transparent 1px);
-  background-size:18px 18px}
-
 .hatch{width:150px;height:96px;border-radius:12px 6px 14px 8px;filter:url(#roughen);
   background:repeating-linear-gradient(-35deg,var(--blue) 0 1.4px,transparent 1.4px 6px)}
 .hatch.cross{background:
@@ -188,7 +184,7 @@ footer{text-align:center;font-family:var(--note);font-size:17px;color:var(--char
     <li><a href="#status">구현 현황</a></li>
     <li><a href="#line">선</a></li>
     <li><a href="#color">색</a></li>
-    <li><a href="#bg">바탕 3</a></li>
+    <li><a href="#bg">바탕 2</a></li>
     <li><a href="#frame">틀 4</a></li>
     <li><a href="#action">행동 4</a></li>
     <li><a href="#notice">알림 4</a></li>
@@ -214,11 +210,14 @@ footer{text-align:center;font-family:var(--note);font-size:17px;color:var(--char
       <tr><td><code>Tape.tsx</code></td><td>마스킹 테이프 (원본 포팅)</td><td>가장자리 3종, 변형 8종, 기울기·불투명도</td></tr>
       <tr><td><code>SketchLine.tsx</code></td><td>선 한 줄 (물결 밑줄·구분선)</td><td>폭 자동 측정, 진폭·주기·떨림, 겹쳐 긋기</td></tr>
       <tr><td><code>NotePaper.tsx</code></td><td>공책 한 장 (쓰는 자리)</td><td>색연필 괘선, 손그림 테두리, 테이프, 줄 수로 높이 결정</td></tr>
+      <tr><td><code>PaperGrain.tsx</code></td><td>종이 결 (화면 바탕)</td><td>둥근 점 1400 개를 한 번만 계산, 겹 불투명도 9%</td></tr>
     </table>
     <p class="why" style="margin-top:14px">
       <strong>앱에 이미 적용된 곳:</strong> 공용 <code>Button</code> 이 손그림 테두리로 그려집니다
       (11개 화면의 모든 버튼) · <code>Card</code> 가 <code>SketchBorder</code> 를 씁니다 ·
-      02 홈의 쓰는 자리가 <code>NotePaper</code> 입니다.
+      02 홈의 쓰는 자리가 <code>NotePaper</code> 입니다 ·
+      <strong>모든 화면의 바탕이 종이입니다</strong> - <code>Screen</code> 의 <code>Backdrop</code> 이
+      색·결·빛 세 겹을 쌓습니다(01 은 글로우만 끕니다). 전면 모눈은 깔지 않습니다.
       실제 기기에서 그려진 모습은 앱의 <code>/sketch-gallery</code> 화면에서 봅니다.
     </p>
   </div>
@@ -226,13 +225,13 @@ footer{text-align:center;font-family:var(--note);font-size:17px;color:var(--char
   <div class="item">
     <h3>아직 설계만 - 쓰려면 먼저 만들어야 한다</h3>
     <p class="why">
-      아래 13종은 이 문서와 <code>reference.md</code> 에 <strong>수치와 만드는 법</strong>이 있습니다.
+      아래 12종은 이 문서와 <code>reference.md</code> 에 <strong>수치와 만드는 법</strong>이 있습니다.
       코드는 아직 없습니다. <code>Loader</code> 는 공용 컴포넌트가 없을 뿐,
       03 생성 중 화면의 <code>DrawingBoard</code> 가 이 체계의 기다림을 실제로 그립니다 -
       색연필이 액자 안의 그림을 칠해 나갑니다.
     </p>
     <div class="spec">
-      <span>Paper</span><span>DoodleGridBackground</span>
+      <span>Paper</span>
       <span>SectionTitle</span><span>Toggle</span><span>Checkbox</span>
       <span>Combobox</span><span>Toast</span><span>Alert</span><span>Tooltip</span>
       <span>HoverCard</span><span>Avatar</span><span>Loader</span><span>Calendar</span>
@@ -317,18 +316,20 @@ footer{text-align:center;font-family:var(--note);font-size:17px;color:var(--char
 
 <!-- ============ 바탕 ============ -->
 <section id="bg">
-  <h2 class="sec">바탕 3</h2>
-  <p class="sec-note">가장 싸고 가장 크게 바뀌는 자리입니다. 여기부터 바꾸세요.</p>
+  <h2 class="sec">바탕 2</h2>
+  <p class="sec-note">가장 싸고 가장 크게 바뀌는 자리입니다. 여기부터 바꾸세요. 규칙과 수치는 <code>paper-background</code> 스킬에 있습니다.</p>
   <div class="item">
     <div class="demo">
       <div><div class="bg-sample bg-paper"></div><p class="why" style="margin:8px 0 0">Paper - 종이 + 결</p></div>
-      <div><div class="bg-sample bg-note"></div><p class="why" style="margin:8px 0 0">Notebook - 괘선 24px</p></div>
-      <div><div class="bg-sample bg-grid"></div><p class="why" style="margin:8px 0 0">DoodleGrid - 모눈 + 낙서</p></div>
+      <div><div class="bg-sample bg-note"></div><p class="why" style="margin:8px 0 0">Notebook - 괘선 24px (쓰는 자리에만)</p></div>
     </div>
-    <div class="spec"><span>결 불투명도 0.025~0.03</span><span>괘선 rgba(59,59,59,.04)</span><span>모눈 24px</span><span>낙서는 가장자리에만</span></div>
-    <pre><span class="c">// RN 은 feTurbulence 가 없다. 점을 흩뿌린 SVG 한 장을 깐다(한 번만 계산)</span>
-&lt;PaperGrain /&gt;
-<span class="c">// 글이 올라가는 면에는 괘선을 넣지 않는다 - 글줄과 어긋나면 더 지저분하다</span></pre>
+    <div class="spec"><span>결 9%</span><span>전면 모눈 없음</span><span>괘선 rgba(59,59,59,.04)</span><span>낙서는 가장자리에만</span></div>
+    <pre><span class="c">// 아래에서 위로 세 겹: 색 - 결 - 빛. 순서가 규칙이다</span>
+&lt;PaperGrain color={colors.grain} opacity={colors.grainOpacity} /&gt; <span class="c">// 9%</span>
+
+<span class="c">// 바탕에 전면 모눈은 깔지 않는다 - 바탕이 조용해야 그 위의 손그림 선이 먼저 읽힌다</span>
+<span class="c">// 격자가 필요한 자리는 글이 올라가는 면의 괘선뿐이고, 그건 손으로 긋는다(SketchLine)</span>
+<span class="c">// RN 은 feTurbulence 가 없다. 점을 흩뿌린 SVG 한 장을 깐다(한 번만 계산)</span></pre>
   </div>
 </section>
 

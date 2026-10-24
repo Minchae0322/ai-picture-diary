@@ -44,6 +44,6 @@
 
 | 문서 | 무엇 |
 |---|---|
-| `design/components.html` | **손그림 컴포넌트 목록.** 브라우저에서 바로 열린다. 선·색·바탕·틀·행동·알림·조각 20종이 실제로 그려져 있고 React Native 코드가 붙어 있다 |
+| `design/components.html` | **손그림 컴포넌트 목록.** 브라우저에서 바로 열린다. 선·색·바탕·틀·행동·알림·조각 19종이 실제로 그려져 있고 React Native 코드가 붙어 있다 |
 
 규칙은 `.claude/skills/hand-drawn-ui/` (`SKILL.md` 원칙 · `components.md` 코드 · `reference.md` 수치).

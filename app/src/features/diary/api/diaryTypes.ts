@@ -84,3 +84,24 @@ export const DAILY_REGENERATE_LIMIT = 3;
  * 결과 화면의 감정은 서버가 정한 `DiaryDetail.emotion` 이고 고른 값과 다를 수 있다.
  */
 export const QUICK_EMOTIONS: Emotion[] = EMOTIONS;
+
+/**
+ * 02 그림체. **선택이다** - 고르지 않아도 첫 값으로 그린다.
+ *
+ * <p>값은 서버 프로필의 `aiStyle`(자유 문자열 40자)에 그대로 들어간다. 고정 enum 으로 만들지 않은
+ * 이유는 그림체가 모델을 바꾸면 같이 바뀔 말이라 DB 제약으로 굳히면 모델 교체가 마이그레이션이
+ * 되기 때문이다. 대신 **고를 수 있는 것은 앱이 정한 이 목록뿐**이라 자유 입력은 생기지 않는다.
+ */
+export const DRAW_STYLES = [
+  { value: 'crayon', label: '크레파스' },
+  { value: 'watercolor', label: '수채화' },
+  { value: 'pencil', label: '연필' },
+  { value: 'pastel', label: '파스텔' },
+] as const;
+
+export type DrawStyle = (typeof DRAW_STYLES)[number]['value'];
+
+/** 코드 -> 보이는 이름. 견본 설명문이 쓴다 */
+export const DRAW_STYLE_LABEL: Record<DrawStyle, string> = Object.fromEntries(
+  DRAW_STYLES.map((item) => [item.value, item.label]),
+) as Record<DrawStyle, string>;

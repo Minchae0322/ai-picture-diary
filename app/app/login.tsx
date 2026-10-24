@@ -12,6 +12,7 @@ import {
   space,
 } from '@/shared/theme/tokens';
 import { useColors } from '@/shared/theme/useColors';
+import { Backdrop } from '@/shared/ui/Screen';
 import { EmotionFace } from '@/shared/ui/EmotionFace';
 import { Icon } from '@/shared/ui/Icon';
 
@@ -53,7 +54,11 @@ export default function LoginScreen() {
   };
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.bg }]}>
+    <View style={[styles.root, { backgroundColor: colors.bgTop }]}>
+      {/* 종이 바탕. 이 화면은 Screen 을 쓰지 않지만(스크롤도 거터도 다르다)
+          바탕은 다른 화면과 같아야 한다 - 단색 한 장으로 끝내지 않는다(`paper-background` 7장) */}
+      <Backdrop />
+
       <View
         style={[
           styles.page,

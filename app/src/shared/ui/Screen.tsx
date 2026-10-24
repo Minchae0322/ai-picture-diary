@@ -13,6 +13,14 @@ type Props = {
   /** 우상단 햇살 글로우. 01 처럼 자체 배경이 있는 화면만 끈다 */
   glow?: boolean;
   scroll?: boolean;
+  /**
+   * 하단 여백. 기본은 안전영역 + 32 로, 내용이 탭바에 붙지 않게 넉넉히 띄운다.
+   *
+   * <p>`tight` 는 **바닥에 붙는 주 행동이 있는 화면**을 위한 것이다(02 홈의 "오늘 그리기").
+   * 그런 화면에서 기본 여백을 쓰면 버튼 아래가 100 가까이 비어 버튼이 바닥에 붙지 않는다 -
+   * 사용자는 그 빈 자리를 보고 아래에 뭔가 더 있는 줄 알고 쓸어내린다.
+   */
+  bottomSpace?: 'default' | 'tight';
   refreshing?: boolean;
   onRefresh?: () => void;
 };
@@ -26,6 +34,7 @@ export function Screen({
   width = 'wide',
   glow = true,
   scroll = true,
+  bottomSpace = 'default',
   refreshing,
   onRefresh,
 }: Props) {
@@ -33,7 +42,12 @@ export function Screen({
   const insets = useSafeAreaInsets();
   const padding = {
     paddingTop: insets.top + space[5],
-    paddingBottom: insets.bottom + space[8],
+    /*
+      `tight` 는 안전영역을 **더하지 않는다.** 탭바가 이미 홈 인디케이터 높이를 품고 있어서
+      여기서 또 더하면 그만큼이 두 번 들어가 버튼 아래가 빈다 - 바닥에 붙여야 하는 화면에서
+      그 빈자리는 "아래에 뭔가 더 있다"는 신호로 읽힌다.
+    */
+    paddingBottom: bottomSpace === 'tight' ? space[2] : insets.bottom + space[8],
     paddingHorizontal: gutter[width],
   };
 
@@ -77,8 +91,15 @@ export function Screen({
 }
 
 /**
- * prototype `.phone` 의 세로 그라디언트 + `::before` 의 원형 글로우 + **종이 결**.
- * 라이트에서는 위아래가 아주 조금 갈려 종이 한 장을 비스듬히 본 느낌을 낸다.
+ * 바탕 **세 겹**을 아래에서 위로 쌓는다 - 색, 결, 빛(`paper-background` 1장).
+ * 바탕은 색이 아니라 재료다: 같은 색 한 장은 "연노랑 면"이고 결을 얹으면 "종이"다.
+ *
+ * <p>**모눈은 깔지 않는다**(2026-10-25). 전면 격자는 바탕을 조용하게 두지 못하고,
+ * 이 체계에서 눈이 먼저 가야 하는 것은 그 위에 손으로 그린 선이다. 격자가 필요한 자리는
+ * 글이 올라가는 면의 괘선뿐이고 그건 바탕이 아니라 공책이라 손으로 긋는다(`DiarySheet`).
+ *
+ * <p>**순서가 규칙이다.** 빛이 맨 위여야 글로우가 닿은 모서리에서 결까지 같이 하얗게 뜬다 -
+ * 종이에 빛이 비치면 거친 면도 함께 날아간다.
  */
 export function Backdrop({ glow = true }: { glow?: boolean }) {
   const colors = useColors();
@@ -100,8 +121,8 @@ export function Backdrop({ glow = true }: { glow?: boolean }) {
         <Rect x="0" y="0" width="100%" height="100%" fill="url(#sky)" />
       </Svg>
 
-      {/* 종이 결. 색만 바꾸면 그냥 노란 면이고, 결이 있어야 종이로 읽힌다 */}
-      <PaperGrain color={colors.grain} />
+      {/* 종이 결. 색만 바꾸면 그냥 면이고, 결이 있어야 종이로 읽힌다 */}
+      <PaperGrain color={colors.grain} opacity={colors.grainOpacity} />
 
       {glow ? (
         <Svg width={GLOW} height={GLOW} style={styles.glow}>

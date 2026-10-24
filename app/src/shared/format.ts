@@ -6,6 +6,30 @@ export function formatFullDate(date: Date): string {
   return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일 ${WEEKDAYS[date.getDay()]}요일`;
 }
 
+/**
+ * "10월 24일 토요일" (02/03/04 홈 머리글).
+ *
+ * <p>연도를 떼는 이유는 두 가지다. 오늘 화면에서 연도는 아는 값이고, 머리글 한 줄에 연속 기록 칩이
+ * 같이 앉아야 해서 "2026년"이 들어가면 390 폭에서 칩이 밀린다.
+ */
+export function formatTodayHeadline(date: Date): string {
+  return `${date.getMonth() + 1}월 ${date.getDate()}일 ${WEEKDAYS[date.getDay()]}요일`;
+}
+
+/**
+ * 학습지의 "년 월 일" 빈칸을 채우는 형식(02 그림일기 종이).
+ * 숫자와 단위를 따로 돌려주는 이유는 **단위가 인쇄된 글자이고 숫자가 채워 넣은 값**이라
+ * 둘의 굵기와 색이 달라야 하기 때문이다 - 한 문자열로 합치면 그 구분이 사라진다.
+ */
+export function splitTodayParts(date: Date): Array<{ value: string; unit: string }> {
+  return [
+    { value: String(date.getFullYear()), unit: '년' },
+    { value: String(date.getMonth() + 1), unit: '월' },
+    { value: String(date.getDate()), unit: '일' },
+    { value: WEEKDAYS[date.getDay()], unit: '요일' },
+  ];
+}
+
 /** "2026-08-24" -> "2026.08.24" (04 헤더) */
 export function formatDotDate(isoDate: string): string {
   return isoDate.replaceAll('-', '.');

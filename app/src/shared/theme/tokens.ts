@@ -8,25 +8,55 @@
  * (figma-workflow 4장. docs/screen/README.md "토큰의 진실" 참고).
  */
 
+import { Dimensions } from 'react-native';
 import type { Emotion } from '@/shared/emotion';
+
+/**
+ * 글자 크기의 **기준 폭**. 시안이 390x844 이고 모든 수치가 그 화면에서 잡혔다.
+ */
+const BASE_WIDTH = 390;
+
+/**
+ * 화면 폭에 따른 글자 배율. 390 보다 좁으면 줄이고 넓으면 키운다.
+ *
+ * <p><b>범위를 0.92~1.12 로 조인 이유</b>는 이 앱의 세로가 늘 빠듯하기 때문이다 - 02 홈은
+ * 종이 한 장과 버튼이 한 화면에 들어가야 한다(세로 예산 680). 배율을 열어 두면 큰 화면에서
+ * 글자만 커져 종이가 밀려 나간다. SE(375)에서 0.96, Pro Max(430)에서 1.10 쯤이 된다.
+ *
+ * <p><b>앱이 세로 고정</b>이라(`app.json` orientation: portrait) 모듈이 로드될 때 한 번만 잰다.
+ * 회전이 생기면 `useWindowDimensions` 로 바꿔야 한다.
+ *
+ * <p>OS 의 글자 크기 설정(`PixelRatio.getFontScale()`)은 여기 곱하지 않는다 - RN 의 `Text` 가
+ * 이미 그 값을 따로 적용하므로 두 번 곱하면 큰 글씨 설정에서 화면이 무너진다.
+ */
+const FONT_SCALE = Math.min(1.12, Math.max(0.92, Dimensions.get('window').width / BASE_WIDTH));
+
+/** 기준 화면(390)에서 잰 값을 이 화면 크기로 옮긴다. 반올림해 반픽셀을 만들지 않는다 */
+export const scale = (size: number) => Math.round(size * FONT_SCALE);
 
 const primitive = {
   /**
-   * 배경 종이. **브랜드에서 뽑은 아주 연한 하늘**이다(2026-10-20).
+   * 배경 종이. **연노랑**이다(2026-10-24, ADR `docs/adr/2026-10-24-바탕을-연노랑-종이로.md`).
    *
-   * <p>따뜻한 쪽을 두 번 시도했다가 두 번 다 접었다 - 오트밀(`#F3EBDA`)은 탁했고
-   * 크림(`#FBF8F0`)도 아니었다. 문제는 밝기가 아니라 **노란기 자체**였다.
+   * <p>2026-10-20 에 따뜻한 쪽을 두 번 접고 서늘한 하늘(`#F2F5F8`)로 뒤집었었다. 그때의 진단은
+   * "문제는 밝기가 아니라 **노란기 자체**"였는데 **그게 틀렸다.** 카드를 지운 범인은 밝기였다 -
+   * 버려진 크림 `#FAF6ED` 는 흰 카드와 ΔE 2.9 였고, 그 실패를 노란기 탓으로 돌렸다.
+   * 정작 뒤집은 뒤의 서늘한 값도 ΔE 3.2 로 **0.3 밖에 차이가 없었다.** 카드 경계는 처음부터
+   * 색이 아니라 손그림 테두리가 잡고 있었다.
    *
-   * <p>그래서 온도를 뒤집었다. 브랜드색 흐린 하늘(`#3f6d8e`)을 아주 연하게 푼 값이라
-   * 회색처럼 밋밋하지 않고 제품의 색과 이어진다. 그리고 과일 캐릭터가 전부 따뜻한 색이라
-   * **서늘한 바탕 위에서 오히려 살아난다** - 크림 위에서는 같은 계열끼리 뭉쳤다.
+   * <p>그래서 **밝기는 올리지 않고 노란기만 되찾는** 값으로 돌아왔다. 손그림 체계의 바탕은
+   * 종이이고 종이는 푸르지 않다.
    *
-   * 본문 `#253544` 대비 **11.48**, 보조 `#4e6375` **5.70**, 흰 카드와 ΔE **3.2**
-   * (따뜻한 후보들보다 오히려 분리가 낫다). 경계는 손그림 선이 잡으므로 면 차이는 거들기만 하면 된다.
+   * 본문 `#253544` 대비 **11.83**, 보조 `#4e6375` **5.87**, 흰 카드와 ΔE **3.3**.
+   *
+   * <p>처음 `#FDF6DC`(ΔE 4.5)로 잡았다가 한 단계 연하게 내렸다(2026-10-24). **여기가 바닥이다** -
+   * 흰 카드와 2.9 까지 좁아지면 카드가 사라진다(버려진 크림 `#FAF6ED` 가 그 값이었다).
+   * 3.3 은 서늘한 `#F2F5F8` 이 쓰던 3.2 와 같은 자리라 이미 돌아가는 것이 확인된 분리다.
+   * 더 연하게 가려면 바탕이 아니라 **카드 쪽을 손봐야 한다.**
    */
-  paper: '#F2F5F8',
-  /** 아래로 갈수록 조금 깊어진다. 종이 한 장을 비스듬히 본 정도 */
-  paperDeep: '#E9EEF3',
+  paper: '#FEF8E5',
+  /** 아래로 갈수록 조금 깊어진다. 종이 한 장을 비스듬히 본 정도. 단차 ΔE 2.10, 본문 대비 11.20 */
+  paperDeep: '#F9F2D8',
   paperRaised: 'rgba(255,255,255,0.97)',
   paperLine: '#e2d6ba',
 
@@ -80,6 +110,14 @@ export type Colors = {
   raisedB: string;
   border: string;
   borderStrong: string;
+  /**
+   * 그림일기 종이의 **가장자리와 칸선**. `borderStrong` 보다 진하다.
+   *
+   * <p>따로 둔 이유는 `borderStrong` 이 칩·캘린더·뱃지·로그인까지 열 곳 넘게 쓰기 때문이다 -
+   * 종이 한 장을 세우려고 그 값을 올리면 화면 전체의 선이 같이 굵어진다.
+   * 종이는 **한 장으로 놓인 물건**이라 자기 가장자리가 또렷해야 하고, 그 요구가 다른 선과 다르다.
+   */
+  sheetLine: string;
   text: string;
   textMuted: string;
   /** 표면 위에서만 쓴다. 배경 위는 textMuted (muted-sky 2장) */
@@ -117,6 +155,11 @@ export type Colors = {
   faceBg: string;
   /** 종이 결로 흩뿌리는 점의 색. 라이트는 흑연, 다크는 흰빛 */
   grain: string;
+  /**
+   * 그 결 **겹**의 불투명도. 점마다의 값은 겹 안에서의 상대 농도일 뿐이다
+   * (`paper-background` 3장). 색과 불투명도를 쪼개 두는 이유는 `glow` 와 같다
+   */
+  grainOpacity: number;
 };
 
 const light: Colors = {
@@ -139,6 +182,8 @@ const light: Colors = {
    */
   border: 'rgba(37,53,68,0.16)',
   borderStrong: primitive.paperLine,
+  /** 흰 면과 ΔE 22.0, 연노랑 바탕과 19.3 - 양쪽 모두에서 가장자리가 선다(전 12.8 / 10.1) */
+  sheetLine: '#cbb88f',
 
   text: primitive.slate900,
   textMuted: primitive.slate600,
@@ -159,14 +204,15 @@ const light: Colors = {
   skeleton: 'rgba(37,53,68,0.07)',
   track: 'rgba(37,53,68,0.10)',
 
-  /** 바탕이 서늘해져 글로우도 같이 식혔다. 따뜻한 빛만 남으면 그 모서리만 누렇게 뜬다 */
-  glow: '#f8fbff',
+  /** 바탕이 다시 따뜻해져 빛도 같이 돌렸다(2026-10-24). 서늘한 빛만 남으면 그 모서리만 퍼렇게 뜬다 */
+  glow: '#fffdf4',
   glowOpacity: 0.85,
   highlight: primitive.cocoa600,
   highlightText: primitive.paper,
   rule: 'rgba(63,63,63,0.22)',
   emotionInk: primitive.slate900,
   grain: '#3B3B3B',
+  grainOpacity: 0.09,
   /**
    * 분리 정도는 **그림의 실제 픽셀**로 잰다 - 대표색 한 점으로 재면 여러 색을 가진 캐릭터를 놓친다.
    * 불투명 픽셀의 ΔE 중앙값(OKLab x100): 블루베리 50.9 / 가지 49.7 / 체리·딸기·토마토 35.7 /
@@ -189,6 +235,8 @@ const dark: Colors = {
   raisedB: primitive.night700,
   border: 'rgba(255,255,255,0.10)',
   borderStrong: 'rgba(255,255,255,0.18)',
+  /** 다크에서도 종이 선은 한 단계 진하다 */
+  sheetLine: 'rgba(255,255,255,0.30)',
 
   text: '#e8f0f6',
   textMuted: '#b3c4d1',
@@ -222,6 +270,8 @@ const dark: Colors = {
   faceBg: '#b8d7e7',
   /** 어두운 면 위에서는 흰 점이 종이 결이 된다 */
   grain: '#ffffff',
+  /** 흰 점은 흑연 점보다 눈에 세게 걸린다. 라이트의 0.09 를 그대로 쓰면 결이 아니라 먼지로 보인다 */
+  grainOpacity: 0.07,
 };
 
 export const colorsFor = (scheme: string | null | undefined) => (scheme === 'dark' ? dark : light);
@@ -230,28 +280,47 @@ export const space = { 1: 4, 2: 8, 3: 12, 4: 16, 5: 20, 6: 24, 7: 28, 8: 32, 12:
 export const radius = { sm: 10, md: 16, lg: 24, xl: 34, full: 9999 } as const;
 
 /**
- * 서체는 **SUIT 하나**다. 등록은 `app/app/_layout.tsx` 의 `useFonts(FONT_ASSETS)` 한 곳.
+ * 서체는 **둘**이다(2026-10-25). 등록은 `app/app/_layout.tsx` 의 `useFonts(FONT_ASSETS)` 한 곳.
+ *
+ * <ul>
+ *   <li><b>SUIT</b> - 화면의 기본. 버튼·목록·설명 등 읽는 글은 전부 이것이다.
+ *   <li><b>그리운X국한박 사랑스러운</b>(`font.hand`) - <b>그림일기 종이 안쪽만</b>.
+ *       손글씨라 종이 위에 적은 글로 읽힌다. 종이 밖에서는 쓰지 않는다 -
+ *       손글씨를 화면 전체에 깔면 읽기가 피곤해진다(`hand-drawn-ui` 4장: 제목과 주석까지다).
+ * </ul>
+ *
+ * <p>손글씨는 굵기가 하나뿐이라 `hand` 로 굵기를 나누지 않는다. 종이 안에서 위계는
+ * <b>크기와 색</b>으로 만든다.
  *
  * **굵기는 패밀리로 고른다.** RN은 커스텀 폰트에서 `fontWeight` 로 굵기를 합성하지 못한다
  * (특히 안드로이드). 그래서 `weightBold` 같은 토큰을 두지 않는다.
  * 그리고 RN은 폰트가 상속되지 않으므로 **글자가 있는 스타일마다 `fontFamily` 를 넣는다.**
  */
 export const font = {
-  micro: 10,
-  xs: 12,
-  sm: 13,
-  base: 14,
-  md: 15,
-  lg: 17,
-  xl: 20,
-  xxl: 24,
+  micro: scale(10),
+  xs: scale(12),
+  sm: scale(13),
+  base: scale(14),
+  md: scale(15),
+  lg: scale(17),
+  xl: scale(20),
+  xxl: scale(24),
   /** 01 온보딩 헤드라인 */
-  display: 34,
+  display: scale(34),
 
   regular: 'SUIT-Regular',
   medium: 'SUIT-Medium',
   bold: 'SUIT-Bold',
   black: 'SUIT-Heavy',
+
+  /**
+   * 그림일기 종이 안쪽 손글씨. 그리운X국립한글박물관 "사랑스러운"
+   * (https://noonnu.cc/font_page/1896, 상업적 이용·앱 내장 허용, 파일 수정·재판매 금지).
+   *
+   * <p>한글 2,780자만 들어 있다 - **없는 글자는 시스템 폰트로 떨어진다.** 사용자가 쓴 본문은
+   * 무엇이 올지 모르므로 이 점을 알고 쓴다. 라틴·숫자는 들어 있다.
+   */
+  hand: 'GriunXHangeul-SarangSeuReoUn',
 } as const;
 
 /** `useFonts` 에 그대로 넘긴다. 굵기마다 파일이 따로다 */
@@ -260,6 +329,7 @@ export const FONT_ASSETS = {
   'SUIT-Medium': require('@assets/fonts/SUIT-Medium.otf'),
   'SUIT-Bold': require('@assets/fonts/SUIT-Bold.otf'),
   'SUIT-Heavy': require('@assets/fonts/SUIT-Heavy.otf'),
+  'GriunXHangeul-SarangSeuReoUn': require('@assets/fonts/GriunXHangeul_SarangSeuReoUn-Rg.ttf'),
 } as const;
 
 /** 줄 높이. 본문 1.45, 제목은 호출부에서 비율을 넘긴다 */

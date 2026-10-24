@@ -32,8 +32,9 @@ export default function OnboardingScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.bgTop }]}>
-      {/* 하늘 그라디언트. 다른 화면은 Screen 이 깔지만 01 은 Screen 을 쓰지 않는다.
-          글로우는 끈다 - 히어로 그림과 겹쳐 그림의 흰 선이 묻힌다 */}
+      {/* 종이 바탕. 다른 화면은 Screen 이 깔지만 01 은 Screen 을 쓰지 않는다.
+          글로우만 끈다 - 히어로 그림과 겹쳐 그림의 흰 선이 묻힌다.
+          히어로 뒤 `NotebookLines` 괘선은 이 화면의 것이라 그대로 둔다 */}
       <Backdrop glow={false} />
 
       {/* 바닥을 가로지르는 손그림 띠. 원본이 정사각이라 그대로 두면 화면 절반을 먹는다.

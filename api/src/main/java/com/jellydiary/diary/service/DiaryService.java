@@ -46,10 +46,29 @@ public class DiaryService {
             throw new BusinessException(ErrorCode.DIARY_ALREADY_EXISTS);
         }
 
-        Diary diary = save(Diary.write(userId, today, content, userHint, policy()));
+        Diary diary = Diary.write(userId, today, content, userHint, policy());
+        // 오늘 지웠다 다시 쓰는 길이 있으므로 이미 쓴 생성 횟수를 이어받는다.
+        // **상한 검사도 여기서** 한다 - 지우기는 공짜고 비용은 그리기에서 난다(Diary.carryGenerations)
+        diary.carryGenerations(
+                diaryRepository.countGenerationsOn(userId, today),
+                policy(),
+                profileService.isGuest(userId));
+        save(diary);
         requestPainting(diary, "diary.written");
 
         return diary.getId();
+    }
+
+    /**
+     * 오늘 기록을 지운다. 04 의 "다시 그리기"가 글부터 다시 쓰게 하는 길이다.
+     *
+     * <p>소프트 삭제라({@code @SQLDelete}) 행은 남고 {@code deleted_at} 만 채워진다. 하루 1건
+     * unique 인덱스는 {@code alive} 생성 컬럼을 끼고 있어 지워진 행은 키에서 빠진다 - 같은 날
+     * 새로 쓸 수 있다. <b>지워진 행도 생성 횟수로는 계속 센다.</b>
+     */
+    @Transactional
+    public void delete(Long userId, Long diaryId) {
+        diaryRepository.delete(load(userId, diaryId));
     }
 
     @Transactional

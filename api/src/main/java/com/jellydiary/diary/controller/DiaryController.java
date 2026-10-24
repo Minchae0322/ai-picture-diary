@@ -13,6 +13,9 @@ import java.net.URI;
 import java.time.YearMonth;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -100,5 +103,17 @@ public class DiaryController {
         diaryService.regenerate(userId, diaryId);
 
         return ApiResponse.of(DiaryResponse.Created.generating(diaryId));
+    }
+
+    /**
+     * 04 "다시 그리기" - 글부터 다시 쓴다. 오늘 기록을 지우고 02 빈 종이로 돌아간다.
+     *
+     * <p>소프트 삭제라 행은 남고, <b>이미 쓴 AI 생성 횟수는 다음 기록이 이어받는다</b> -
+     * 지우기를 반복해 하루 상한을 우회할 수 없다(`DiaryService.delete` 주석).
+     */
+    @DeleteMapping("/{diaryId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@LoginUser Long userId, @PathVariable Long diaryId) {
+        diaryService.delete(userId, diaryId);
     }
 }

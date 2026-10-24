@@ -107,6 +107,30 @@ public class Diary extends BaseEntity {
     }
 
     /**
+     * 같은 날 이미 쓴 생성 횟수를 <b>이어받고, 상한을 다 썼으면 거절한다.</b>
+     *
+     * <p>지우고 다시 쓰는 길이 열리면서 필요해졌다. 막아야 하는 것은 <b>지우기가 아니라 그리기</b>다 -
+     * 비용은 AI 호출에서 나오고 지우기는 공짜다. 그래서 "다시 쓰기" 버튼은 늘 눌리고,
+     * 검사는 다시 쓴 글을 <b>실제로 그리는 이 자리</b>에서 한다.
+     *
+     * <p>하루에 그릴 수 있는 총 횟수는 {@code limit + 1} 이다(처음 1회 + 다시 그리기 limit 회).
+     * 그래서 이미 쓴 횟수가 {@code limit} 을 넘어섰을 때만 거절한다.
+     *
+     * <p>{@code regenerateCount} 에 더하는 이유는 상한 판단이 이미 그 값을 보기 때문이다
+     * ({@link #requestRegenerate}). 세는 곳을 둘로 늘리지 않는다.
+     */
+    public void carryGenerations(int alreadyUsed, DiaryPolicy policy, boolean guest) {
+        int used = Math.max(0, alreadyUsed);
+        if (used > policy.regenerateLimitFor(guest)) {
+            throw new BusinessException(
+                    guest
+                            ? ErrorCode.DIARY_GUEST_GENERATE_LIMIT
+                            : ErrorCode.DIARY_REGENERATE_LIMIT);
+        }
+        this.regenerateCount += used;
+    }
+
+    /**
      * 생성 성공. 그림만 실패했으면 imageUrl이 null인 채로 DONE이다.
      *
      * <p>점수 범위 위반은 <b>시스템 예외</b>다 - 사용자가 만든 상황이 아니라 AI 어댑터가 계약을 어긴 것이라 ErrorCode 로 감싸지
